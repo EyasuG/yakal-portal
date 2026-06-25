@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Yakal Education Services</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --teal:#1099A1; --teal-700:#0C7A80; --teal-900:#06363A; --teal-tint:#E3F4F5;
+  --pink:#CC3366; --pink-tint:#FBE9F0;
+  --amber:#E0972B; --amber-tint:#FaefDA;
+  --green:#1FA971; --green-tint:#E4F6EE;
+  --ink:#1F2124; --slate:#4A4A4A; --mute:#8A9296; --line:#E7ECEC;
+  --app:#F4F7F7; --surface:#fff;
+  --r:16px; --r-lg:22px;
+  --shadow:0 1px 2px rgba(16,40,42,.06),0 6px 18px rgba(16,40,42,.05);
+  --shadow-lg:0 12px 34px rgba(16,40,42,.14);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--app);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit}
+.screen{display:none}
+.screen.on{display:block}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+.btn{height:46px;padding:0 22px;border-radius:99px;font-weight:600;font-size:14.5px;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.15s}
+.btn-primary{background:var(--teal);color:#fff}.btn-primary:hover{background:var(--teal-700)}
+.btn-ghost{background:var(--surface);color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line)}
+.btn-ghost:hover{box-shadow:inset 0 0 0 1.5px var(--teal);color:var(--teal)}
+.btn-pink{background:var(--pink);color:#fff}.btn-pink:hover{filter:brightness(.95)}
+.btn-block{width:100%}
+.logo{width:38px;height:38px;border-radius:11px;background:var(--teal);display:grid;place-items:center;flex:none}
+.logo svg{width:23px;height:23px}
+.brand-name{font-weight:700;font-size:18px;letter-spacing:-.4px}
+.brand-name span{color:var(--teal)}
+
+/* ---------- HOME ---------- */
+.nav{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:14px;height:68px}
+.nav .links{margin-left:auto;display:flex;align-items:center;gap:26px}
+.nav .links a{font-size:14px;font-weight:500;color:var(--slate)}
+.nav .links a:hover{color:var(--teal)}
+@media(max-width:760px){.nav .links a:not(.cta){display:none}}
+.hero{padding:70px 0 40px;background:radial-gradient(1200px 500px at 80% -10%,var(--teal-tint),transparent 60%)}
+.hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
+@media(max-width:860px){.hero-grid{grid-template-columns:1fr;gap:24px}}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;background:var(--pink-tint);color:var(--pink);font-weight:600;font-size:12.5px;padding:7px 14px;border-radius:99px;margin-bottom:18px}
+.hero h1{font-size:46px;line-height:1.05;letter-spacing:-1.5px;font-weight:700}
+@media(max-width:860px){.hero h1{font-size:34px}}
+.hero h1 em{font-style:normal;color:var(--teal)}
+.hero p.lead{font-size:17px;color:var(--slate);margin:18px 0 26px;max-width:520px}
+.hero .cta-row{display:flex;gap:12px;flex-wrap:wrap}
+.hero-card{background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);padding:22px;position:relative;overflow:hidden}
+.hero-card .glow{position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,var(--teal-tint),transparent 70%)}
+.hero-card h3{font-size:15px;margin-bottom:14px}
+.portal-pill{display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:var(--app);margin-bottom:9px}
+.portal-pill .pi{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;color:#fff;flex:none}
+.portal-pill .pt{font-weight:600;font-size:14px}.portal-pill .ps{font-size:12px;color:var(--slate)}
+.portal-pill .arr{margin-left:auto;color:var(--mute)}
+.stats{display:flex;gap:36px;margin-top:38px;flex-wrap:wrap}
+.stats .s b{font-size:30px;font-weight:700;letter-spacing:-1px;display:block}
+.stats .s span{font-size:13px;color:var(--slate)}
+.section{padding:54px 0}
+.section h2{font-size:30px;letter-spacing:-.8px;text-align:center}
+.section .sub{text-align:center;color:var(--slate);margin:10px auto 34px;max-width:560px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:820px){.cards{grid-template-columns:1fr}}
+.feat{background:var(--surface);border-radius:var(--r);padding:24px;box-shadow:var(--shadow);border-top:3px solid var(--teal)}
+.feat .fi{width:46px;height:46px;border-radius:13px;background:var(--teal-tint);color:var(--teal);display:grid;place-items:center;margin-bottom:14px}
+.feat h3{font-size:17px}.feat p{font-size:14px;color:var(--slate);margin-top:7px}
+.subjects{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:680px;margin:0 auto}
+.subj-pill{background:var(--surface);box-shadow:var(--shadow);border-radius:99px;padding:10px 18px;font-weight:500;font-size:14px}
+.subj-pill b{color:var(--teal)}
+.band{background:linear-gradient(135deg,var(--teal),var(--teal-900));color:#fff;border-radius:var(--r-lg);padding:44px;text-align:center;position:relative;overflow:hidden}
+.band .glow{position:absolute;left:-30px;bottom:-50px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(204,51,102,.45),transparent 70%)}
+.band h2{color:#fff}.band p{opacity:.9;margin:12px auto 22px;max-width:520px}
+footer{padding:34px 0;color:var(--mute);font-size:13px;text-align:center;border-top:1px solid var(--line)}
+
+/* ---------- AUTH ---------- */
+.auth-screen{min-height:100vh;display:grid;place-items:center;padding:30px 18px;
+  background:radial-gradient(900px 500px at 50% -10%,var(--teal-tint),transparent 60%)}
+.auth-card{width:100%;max-width:430px;background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);padding:28px}
+.auth-card .top{display:flex;align-items:center;gap:11px;margin-bottom:6px}
+.auth-card .top .x{margin-left:auto;color:var(--mute);font-size:22px;line-height:1}
+.tabs{display:flex;background:var(--app);border-radius:12px;padding:4px;margin:18px 0 20px}
+.tabs button{flex:1;height:38px;border-radius:9px;font-weight:600;font-size:14px;color:var(--slate)}
+.tabs button.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--slate);margin-bottom:6px}
+.field input,.field select{width:100%;height:48px;border:1.5px solid var(--line);border-radius:13px;padding:0 14px;font-size:15px;background:var(--surface);outline:none;transition:.15s}
+.field input:focus,.field select:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-tint)}
+.rolepick{display:flex;gap:9px;margin-bottom:14px}
+.rolepick button{flex:1;padding:13px 6px;border-radius:13px;border:1.5px solid var(--line);background:var(--surface);text-align:center;transition:.15s}
+.rolepick button.on{border-color:var(--teal);background:var(--teal-tint)}
+.rolepick button .ri{display:grid;place-items:center;color:var(--teal);margin-bottom:5px}
+.rolepick button .rl{font-size:12.5px;font-weight:600}
+.demo-row{margin-top:18px;border-top:1px solid var(--line);padding-top:16px}
+.demo-row .dh{font-size:12px;color:var(--mute);text-align:center;margin-bottom:10px}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.demo-grid button{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:11px;background:var(--app);text-align:left;transition:.15s}
+.demo-grid button:hover{background:var(--teal-tint)}
+.demo-grid .da{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:#fff;font-size:12px;font-weight:700;flex:none}
+.demo-grid .dn{font-size:13px;font-weight:600;line-height:1.1}
+.demo-grid .dr{font-size:11px;color:var(--slate)}
+.auth-err{background:var(--pink-tint);color:var(--pink);font-size:13px;font-weight:500;padding:10px 13px;border-radius:11px;margin-bottom:14px;display:none}
+.auth-err.on{display:block}
+.mode-note{font-size:11.5px;color:var(--mute);text-align:center;margin-top:14px}
+.mode-note b{color:var(--teal)}
+
+/* ---------- APP SHELL ---------- */
+.app-shell{display:none;min-height:100vh}
+.app-shell.on{display:block}
+.topbar{position:sticky;top:0;z-index:15;background:var(--surface);border-bottom:1px solid var(--line)}
+.topbar-row{display:flex;align-items:center;gap:12px;padding:12px 16px;max-width:1100px;margin:0 auto}
+.preview-bar{display:none;align-items:center;gap:9px;background:linear-gradient(135deg,var(--teal-900),var(--teal-700));color:#fff;font-size:12.5px;font-weight:600;padding:8px 16px}
+.preview-bar.on{display:flex}.preview-bar .pv{flex:1}
+.preview-bar button{background:#fff;color:var(--teal-900);font-weight:700;font-size:11.5px;padding:6px 12px;border-radius:99px}
+.greet{flex:1;min-width:0}.greet .hi{font-size:12px;color:var(--mute)}.greet .nm{font-size:17px;font-weight:700;letter-spacing:-.3px}
+.icon-btn{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--slate);position:relative}
+.icon-btn:hover{background:var(--app)}.icon-btn svg{width:21px;height:21px}
+.avatar{width:40px;height:40px;border-radius:50%;background:var(--teal);color:#fff;font-weight:700;font-size:14px;display:grid;place-items:center;flex:none}
+.layout{display:flex;max-width:1100px;margin:0 auto}
+.rail{display:none}
+@media(min-width:920px){
+  .rail{display:flex;flex-direction:column;gap:4px;width:230px;padding:18px 12px;border-right:1px solid var(--line);min-height:calc(100vh - 65px)}
+  .rail-link{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;font-weight:600;font-size:14px;color:var(--slate);text-align:left}
+  .rail-link svg{width:20px;height:20px}
+  .rail-link.on{background:var(--teal-tint);color:var(--teal)}
+  .rail-link:hover:not(.on){background:var(--app)}
+  .rail-foot{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--app)}
+}
+.main{flex:1;min-width:0;padding:18px 16px 100px;max-width:760px;margin:0 auto;width:100%}
+.tabbar{position:fixed;bottom:0;left:0;right:0;z-index:15;background:var(--surface);border-top:1px solid var(--line);display:flex;padding:8px 6px calc(8px + env(safe-area-inset-bottom))}
+@media(min-width:920px){.tabbar{display:none}}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px;border-radius:12px;color:var(--mute);font-size:10.5px;font-weight:600}
+.tab svg{width:22px;height:22px}.tab.on{color:var(--teal)}
+.view{display:none;animation:fade .3s ease both}.view.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.sec-h{display:flex;align-items:center;justify-content:space-between;margin:22px 0 11px}
+.sec-h h2{font-size:16px}.sec-h .more{font-size:13px;font-weight:600;color:var(--teal)}
+.count-note{font-size:13px;color:var(--mute)}
+.card{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.card-pad{padding:16px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+@media(min-width:560px){.kpis{grid-template-columns:repeat(4,1fr)}}
+.kpi{background:var(--surface);border-radius:var(--r);padding:15px;box-shadow:var(--shadow)}
+.kpi .kl{font-size:12px;color:var(--slate);font-weight:500}
+.kpi .kv{font-size:25px;font-weight:700;letter-spacing:-.6px;margin-top:3px}
+.kpi .kc{font-size:11.5px;font-weight:600;margin-top:3px}
+.up{color:var(--green)}.down{color:var(--pink)}
+.list{display:flex;flex-direction:column;gap:9px}
+.row{display:flex;align-items:center;gap:12px;background:var(--surface);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow);width:100%;text-align:left;border-left:3px solid transparent}
+.row.warn{border-left-color:var(--amber)}.row.alert{border-left-color:var(--pink)}.row.ok{border-left-color:var(--green)}
+.r-av{width:42px;height:42px;border-radius:12px;background:var(--teal-tint);color:var(--teal-700);font-weight:700;font-size:14px;display:grid;place-items:center;flex:none}
+.r-body{flex:1;min-width:0}.r-name{font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r-sub{font-size:12.5px;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r-meta{text-align:right;flex:none}.mm{font-size:11.5px;color:var(--mute)}
+.tag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;display:inline-block}
+.tag.t-ok{background:var(--green-tint);color:#137a51}.tag.t-warn{background:var(--amber-tint);color:#9a6a12}.tag.t-alert{background:var(--pink-tint);color:var(--pink)}.tag.t-info{background:var(--teal-tint);color:var(--teal-700)}
+.lineitem{display:flex;align-items:center;gap:12px;padding:13px 15px;border-bottom:1px solid var(--line)}
+.lineitem:last-child{border-bottom:none}
+.li-ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none;background:var(--teal-tint);color:var(--teal)}
+.li-ic svg{width:17px;height:17px}.li-b{flex:1;min-width:0}.li-1{font-weight:600;font-size:14px}.li-2{font-size:12.5px;color:var(--slate)}
+.check{width:24px;height:24px;border-radius:7px;border:2px solid var(--line);flex:none;display:grid;place-items:center;color:#fff}
+.check.done{background:var(--green);border-color:var(--green)}.check svg{width:14px;height:14px}
+.prog{height:8px;border-radius:99px;background:var(--line);overflow:hidden}.prog i{display:block;height:100%;background:var(--teal);border-radius:99px}
+.hero-next{border-radius:var(--r-lg);padding:18px;color:#fff;background:linear-gradient(135deg,var(--teal),var(--teal-700));position:relative;overflow:hidden}
+.hero-next .glow{position:absolute;right:-30px;bottom:-40px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(204,51,102,.5),transparent 70%)}
+.hero-next .hk{font-size:11px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;opacity:.85}
+.hero-next .ht{font-size:20px;font-weight:700;margin-top:6px}.hero-next .hs{font-size:13.5px;opacity:.92;margin-top:2px}
+.hero-next .hmeta{display:flex;gap:18px;margin-top:13px}.hero-next .hm{font-size:12.5px;opacity:.9}.hero-next .hm b{display:block;font-size:15px}
+.hero-next .hbtn{margin-top:15px;background:#fff;color:var(--teal-900);height:44px;border-radius:99px;font-weight:700;width:100%;display:flex;align-items:center;justify-content:center;gap:8px}
+.hero-next .hbtn svg{width:18px;height:18px}
+.stat3{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-top:13px}
+.statbox{background:var(--surface);border-radius:var(--r);padding:14px 10px;box-shadow:var(--shadow);text-align:center}
+.statbox .sv{font-size:20px;font-weight:700}.statbox .sl{font-size:11px;color:var(--slate);margin-top:2px}
+.sbar{margin:13px 0}.sbar:first-child{margin-top:4px}.sbar:last-child{margin-bottom:4px}
+.sbar .sbh{display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:7px}.sbar .pc{color:var(--teal)}
+.bill-hero{background:var(--surface);border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow);text-align:center}
+.bill-hero .bl{font-size:12.5px;color:var(--slate);font-weight:600}.bill-hero .bv{font-size:32px;font-weight:700;letter-spacing:-1px;margin:4px 0}
+.bok{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:#137a51;background:var(--green-tint);padding:6px 13px;border-radius:99px}
+.bdue{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--amber);background:var(--amber-tint);padding:6px 13px;border-radius:99px}
+.avail{display:flex;align-items:center;gap:13px;background:var(--surface);border-radius:var(--r);padding:15px;box-shadow:var(--shadow);margin-top:13px}
+.avail .ab{flex:1}.avail .a1{font-size:14px;font-weight:600}.avail .a2{font-size:12px;color:var(--slate)}
+.switch{width:48px;height:28px;border-radius:99px;background:var(--green);position:relative;flex:none;transition:.2s}.switch.off{background:var(--line)}
+.switch i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.2s}.switch.off i{left:23px}
+.teaser{display:flex;align-items:center;gap:13px;background:linear-gradient(135deg,#fff,var(--pink-tint));border-radius:var(--r);padding:15px;box-shadow:var(--shadow);margin-top:8px;width:100%;text-align:left;border-left:3px solid var(--pink)}
+.teaser .ti{width:42px;height:42px;border-radius:12px;background:var(--pink);color:#fff;display:grid;place-items:center;flex:none}
+.teaser .t1{font-weight:700;font-size:14px}.teaser .t2{font-size:12.5px;color:var(--slate)}
+.flag-card{border-left:3px solid var(--pink)}
+.thread{display:flex;flex-direction:column;gap:9px;padding:4px 0 12px;max-height:48vh;overflow-y:auto}
+.bubble{max-width:82%;display:flex;flex-direction:column}.bubble.them{align-self:flex-start}.bubble.me{align-self:flex-end;align-items:flex-end}
+.bubble .bx{padding:10px 13px;border-radius:16px;font-size:13.5px;line-height:1.4}
+.bubble.them .bx{background:var(--app);border-bottom-left-radius:5px}.bubble.me .bx{background:var(--teal);color:#fff;border-bottom-right-radius:5px}
+.bubble.flag .bx{outline:2px solid var(--pink);outline-offset:1px}
+.bubble .bt{font-size:10.5px;color:var(--mute);margin-top:4px;padding:0 4px}
+.flag-note{font-size:11px;color:var(--pink);font-weight:600;margin-top:3px;padding:0 4px;display:flex;align-items:center;gap:4px}
+.composer{display:flex;gap:9px;padding-top:10px;border-top:1px solid var(--line)}
+.composer input{flex:1;height:46px;border:none;background:var(--app);border-radius:99px;padding:0 16px;font-size:14px;outline:none}
+.composer .send{width:46px;height:46px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;flex:none}.composer .send svg{width:19px;height:19px}
+.sheet-back{position:fixed;inset:0;background:rgba(15,30,32,.45);z-index:30;opacity:0;pointer-events:none;transition:.25s}
+.sheet-back.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:31;background:var(--surface);border-radius:22px 22px 0 0;padding:8px 18px calc(20px + env(safe-area-inset-bottom));transform:translateY(100%);transition:.3s cubic-bezier(.3,.9,.3,1);max-height:90vh;overflow-y:auto;max-width:560px;margin:0 auto}
+.sheet.on{transform:translateY(0)}
+.grab{width:38px;height:4px;border-radius:99px;background:var(--line);margin:6px auto 12px}
+.sheet-head{display:flex;align-items:center;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.sheet-head .h-av{width:50px;height:50px;border-radius:14px;background:var(--teal-tint);color:var(--teal-700);font-weight:700;display:grid;place-items:center;flex:none}
+.sheet-head .hn{font-size:17px;font-weight:700}.sheet-head .hs{font-size:13px;color:var(--slate)}
+.sheet-x{margin-left:auto;width:34px;height:34px;border-radius:50%;background:var(--app);display:grid;place-items:center;color:var(--slate)}
+.block{margin-bottom:16px}.block .bt{font-size:12.5px;font-weight:600;color:var(--mute);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px}
+.kv{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}.kv:last-child{border:none}.kv .k{color:var(--slate)}.kv .v{font-weight:600}
+.pill-row{display:flex;flex-wrap:wrap;gap:7px}.subj{background:var(--teal-tint);color:var(--teal-700);font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:99px}
+.btn-row{display:flex;gap:10px;margin-top:6px}.btn-row .btn{flex:1;height:44px}
+.toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 18px;border-radius:14px;font-size:13.5px;font-weight:600;z-index:50;opacity:0;pointer-events:none;transition:.3s;box-shadow:var(--shadow-lg);display:flex;gap:9px;align-items:center}
+.toast svg{width:18px;height:18px;color:var(--teal-tint)}.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.empty{text-align:center;padding:34px 20px;color:var(--mute)}.empty .e1{font-weight:600;color:var(--slate)}.empty .e2{font-size:13px;margin-top:2px}
+.spin{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--teal);border-radius:50%;animation:rot 1s linear infinite;margin:40px auto}
+@keyframes rot{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- ============================ HOME (public) ============================ -->
+<div class="screen on" id="screen-home">
+  <header class="nav"><div class="wrap">
+    <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 4 7v6c0 4 3.5 7 8 8 4.5-1 8-4 8-8V7l-8-4Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="brand-name">Yakal<span> Education</span></div>
+    <nav class="links">
+      <a onclick="scrollToId('services')">Services</a>
+      <a onclick="scrollToId('subjects')">Subjects</a>
+      <a onclick="scrollToId('portal')">Portal</a>
+      <a class="cta"><button class="btn btn-ghost" style="height:40px" onclick="openAuth('login')">Log in</button></a>
+    </nav>
+  </div></header>
+
+  <section class="hero"><div class="wrap"><div class="hero-grid">
+    <div>
+      <div class="eyebrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m12 2 2.4 7.4H22l-6 4.6 2.3 7.4L12 17l-6.3 4.4L8 14 2 9.4h7.6z"/></svg>Inspiring hope, shaping futures</div>
+      <h1>Tutoring & college admissions, <em>done right.</em></h1>
+      <p class="lead">One-on-one tutoring and personalized admissions consulting in Silver Spring, MD — online and in person. Now with a portal that keeps students, parents, and tutors on the same page.</p>
+      <div class="cta-row">
+        <button class="btn btn-primary" onclick="openAuth('signup')">Get started <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 6 6 6-6 6"/></svg></button>
+        <button class="btn btn-ghost" onclick="scrollToId('portal')">Explore the portal</button>
+      </div>
+      <div class="stats">
+        <div class="s"><b>6+</b><span>Subjects covered</span></div>
+        <div class="s"><b>1:1</b><span>Personalized sessions</span></div>
+        <div class="s"><b>K–12</b><span>& college prep</span></div>
+      </div>
+    </div>
+    <div class="hero-card"><div class="glow"></div>
+      <h3>Sign in to your portal</h3>
+      <button class="portal-pill" style="width:100%" onclick="openAuth('signup','student')"><span class="pi" style="background:var(--teal)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><path d="M12 14c-4 0-7 2-7 5v1h14v-1c0-3-3-5-7-5Z"/><circle cx="12" cy="8" r="3.5"/></svg></span><span><div class="pt">Student</div><div class="ps">Sessions, progress, tasks</div></span><span class="arr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m9 6 6 6-6 6"/></svg></span></button>
+      <button class="portal-pill" style="width:100%" onclick="openAuth('signup','parent')"><span class="pi" style="background:var(--pink)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2 19c0-3 2.5-5 6-5s6 2 6 5M14.5 18c.2-2.3 1.8-4 4-4 2 0 3.5 1.4 3.5 4"/></svg></span><span><div class="pt">Parent</div><div class="ps">Monitor your child & messages</div></span><span class="arr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m9 6 6 6-6 6"/></svg></span></button>
+      <button class="portal-pill" style="width:100%" onclick="openAuth('signup','tutor')"><span class="pi" style="background:var(--amber)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"><path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M7 9v5c0 1.5 2.5 3 5 3s5-1.5 5-3V9"/></svg></span><span><div class="pt">Tutor</div><div class="ps">Schedule, roster, earnings</div></span><span class="arr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m9 6 6 6-6 6"/></svg></span></button>
+    </div>
+  </div></div></section>
+
+  <section class="section" id="services"><div class="wrap">
+    <h2>How we help</h2><p class="sub">From weekly tutoring to the full college application journey.</p>
+    <div class="cards">
+      <div class="feat"><div class="fi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2Z"/><path d="M8 7h7M8 11h7"/></svg></div><h3>1:1 Tutoring</h3><p>Math, sciences, and test prep tailored to each student, online or in person.</p></div>
+      <div class="feat" style="border-top-color:var(--pink)"><div class="fi" style="background:var(--pink-tint);color:var(--pink)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 9 12 4 2 9l10 5 10-5Z"/><path d="M6 11v5c0 1 2.7 3 6 3s6-2 6-3v-5"/></svg></div><h3>Admissions consulting</h3><p>Essays, school lists, and deadlines — productized into Essentials, Premier & Elite.</p></div>
+      <div class="feat" style="border-top-color:var(--amber)"><div class="fi" style="background:var(--amber-tint);color:var(--amber)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 4-5"/></svg></div><h3>Progress you can see</h3><p>Parents track sessions, grades, and messages from one simple dashboard.</p></div>
+    </div>
+  </div></section>
+
+  <section class="section" id="subjects" style="background:var(--surface)"><div class="wrap">
+    <h2>Subjects we tutor</h2><p class="sub">Building confidence one session at a time.</p>
+    <div class="subjects">
+      <span class="subj-pill">Algebra</span><span class="subj-pill">Geometry</span><span class="subj-pill">Pre-Calculus</span>
+      <span class="subj-pill">Calculus</span><span class="subj-pill">Physics</span><span class="subj-pill"><b>SAT</b> Prep</span>
+      <span class="subj-pill"><b>ACT</b> Prep</span><span class="subj-pill"><b>AP</b> Courses</span><span class="subj-pill">College Essays</span>
+    </div>
+  </div></section>
+
+  <section class="section" id="portal"><div class="wrap">
+    <div class="band"><div class="glow"></div>
+      <h2>The Yakal portal</h2>
+      <p>Every family gets a private space. Students see their sessions and tasks, parents monitor progress and messages, tutors manage their day — and it all stays in sync.</p>
+      <button class="btn" style="background:#fff;color:var(--teal-900)" onclick="openAuth('signup')">Create your account</button>
+    </div>
+  </div></section>
+
+  <footer><div class="wrap">© Yakal Education Services · Silver Spring, MD · inspiring hope, shaping futures</div></footer>
+</div>
+
+<!-- ============================ AUTH ============================ -->
+<div class="screen" id="screen-auth">
+  <div class="auth-screen"><div class="auth-card">
+    <div class="top">
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 4 7v6c0 4 3.5 7 8 8 4.5-1 8-4 8-8V7l-8-4Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="brand-name">Yakal<span> Portal</span></div>
+      <button class="x" onclick="goHome()">&times;</button>
+    </div>
+    <div class="tabs"><button id="tab-login" class="on" onclick="setAuthMode('login')">Log in</button><button id="tab-signup" onclick="setAuthMode('signup')">Sign up</button></div>
+    <div class="auth-err" id="authErr"></div>
+    <div id="authBody"></div>
+    <div class="demo-row">
+      <div class="dh">Or explore instantly with a demo account</div>
+      <div class="demo-grid" id="demoGrid"></div>
+    </div>
+    <div class="mode-note" id="modeNote"></div>
+  </div></div>
+</div>
+
+<!-- ============================ APP SHELL ============================ -->
+<div class="app-shell" id="screen-app">
+  <header class="topbar">
+    <div class="preview-bar" id="previewBar"><span class="pv" id="previewLabel"></span><button onclick="exitPreview()">Exit preview</button></div>
+    <div class="topbar-row">
+      <button class="avatar" id="topAvatar" onclick="openSwitch()">A</button>
+      <div class="greet"><div class="hi" id="greetHi">Welcome</div><div class="nm" id="greetName">—</div></div>
+      <button class="icon-btn" onclick="toast('You are all caught up')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></button>
+      <button class="icon-btn" onclick="logout()" title="Sign out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></button>
+    </div>
+  </header>
+  <div class="layout">
+    <aside class="rail"><nav id="railLinks" style="display:flex;flex-direction:column;gap:4px"></nav><div class="rail-foot" id="railFoot"></div></aside>
+    <main class="main" id="main"></main>
+  </div>
+  <nav class="tabbar" id="tabbar"></nav>
+</div>
+
+<div class="sheet-back" id="sheetBack" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet"><div class="grab"></div><div id="sheetContent"></div></div>
+<div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 13 4 4L19 7"/></svg><span id="toastMsg"></span></div>
+
+<script>
+/* =====================================================================
+   CONFIG — paste your Supabase project keys here to go LIVE.
+   Leave blank to run the seeded demo (no backend needed).
+===================================================================== */
+const SUPABASE_URL = "";          // e.g. "https://abcd.supabase.co"
+const SUPABASE_ANON_KEY = "";     // your anon public key
+const USE_SUPABASE = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
+
+const $=s=>document.querySelector(s);
+const CK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 13 4 4L19 7"/></svg>';
+const initials=n=>n.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+const ICON={
+  grid:'<rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/>',
+  student:'<path d="M12 14c-4 0-7 2-7 5v1h14v-1c0-3-3-5-7-5Z"/><circle cx="12" cy="8" r="3.5"/>',
+  tutor:'<path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M7 9v5c0 1.5 2.5 3 5 3s5-1.5 5-3V9"/>',
+  parent:'<circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2 19c0-3 2.5-5 6-5s6 2 6 5M14.5 18c.2-2.3 1.8-4 4-4 2 0 3.5 1.4 3.5 4"/>',
+  cap:'<path d="M22 9 12 4 2 9l10 5 10-5Z"/><path d="M6 11v5c0 1 2.7 3 6 3s6-2 6-3v-5"/>',
+  cal:'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/>',
+  chat:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  wallet:'<rect x="2" y="6" width="20" height="13" rx="2.5"/><path d="M16 12.5h.02"/><path d="M2 10.5h20"/>',
+  shield:'<path d="M12 2 4 5v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V5l-8-3Z"/>'
+};
+const svgIc=(k,w)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" ${w?`width="${w}" height="${w}"`:''}>${ICON[k]}</svg>`;
+
+/* =====================================================================
+   SEED — shared demo data, mirrors the Postgres schema tables.
+   The same identities exist in yakal_seed.sql for the live database.
+===================================================================== */
+function seed(){ return {
+  org:{id:'o1',name:'Yakal Education Services'},
+  profiles:[
+    {id:'u-almaz',role:'admin',full_name:'Almaz Tadesse',email:'almaz@yakal.me',phone:'301-555-0001'},
+    {id:'u-beth',role:'tutor',full_name:'Bethlehem Alemu',email:'beth@yakal.me',phone:'301-555-0002'},
+    {id:'u-josh',role:'tutor',full_name:'Eyasu (Josh) Tadesse',email:'josh@yakal.me',phone:'301-555-0003'},
+    {id:'u-hana',role:'tutor',full_name:'Hana Girma',email:'hana@yakal.me',phone:'301-555-0004'},
+    {id:'u-daniel',role:'tutor',full_name:'Daniel Asfaw',email:'daniel@yakal.me',phone:'301-555-0005'},
+    {id:'u-tigist',role:'parent',full_name:'Tigist Worku',email:'tigist@email.com',phone:'301-555-0010'},
+    {id:'u-sara',role:'parent',full_name:'Sara Mekonnen',email:'sara@email.com',phone:'301-555-0011'},
+    {id:'u-amen',role:'student',full_name:'Amen Worku',email:'amen@email.com',phone:'301-555-0012'}
+  ],
+  tutors:{'u-beth':{rating:4.9,rate:45,payout:157500,accepting:true,subjects:['Algebra','SAT Math','Geometry']},
+          'u-josh':{rating:5.0,rate:50,payout:72000,accepting:true,subjects:['Algebra','Pre-Calculus']},
+          'u-hana':{rating:4.8,rate:55,payout:90000,accepting:false,subjects:['College Essays','Admissions']},
+          'u-daniel':{rating:4.7,rate:42,payout:48000,accepting:true,subjects:['Physics','Calculus']}},
+  students:[
+    {id:'s-amen',user_id:'u-amen',name:'Amen Worku',grade:'Grade 12',tutor:'u-beth',progress:78,status:'ok',
+     subjects:['College Essays','SAT Prep'],next:'Thu · 6:00 PM',mode:'Online'},
+    {id:'s-saron',user_id:null,name:'Saron Worku',grade:'Grade 9',tutor:'u-josh',progress:85,status:'ok',
+     subjects:['Algebra I'],next:'Wed · 4:30 PM',mode:'In person'},
+    {id:'s-liya',user_id:null,name:'Liya Mekonnen',grade:'Grade 11',tutor:'u-beth',progress:64,status:'warn',
+     subjects:['Geometry','SAT Math'],next:'Today · 4:00 PM',mode:'Online'}
+  ],
+  guardianships:[{parent:'u-tigist',student:'s-amen'},{parent:'u-tigist',student:'s-saron'},{parent:'u-sara',student:'s-liya'}],
+  progress:{'s-amen':[['College Essays',72],['SAT Prep',61],['Applications',80]],
+            's-saron':[['Algebra I',85],['Study skills',74]],
+            's-liya':[['Geometry',58],['SAT Math',66]]},
+  homework:{'s-amen':[
+      {t:'Common App essay — draft 2',c:'College Essays',d:'Due Fri',done:false},
+      {t:'SAT practice test 3',c:'SAT Prep',d:'Due Tue',done:false},
+      {t:'Revise activities list',c:'Applications',d:'Completed',done:true}]},
+  applications:{'s-amen':{top:'Johns Hopkins University',n:8,deadline:'Jan 2',days:9,
+      essays:[['Common App personal statement',true],['JHU "why us" supplement',false],['Activities descriptions',true]],
+      tasks:[['Request recommendation letters',true],['Finalize school list',true],['Submit FAFSA',false]],
+      counselor:'u-hana'}},
+  sessionsPast:{'s-amen':[['Essay structure','u-hana','Oct 24'],['SAT timing drills','u-beth','Oct 19'],['Personal statement review','u-hana','Oct 12']],
+                's-liya':[['Geometry proofs','u-beth','Oct 22'],['SAT math section','u-beth','Oct 15']]},
+  conversations:[
+    {id:'c1',subject:'Essay & SAT help',student:'s-amen',parts:['u-beth','u-amen'],msgs:[
+      {from:'u-beth',t:'Nice work on draft 1. Tighten the opening before Thursday.',time:'10:02 AM'},
+      {from:'u-amen',t:"Got it — I'll revise the intro tonight.",time:'10:20 AM'}]},
+    {id:'c2',subject:'Admissions updates',student:'s-amen',parts:['u-hana','u-tigist'],msgs:[
+      {from:'u-hana',t:"Amen's JHU supplement looks strong. Comments are in the doc.",time:'9:12 AM'},
+      {from:'u-tigist',t:'Thank you! When is the next session?',time:'9:30 AM'},
+      {from:'u-hana',t:'Thursday at 6 PM — we will finalize the supplement.',time:'9:34 AM'}]},
+    {id:'c3',subject:'Saron — algebra',student:'s-saron',parts:['u-josh','u-tigist'],msgs:[
+      {from:'u-josh',t:'Saron did great today — 90% on the quiz!',time:'Yesterday'},
+      {from:'u-tigist',t:'Wonderful news, thank you.',time:'Yesterday'}]},
+    {id:'c4',subject:'Liya — scheduling',student:'s-liya',parts:['u-beth','u-sara'],msgs:[
+      {from:'u-sara',t:'Could we move Liya to 4:30 next week?',time:'8:40 AM'},
+      {from:'u-beth',t:'Sure, 4:30 Tuesday works.',time:'8:52 AM'},
+      {from:'u-beth',t:'Actually just text me at 301-555-9999 so we can sort it off the app.',time:'8:55 AM',flag:['phone','external_platform']}]}
+  ],
+  invoices:[
+    {id:'i1',parent:'u-tigist',period:'November 2026',amount:48000,status:'paid'},
+    {id:'i2',parent:'u-sara',period:'November 2026',amount:36000,status:'open'}
+  ],
+  payments:{'u-tigist':[['November tuition','Nov 1','$480'],['October tuition','Oct 1','$480'],['September tuition','Sep 1','$480']]},
+  payouts:[
+    {id:'po1',tutor:'u-beth',period:'November',amount:157500,sessions:35},
+    {id:'po2',tutor:'u-josh',period:'November',amount:72000,sessions:16},
+    {id:'po3',tutor:'u-hana',period:'November',amount:90000,sessions:18}
+  ]
+};}
+
+/* =====================================================================
+   DATA LAYER — one interface, two drivers.
+   LocalDriver enforces visibility in JS (mirrors RLS) for the demo.
+   SupabaseDriver runs the real queries; RLS enforces visibility.
+===================================================================== */
+function LocalDriver(){
+  let S, me=null;
+  try{ const saved=localStorage.getItem('yakal_demo'); S=saved?JSON.parse(saved):seed(); }catch(e){ S=seed(); }
+  const save=()=>{ try{ localStorage.setItem('yakal_demo',JSON.stringify(S)); }catch(e){} };
+  const prof=id=>S.profiles.find(p=>p.id===id);
+  const name=id=>(prof(id)||{}).full_name||'Yakal';
+  const myKids=()=>S.guardianships.filter(g=>g.parent===me.id).map(g=>S.students.find(s=>s.id===g.student));
+  const isParentOf=sid=>S.guardianships.some(g=>g.parent===me.id&&g.student===sid);
+  const isTutorOf=sid=>{const s=S.students.find(x=>x.id===sid);return s&&s.tutor===me.id;};
+  const canSee=sid=>me.role==='admin'||isParentOf(sid)||isTutorOf(sid)||(S.students.find(s=>s.id===sid)||{}).user_id===me.id;
+  const studentOfUser=()=>S.students.find(s=>s.user_id===me.id);
+  // visibility for a conversation: admin, participant, or parent of its student
+  const convVisible=c=>me.role==='admin'||c.parts.includes(me.id)||(c.student&&isParentOf(c.student));
+
+  return {
+    mode:'demo',
+    async signUp({email,full_name,role}){
+      if(S.profiles.some(p=>p.email===email)) throw new Error('An account with that email already exists.');
+      const id='u-'+Math.random().toString(36).slice(2,8);
+      const p={id,role,full_name,email,phone:''}; S.profiles.push(p);
+      if(role==='tutor') S.tutors[id]={rating:5.0,rate:40,payout:0,accepting:true,subjects:[]};
+      me=p; save(); return p;
+    },
+    async signIn({email}){ const p=S.profiles.find(x=>x.email===email); if(!p) throw new Error('No account found for that email. Try a demo account below.'); me=p; return p; },
+    async signInDemo(id){ me=prof(id); return me; },
+    async signOut(){ me=null; },
+    me(){ return me; },
+    name,
+    // ---- ADMIN ----
+    async adminOverview(){
+      const openInv=S.invoices.filter(i=>i.status!=='paid').reduce((a,i)=>a+i.amount,0);
+      return {students:S.students.length,tutors:Object.keys(S.tutors).length,
+        active:S.students.filter(s=>s.status!=='alert').length,
+        revenue:S.invoices.filter(i=>i.status==='paid').reduce((a,i)=>a+i.amount,0),
+        outstanding:openInv,
+        flags:S.conversations.flatMap(c=>c.msgs.filter(m=>m.flag)).length};
+    },
+    async listStudents(){ return S.students.filter(s=>canSee(s.id)).map(s=>({...s,tutorName:name(s.tutor)})); },
+    async listTutors(){ return Object.entries(S.tutors).map(([id,t])=>({id,name:name(id),...t,
+        students:S.students.filter(s=>s.tutor===id).length})); },
+    async listParents(){ return S.profiles.filter(p=>p.role==='parent').map(p=>({...p,
+        kids:S.guardianships.filter(g=>g.parent===p.id).map(g=>name(S.students.find(s=>s.id===g.student).user_id)||S.students.find(s=>s.id===g.student).name)})); },
+    async adminFlags(){ const out=[]; S.conversations.forEach(c=>c.msgs.forEach(m=>{ if(m.flag) out.push({who:name(m.from),student:S.students.find(s=>s.id===c.student)?.name,reasons:m.flag,excerpt:m.t,time:m.time}); })); return out; },
+    async tutorRisk(){ const map={}; S.conversations.forEach(c=>c.msgs.forEach(m=>{ if(m.flag&&prof(m.from)?.role==='tutor'){ map[m.from]=(map[m.from]||0)+1; }})); return Object.entries(map).map(([id,n])=>({name:name(id),flags:n})); },
+    // ---- STUDENT ----
+    async studentHome(){ const s=studentOfUser(); return {student:s,progress:S.progress[s.id]||[],homework:S.homework[s.id]||[],application:S.applications[s.id],tutorName:name(s.tutor)}; },
+    async studentSessions(){ const s=studentOfUser(); return {next:{subject:s.subjects[0],when:s.next,tutor:name(s.tutor),mode:s.mode},past:(S.sessionsPast[s.id]||[]).map(p=>[p[0],name(p[1]),p[2]])}; },
+    async toggleHomework(i){ const s=studentOfUser(); S.homework[s.id][i].done=!S.homework[s.id][i].done; save(); },
+    async toggleAppItem(kind,i){ const s=studentOfUser(); const a=S.applications[s.id]; (kind==='e'?a.essays:a.tasks)[i][1]=!(kind==='e'?a.essays:a.tasks)[i][1]; save(); },
+    // ---- PARENT ----
+    async parentChildren(){ return myKids().map(s=>({...s,tutorName:name(s.tutor)})); },
+    async childDetail(sid){ if(!canSee(sid)) throw new Error('Not authorized'); const s=S.students.find(x=>x.id===sid); return {...s,tutorName:name(s.tutor),progress:S.progress[sid]||[],past:(S.sessionsPast[sid]||[]).map(p=>[p[0],name(p[1]),p[2]])}; },
+    async parentBilling(){ const inv=S.invoices.find(i=>i.parent===me.id); return {invoice:inv,history:S.payments[me.id]||[],kids:myKids().length}; },
+    // ---- TUTOR ----
+    async tutorHome(){ const t=S.tutors[me.id]; const mine=S.students.filter(s=>s.tutor===me.id); return {tutor:t,students:mine.map(s=>({...s,parentName:name((S.guardianships.find(g=>g.student===s.id)||{}).parent)})),today:mine.filter(s=>s.next.includes('Today'))}; },
+    async tutorStudents(){ return S.students.filter(s=>s.tutor===me.id).map(s=>({...s,parentName:name((S.guardianships.find(g=>g.student===s.id)||{}).parent)})); },
+    async tutorEarnings(){ const t=S.tutors[me.id]; return {payout:t.payout,rate:t.rate,students:S.students.filter(s=>s.tutor===me.id).length,
+        history:[['October payout','Oct 31','$1,420'],['September payout','Sep 30','$1,260']]}; },
+    async toggleAvailability(){ S.tutors[me.id].accepting=!S.tutors[me.id].accepting; save(); return S.tutors[me.id].accepting; },
+    // ---- MESSAGES (shared) ----
+    async conversations(){ return S.conversations.filter(convVisible).map(c=>({id:c.id,subject:c.subject,
+        student:S.students.find(s=>s.id===c.student)?.name,
+        withName:name(c.parts.find(p=>p!==me.id)||c.parts[0]),
+        last:c.msgs[c.msgs.length-1],monitor:!c.parts.includes(me.id)})); },
+    async messages(cid){ const c=S.conversations.find(x=>x.id===cid); if(!convVisible(c)) throw new Error('Not authorized');
+        return {subject:c.subject,withName:name(c.parts.find(p=>p!==me.id)||c.parts[0]),readOnly:!c.parts.includes(me.id),
+          msgs:c.msgs.map(m=>({me:m.from===me.id,who:name(m.from),t:m.flag?redact(m.t):m.t,time:m.time,flag:m.flag,raw:m.t}))}; },
+    async sendMessage(cid,body){ const c=S.conversations.find(x=>x.id===cid);
+        const flags=scan(body); const m={from:me.id,t:body,time:'Now'}; if(flags.length)m.flag=flags; c.msgs.push(m); save(); return flags; }
+  };
+}
+// client-side mirror of the server scanner (for demo realism)
+function scan(b){ const f=[];
+  if(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.test(b)) f.push('email');
+  if(/\+?\d[\d\s().-]{8,}\d/.test(b)) f.push('phone');
+  if(/venmo|cash ?app|zelle|paypal|\$[a-z0-9]{2,}/i.test(b)) f.push('payment_handle');
+  if(/whats ?app|telegram|signal|text me|call me|off the app|pay me directly/i.test(b)) f.push('external_platform');
+  return f; }
+function redact(b){ return b.replace(/\+?\d[\d\s().-]{8,}\d/g,'[contact removed]').replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,'[contact removed]'); }
+
+/* ---- Real Supabase driver (activated when keys are set) ---- */
+async function SupabaseDriver(){
+  const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  let prof=null;
+  async function loadProfile(){ const { data:{user} } = await sb.auth.getUser(); if(!user) return null;
+    const { data } = await sb.from('profiles').select('*').eq('id',user.id).single(); prof=data; return data; }
+  await loadProfile();
+  const money=c=>c; // cents handled in UI
+  return {
+    mode:'live',
+    async signUp({email,password,full_name,role}){
+      const { data, error } = await sb.auth.signUp({ email, password,
+        options:{ data:{ full_name, role } } });
+      if(error) throw new Error(error.message);
+      // a DB trigger (see guide) creates the matching profiles row from user metadata
+      await loadProfile(); return prof;
+    },
+    async signIn({email,password}){ const { error } = await sb.auth.signInWithPassword({email,password}); if(error) throw new Error(error.message); return loadProfile(); },
+    async signInDemo(){ throw new Error('Demo accounts are only available in demo mode.'); },
+    async signOut(){ await sb.auth.signOut(); prof=null; },
+    me(){ return prof; },
+    name(){ return prof?.full_name||'Yakal'; },
+    // Each query is scoped by RLS automatically — no client-side filtering needed.
+    async adminOverview(){
+      const [st,tu,inv] = await Promise.all([
+        sb.from('students').select('id',{count:'exact',head:true}),
+        sb.from('tutor_profiles').select('profile_id',{count:'exact',head:true}),
+        sb.from('invoices').select('amount_cents,status')]);
+      const paid=(inv.data||[]).filter(i=>i.status==='paid').reduce((a,i)=>a+i.amount_cents,0);
+      const out=(inv.data||[]).filter(i=>i.status!=='paid').reduce((a,i)=>a+i.amount_cents,0);
+      const { count:flags } = await sb.from('message_flags').select('id',{count:'exact',head:true});
+      return {students:st.count,tutors:tu.count,active:st.count,revenue:paid,outstanding:out,flags:flags||0};
+    },
+    async listStudents(){ const { data } = await sb.from('students').select('id,first_name,last_name,grade,status'); return (data||[]).map(s=>({id:s.id,name:s.first_name+' '+s.last_name,grade:s.grade,status:'ok',tutorName:'',progress:0,subjects:[],next:'',mode:''})); },
+    async listTutors(){ const { data } = await sb.from('tutor_profiles').select('profile_id,rating,hourly_rate,accepting,profiles(full_name)'); return (data||[]).map(t=>({id:t.profile_id,name:t.profiles?.full_name,rating:t.rating,rate:t.hourly_rate,payout:0,accepting:t.accepting,subjects:[],students:0})); },
+    async listParents(){ const { data } = await sb.from('profiles').select('id,full_name,email').eq('role','parent'); return (data||[]).map(p=>({...p,kids:[]})); },
+    async adminFlags(){ const { data } = await sb.from('message_flags').select('kind,excerpt,created_at,profiles(full_name)').order('created_at',{ascending:false}); return (data||[]).map(f=>({who:f.profiles?.full_name,reasons:[f.kind],excerpt:f.excerpt,time:new Date(f.created_at).toLocaleDateString()})); },
+    async tutorRisk(){ const { data } = await sb.from('admin_tutor_risk').select('*').gt('open_flags',0); return (data||[]).map(r=>({name:r.full_name,flags:r.open_flags})); },
+    async studentHome(){ const { data:s } = await sb.from('students').select('*').limit(1).single();
+      const [pr,hw,ap] = await Promise.all([
+        sb.from('progress_snapshots').select('percent,subjects(name)').eq('student_id',s.id),
+        sb.from('homework').select('*').eq('student_id',s.id),
+        sb.from('applications').select('*').eq('student_id',s.id).limit(1).maybeSingle()]);
+      return {student:{id:s.id,name:s.first_name+' '+s.last_name,grade:s.grade,subjects:[],next:'',mode:'Online'},
+        progress:(pr.data||[]).map(p=>[p.subjects?.name||'Subject',p.percent]),
+        homework:(hw.data||[]).map(h=>({t:h.title,c:'',d:h.due_date||'',done:h.status==='graded'})),
+        application:ap.data,tutorName:''};
+    },
+    async studentSessions(){ const { data:s } = await sb.from('students').select('id,first_name').limit(1).single();
+      const { data } = await sb.from('sessions').select('*,subjects(name)').eq('student_id',s.id).order('scheduled_start',{ascending:false});
+      const past=(data||[]).filter(x=>x.status==='completed').map(x=>[x.subjects?.name||'Session','',new Date(x.scheduled_start).toLocaleDateString()]);
+      return {next:{subject:'Next session',when:'',tutor:'',mode:'Online'},past};
+    },
+    async toggleHomework(){ /* update homework.status */ },
+    async toggleAppItem(){ /* update application_essays/tasks.status */ },
+    async parentChildren(){ const { data } = await sb.from('students').select('*'); return (data||[]).map(s=>({id:s.id,name:s.first_name+' '+s.last_name,grade:s.grade,status:'ok',progress:0,subjects:[],next:'',mode:'',tutorName:''})); },
+    async childDetail(sid){ const { data:s } = await sb.from('students').select('*').eq('id',sid).single();
+      const { data:pr } = await sb.from('progress_snapshots').select('percent,subjects(name)').eq('student_id',sid);
+      return {id:s.id,name:s.first_name+' '+s.last_name,grade:s.grade,status:'ok',progress:(pr||[]).map(p=>[p.subjects?.name||'Subject',p.percent]),subjects:[],next:'',mode:'',tutorName:'',past:[]};
+    },
+    async parentBilling(){ const { data } = await sb.from('invoices').select('*').order('created_at',{ascending:false});
+      const inv=(data||[])[0]; return {invoice:inv?{period:inv.period,amount:inv.amount_cents,status:inv.status}:null,
+        history:(data||[]).filter(i=>i.status==='paid').map(i=>[i.period,'',`$${(i.amount_cents/100).toFixed(0)}`]),kids:0}; },
+    async tutorHome(){ const { data:tp } = await sb.from('tutor_profiles').select('*').eq('profile_id',prof.id).single();
+      const { data:asg } = await sb.from('tutoring_assignments').select('students(id,first_name,last_name,grade)').eq('tutor_id',prof.id).eq('status','active');
+      const students=(asg||[]).map(a=>({id:a.students.id,name:a.students.first_name+' '+a.students.last_name,grade:a.students.grade,status:'ok',progress:0,subjects:[],next:'',mode:'',parentName:''}));
+      return {tutor:{rating:tp.rating,rate:tp.hourly_rate,accepting:tp.accepting,payout:0},students,today:[]};
+    },
+    async tutorStudents(){ return (await this.tutorHome()).students; },
+    async tutorEarnings(){ const { data } = await sb.from('payouts').select('*').eq('tutor_id',prof.id).order('created_at',{ascending:false});
+      const cur=(data||[])[0]; return {payout:cur?cur.amount_cents:0,rate:0,students:0,history:(data||[]).slice(1).map(p=>[p.period,'',`$${(p.amount_cents/100).toFixed(0)}`])}; },
+    async toggleAvailability(){ const cur=(await sb.from('tutor_profiles').select('accepting').eq('profile_id',prof.id).single()).data.accepting;
+      await sb.from('tutor_profiles').update({accepting:!cur}).eq('profile_id',prof.id); return !cur; },
+    async conversations(){ const { data } = await sb.from('conversations').select('id,subject,student_id,messages(body,created_at,sender_id,flagged)').order('created_at',{ascending:false});
+      return (data||[]).map(c=>{ const last=(c.messages||[]).slice(-1)[0]||{}; return {id:c.id,subject:c.subject,student:'',withName:'',last:{from:last.sender_id,t:last.body,time:last.created_at?new Date(last.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):''},monitor:false}; }); },
+    async messages(cid){ const { data } = await sb.from('messages').select('*,profiles(full_name)').eq('conversation_id',cid).order('created_at');
+      return {subject:'',withName:'',readOnly:false,msgs:(data||[]).map(m=>({me:m.sender_id===prof.id,who:m.profiles?.full_name,t:m.redacted_body||m.body,time:new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),flag:m.flagged?m.flag_reasons:null}))}; },
+    async sendMessage(cid,body){ const { error } = await sb.from('messages').insert({conversation_id:cid,sender_id:prof.id,body}); if(error) throw new Error(error.message); return scan(body); }
+  };
+}
+
+let DB=null;
+
+/* =====================================================================
+   AUTH UI + FLOW
+===================================================================== */
+let authMode='login', signupRole='student';
+const ROLE_META={student:{ic:'student',label:'Student'},parent:{ic:'parent',label:'Parent'},tutor:{ic:'tutor',label:'Tutor'}};
+const DEMO_ACCOUNTS=[
+  {id:'u-almaz',name:'Almaz T.',role:'Administrator',color:'var(--ink)'},
+  {id:'u-tigist',name:'Tigist Worku',role:'Parent',color:'var(--pink)'},
+  {id:'u-amen',name:'Amen Worku',role:'Student',color:'var(--teal)'},
+  {id:'u-beth',name:'Bethlehem A.',role:'Tutor',color:'var(--amber)'}
+];
+function scrollToId(id){ document.getElementById(id).scrollIntoView({behavior:'smooth'}); }
+function goHome(){ showScreen('home'); }
+function showScreen(s){ document.querySelectorAll('.screen').forEach(x=>x.classList.remove('on')); $('#screen-'+s).classList.add('on');
+  $('#screen-app').classList.toggle('on',s==='app'); window.scrollTo(0,0); }
+function openAuth(mode,role){ if(role){signupRole=role;mode='signup';} showScreen('auth'); setAuthMode(mode||'login'); renderDemo(); 
+  $('#modeNote').innerHTML = USE_SUPABASE?'Connected to <b>Supabase</b> · live mode':'Running in <b>demo</b> mode · no backend required'; }
+function setAuthMode(m){ authMode=m; $('#tab-login').classList.toggle('on',m==='login'); $('#tab-signup').classList.toggle('on',m==='signup'); $('#authErr').classList.remove('on'); renderAuthBody(); }
+function renderAuthBody(){
+  const b=$('#authBody');
+  if(authMode==='login'){
+    b.innerHTML=`<div class="field"><label>Email</label><input id="inEmail" type="email" placeholder="you@email.com"></div>
+      ${USE_SUPABASE?'<div class="field"><label>Password</label><input id="inPass" type="password" placeholder="••••••••"></div>':''}
+      <button class="btn btn-primary btn-block" onclick="doLogin()">Log in</button>`;
+  } else {
+    b.innerHTML=`<div class="rolepick" id="rolepick">${Object.keys(ROLE_META).map(r=>`<button class="${r===signupRole?'on':''}" data-role="${r}" onclick="pickRole('${r}')"><span class="ri">${svgIc(ROLE_META[r].ic,20)}</span><span class="rl">${ROLE_META[r].label}</span></button>`).join('')}</div>
+      <div class="field"><label>Full name</label><input id="inName" placeholder="Your name"></div>
+      <div class="field"><label>Email</label><input id="inEmail" type="email" placeholder="you@email.com"></div>
+      ${USE_SUPABASE?'<div class="field"><label>Password</label><input id="inPass" type="password" placeholder="Choose a password"></div>':''}
+      <button class="btn btn-primary btn-block" onclick="doSignup()">Create account</button>`;
+  }
+}
+function pickRole(r){ signupRole=r; document.querySelectorAll('#rolepick button').forEach(b=>b.classList.toggle('on',b.dataset.role===r)); }
+function renderDemo(){ $('#demoGrid').innerHTML=DEMO_ACCOUNTS.map(d=>`<button onclick="demoLogin('${d.id}')"><span class="da" style="background:${d.color}">${initials(d.name)}</span><span><span class="dn">${d.name}</span><br><span class="dr">${d.role}</span></span></button>`).join(''); }
+function authError(msg){ const e=$('#authErr'); e.textContent=msg; e.classList.add('on'); }
+async function doLogin(){ try{ const email=$('#inEmail').value.trim(); if(!email) return authError('Enter your email.');
+  const pass=USE_SUPABASE?$('#inPass').value:''; await DB.signIn({email,password:pass}); enterApp(); }catch(e){ authError(e.message); } }
+async function doSignup(){ try{ const full_name=$('#inName').value.trim(), email=$('#inEmail').value.trim();
+  if(!full_name||!email) return authError('Name and email are required.');
+  const password=USE_SUPABASE?$('#inPass').value:''; if(USE_SUPABASE&&password.length<6) return authError('Password must be at least 6 characters.');
+  await DB.signUp({full_name,email,password,role:signupRole}); enterApp(); toast('Welcome to Yakal!'); }catch(e){ authError(e.message); } }
+async function demoLogin(id){ if(USE_SUPABASE){ // map demo buttons to seeded creds in live mode
+    const creds={'u-almaz':'almaz@yakal.me','u-tigist':'tigist@email.com','u-amen':'amen@email.com','u-beth':'beth@yakal.me'};
+    try{ await DB.signIn({email:creds[id],password:'demo-password'}); enterApp(); }catch(e){ authError('Seed the demo users first (see the integration guide).'); } return; }
+  await DB.signInDemo(id); enterApp(); }
+
+/* =====================================================================
+   APP SHELL — role-aware nav + routing
+===================================================================== */
+const NAV={
+  admin:[['overview','Home','grid'],['students','Students','student'],['tutors','Tutors','tutor'],['msg','Messages','chat'],['trust','Trust','shield']],
+  student:[['shome','Home','grid'],['ssessions','Sessions','cal'],['sadm','Admissions','cap'],['msg','Messages','chat']],
+  parent:[['phome','Home','grid'],['pkids','Children','student'],['msg','Messages','chat'],['pbill','Billing','wallet']],
+  tutor:[['thome','Today','grid'],['tstudents','Students','student'],['tearn','Earnings','wallet'],['msg','Messages','chat']]
+};
+const ROLE_HI={admin:'Admin console',student:'Your learning',parent:'Your family',tutor:'Your teaching'};
+let role='admin', previewing=false, realRole='admin';
+
+function enterApp(){ const p=DB.me(); role=p.role; realRole=p.role; previewing=false;
+  $('#previewBar').classList.remove('on'); showScreen('app'); buildShell(); go(NAV[role][0][0]); }
+function buildShell(){
+  const p=DB.me();
+  $('#topAvatar').textContent=initials(p.full_name);
+  const items=NAV[role];
+  const mk=cls=>items.map((it,i)=>`<button class="${cls} ${i===0?'on':''}" onclick="go('${it[0]}')">${svgIc(it[2])}${it[1]}</button>`).join('');
+  $('#railLinks').innerHTML=mk('rail-link'); $('#tabbar').innerHTML=mk('tab');
+  $('#railFoot').innerHTML=`<div class="avatar" style="width:32px;height:32px;font-size:12px">${initials(p.full_name)}</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${p.full_name}</div><div style="font-size:11px;color:var(--mute)">${cap(role)}</div></div>`;
+}
+const cap=s=>s[0].toUpperCase()+s.slice(1);
+async function go(view){
+  document.querySelectorAll('.tab,.rail-link').forEach((t,i)=>{});
+  const items=NAV[role];
+  document.querySelectorAll('#tabbar .tab').forEach((t,i)=>t.classList.toggle('on',items[i][0]===view));
+  document.querySelectorAll('#railLinks .rail-link').forEach((t,i)=>t.classList.toggle('on',items[i][0]===view));
+  const item=items.find(i=>i[0]===view), first=items[0][0];
+  const p=DB.me();
+  $('#greetHi').textContent = view===first?greet():ROLE_HI[role];
+  $('#greetName').textContent = view===first?p.full_name.split(' ')[0]:item[1];
+  $('#main').innerHTML='<div class="spin"></div>'; window.scrollTo(0,0); closeSheet();
+  try{ await RENDER[view](); }catch(e){ $('#main').innerHTML=`<div class="empty"><div class="e1">Could not load</div><div class="e2">${e.message}</div></div>`; }
+}
+function greet(){ const h=new Date().getHours(); return h<12?'Good morning,':h<18?'Good afternoon,':'Good evening,'; }
+const money=c=>'$'+(c/100).toLocaleString(undefined,{maximumFractionDigits:0});
+
+/* ---------- VIEW RENDERERS ---------- */
+const RENDER={};
+const statBox=(v,l)=>`<div class="statbox"><div class="sv">${v}</div><div class="sl">${l}</div></div>`;
+const subjBars=a=>a.map(x=>`<div class="sbar"><div class="sbh"><span>${x[0]}</span><span class="pc">${x[1]}%</span></div><div class="prog"><i style="width:${x[1]}%"></i></div></div>`).join('');
+const calIc='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'+ICON.cal+'</svg>';
+function heroNext(subject,when,who,mode){ const online=mode!=='In person';
+  const icon=online?'<path d="m23 7-7 5 7 5V7Z"/><rect x="1" y="5" width="15" height="14" rx="2"/>':'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>';
+  return `<div class="hero-next"><div class="glow"></div><div class="hk">Next session</div><div class="ht">${subject}</div><div class="hs">with ${who}</div>
+   <div class="hmeta"><div class="hm"><b>${when}</b></div><div class="hm"><b>${mode||'Online'}</b></div></div>
+   <button class="hbtn" onclick="toast('${online?'Opening your video room…':'Session details confirmed'}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${icon}</svg>${online?'Join session':'View details'}</button></div>`; }
+
+// ----- ADMIN -----
+RENDER.overview=async()=>{ const o=await DB.adminOverview();
+  $('#main').innerHTML=`
+   <div class="kpis">
+    ${kpi('Active students',o.students,'+2 this term','up')}
+    ${kpi('Tutors',o.tutors,'4 accepting','up')}
+    ${kpi('Revenue (paid)',money(o.revenue),'this term','up')}
+    ${kpi('Outstanding',money(o.outstanding),o.outstanding?'1 invoice open':'all clear',o.outstanding?'down':'up')}
+   </div>
+   <div class="sec-h"><h2>Needs attention</h2></div>
+   <div class="list">
+     ${o.flags?`<button class="row alert" onclick="go('trust')"><div class="r-av" style="background:var(--pink-tint);color:var(--pink)">!</div><div class="r-body"><div class="r-name">${o.flags} flagged message${o.flags>1?'s':''}</div><div class="r-sub">Possible off-platform contact — review in Trust</div></div><span class="r-meta"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--mute)" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></span></button>`:''}
+     <button class="row warn" onclick="go('students')"><div class="r-av" style="background:var(--amber-tint);color:var(--amber)">L</div><div class="r-body"><div class="r-name">Liya Mekonnen — progress dip</div><div class="r-sub">Geometry below target · tutor Bethlehem</div></div></button>
+   </div>
+   <div class="sec-h"><h2>Role portals</h2><span class="more" onclick="openSwitch()">Preview</span></div>
+   <p class="count-note" style="margin-bottom:8px">Step into any member's view to see exactly what they see.</p>
+   <div class="list">${['student','parent','tutor'].map(r=>`<button class="row" onclick="preview('${r}')"><div class="r-av">${svgIc(r,20)}</div><div class="r-body"><div class="r-name">${cap(r)} portal</div><div class="r-sub">Preview as a ${r}</div></div></button>`).join('')}</div>`;
+};
+function kpi(l,v,c,d){ return `<div class="kpi"><div class="kl">${l}</div><div class="kv">${v}</div><div class="kc ${d}">${c}</div></div>`; }
+RENDER.students=async()=>{ const list=await DB.listStudents();
+  $('#main').innerHTML=`<div class="sec-h"><h2>Students</h2><span class="count-note">${list.length} total</span></div>
+   <div class="list">${list.map(s=>`<button class="row ${s.status}" onclick="openStudentAdmin('${s.id}')"><div class="r-av">${initials(s.name)}</div><div class="r-body"><div class="r-name">${s.name}</div><div class="r-sub">${s.grade} · ${s.tutorName||''}</div></div><div class="r-meta"><div class="mm">${s.progress?s.progress+'%':''}</div></div></button>`).join('')}</div>`;
+};
+RENDER.tutors=async()=>{ const list=await DB.listTutors();
+  $('#main').innerHTML=`<div class="sec-h"><h2>Tutors</h2><span class="count-note">${list.length} total</span></div>
+   <div class="list">${list.map(t=>`<div class="row"><div class="r-av" style="background:var(--amber-tint);color:var(--amber)">${initials(t.name)}</div><div class="r-body"><div class="r-name">${t.name}</div><div class="r-sub">★ ${t.rating} · ${t.students} students · $${t.rate}/hr</div></div><div class="r-meta"><span class="tag ${t.accepting?'t-ok':'t-info'}">${t.accepting?'Accepting':'Full'}</span></div></div>`).join('')}</div>`;
+};
+RENDER.trust=async()=>{ const flags=await DB.adminFlags(); const risk=await DB.tutorRisk();
+  $('#main').innerHTML=`<div class="sec-h"><h2>Trust & safety</h2></div>
+   <p class="count-note" style="margin-bottom:10px">Messages are scanned for off-platform contact attempts. Contact details are auto-redacted for members and logged here for review.</p>
+   ${flags.length?`<div class="list">${flags.map(f=>`<div class="card flag-card card-pad"><div style="display:flex;gap:10px;align-items:center;margin-bottom:8px"><div class="r-av" style="background:var(--pink-tint);color:var(--pink);width:34px;height:34px;border-radius:10px">${svgIc('shield',16)}</div><div style="flex:1"><div style="font-weight:600;font-size:14px">${f.who} · re ${f.student||'—'}</div><div style="font-size:12px;color:var(--mute)">${f.time}</div></div></div><div style="font-size:13px;color:var(--slate);font-style:italic">"${f.excerpt}"</div><div class="pill-row" style="margin-top:9px">${f.reasons.map(r=>`<span class="tag t-alert">${r.replace('_',' ')}</span>`).join('')}</div></div>`).join('')}</div>`:'<div class="empty"><div class="e1">No flags</div><div class="e2">All conversations look clean.</div></div>'}
+   ${risk.length?`<div class="sec-h"><h2>Tutor risk</h2></div><div class="list">${risk.map(r=>`<div class="row alert"><div class="r-av" style="background:var(--pink-tint);color:var(--pink)">${initials(r.name)}</div><div class="r-body"><div class="r-name">${r.name}</div><div class="r-sub">${r.flags} open flag${r.flags>1?'s':''}</div></div></div>`).join('')}</div>`:''}`;
+};
+
+// ----- STUDENT -----
+RENDER.shome=async()=>{ const d=await DB.studentHome(); const s=d.student;
+  $('#main').innerHTML=`
+   ${heroNext(s.subjects[0]||'Session',s.next||'This week',d.tutorName||'your tutor',s.mode)}
+   <div class="stat3">${statBox('12','Sessions')}${statBox('18h','This term')}${statBox('5','Day streak')}</div>
+   <div class="sec-h"><h2>Subjects & progress</h2></div>
+   <div class="card card-pad">${subjBars(d.progress)}</div>
+   <div class="sec-h"><h2>Assignments due</h2></div>
+   <div class="card">${d.homework.map((a,i)=>`<button class="lineitem" style="width:100%;text-align:left" onclick="toggleHw(${i})"><div class="check ${a.done?'done':''}">${a.done?CK:''}</div><div class="li-b"><div class="li-1">${a.t}</div><div class="li-2">${a.c} · ${a.d}</div></div></button>`).join('')||'<div class="empty"><div class="e2">No assignments</div></div>'}</div>
+   ${d.application?`<button class="teaser" onclick="go('sadm')"><div class="ti">${svgIc('cap',21)}</div><div style="flex:1"><div class="t1">Your college applications</div><div class="t2">${d.application.top} · deadline in ${d.application.days} days</div></div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--mute)" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></button>`:''}`;
+};
+async function toggleHw(i){ await DB.toggleHomework(i); go('shome'); }
+RENDER.ssessions=async()=>{ const d=await DB.studentSessions();
+  $('#main').innerHTML=`<div class="sec-h"><h2>Upcoming</h2><span class="more" onclick="toast('Reschedule request sent')">Reschedule</span></div>
+   <div class="card"><div class="lineitem"><div class="li-ic">${calIc}</div><div class="li-b"><div class="li-1">${d.next.subject}</div><div class="li-2">${d.next.when} · ${d.next.tutor}</div></div></div></div>
+   <div class="sec-h"><h2>Past sessions</h2></div>
+   <div class="card">${d.past.map(h=>`<div class="lineitem"><div class="li-ic" style="background:var(--green-tint);color:var(--green)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 13 4 4L19 7"/></svg></div><div class="li-b"><div class="li-1">${h[0]}</div><div class="li-2">${h[1]} · ${h[2]}</div></div></div>`).join('')||'<div class="empty"><div class="e2">No past sessions yet</div></div>'}</div>`;
+};
+RENDER.sadm=async()=>{ const d=await DB.studentHome(); const a=d.application;
+  if(!a){ $('#main').innerHTML='<div class="empty"><div class="e1">No application yet</div><div class="e2">Your counselor will set this up.</div></div>'; return; }
+  $('#main').innerHTML=`<div class="card card-pad" style="background:linear-gradient(135deg,#fff,var(--pink-tint));border-left:3px solid var(--pink)"><div style="font-size:12px;font-weight:700;color:var(--pink);text-transform:uppercase;letter-spacing:.5px">Your application</div><div style="font-size:18px;font-weight:700;margin-top:4px">${a.top}</div><div style="font-size:13px;color:var(--slate)">${a.n} colleges · next deadline ${a.deadline}</div></div>
+   <div class="stat3" style="margin-top:13px">${statBox(a.days+'d','To deadline')}${statBox(a.essays.filter(e=>e[1]).length+'/'+a.essays.length,'Essays')}${statBox(a.tasks.filter(t=>t[1]).length+'/'+a.tasks.length,'Tasks')}</div>
+   <div class="sec-h"><h2>Essays</h2></div><div class="card">${a.essays.map((e,i)=>admItem(e,'e',i)).join('')}</div>
+   <div class="sec-h"><h2>To-do</h2></div><div class="card">${a.tasks.map((t,i)=>admItem(t,'t',i)).join('')}</div>`;
+};
+const admItem=(x,k,i)=>`<button class="lineitem" style="width:100%;text-align:left" onclick="toggleApp('${k}',${i})"><div class="check ${x[1]?'done':''}">${x[1]?CK:''}</div><div class="li-b"><div class="li-1">${x[0]}</div><div class="li-2">${x[1]?'Complete':'In progress'}</div></div></button>`;
+async function toggleApp(k,i){ await DB.toggleAppItem(k,i); go('sadm'); }
+
+// ----- PARENT -----
+RENDER.phome=async()=>{ const kids=await DB.parentChildren();
+  $('#main').innerHTML=`
+   <div class="card card-pad" style="display:flex;justify-content:space-around;text-align:center">
+     <div><div style="font-size:22px;font-weight:700">${kids.length}</div><div style="font-size:12px;color:var(--slate)">Children</div></div>
+     <div><div style="font-size:22px;font-weight:700">3</div><div style="font-size:12px;color:var(--slate)">Sessions / week</div></div>
+     <div><div style="font-size:22px;font-weight:700;color:var(--pink)">1</div><div style="font-size:12px;color:var(--slate)">Deadline soon</div></div>
+   </div>
+   <div class="sec-h"><h2>Your children</h2><span class="more" onclick="go('pkids')">All</span></div>
+   <div class="list">${kids.map(childRow).join('')}</div>
+   <div class="sec-h"><h2>Recent updates</h2></div>
+   <div class="card">
+     ${updItem('var(--green-tint)','var(--green)','m5 13 4 4L19 7','Saron scored 90% on the algebra quiz','Today · from Josh')}
+     ${updItem('var(--teal-tint)','var(--teal)',ICON.chat,"Amen's JHU supplement reviewed",'Yesterday · from Hana')}
+     ${updItem('var(--amber-tint)','var(--amber)','M12 2 2 20h20L12 2ZM12 9v4M12 17h.01','JHU deadline in 9 days','Heads up')}
+   </div>`;
+};
+const childRow=s=>`<button class="row ${s.status}" onclick="openChild('${s.id}')"><div class="r-av">${initials(s.name)}</div><div class="r-body"><div class="r-name">${s.name}</div><div class="r-sub">${s.grade} · ${s.tutorName}</div></div><div class="r-meta"><div class="mm">${s.progress}%</div></div></button>`;
+const updItem=(bg,co,d,t1,t2)=>`<div class="lineitem"><div class="li-ic" style="background:${bg};color:${co}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg></div><div class="li-b"><div class="li-1">${t1}</div><div class="li-2">${t2}</div></div></div>`;
+RENDER.pkids=async()=>{ const kids=await DB.parentChildren();
+  $('#main').innerHTML=`<div class="sec-h"><h2>Your children</h2></div><p class="count-note" style="margin-bottom:8px">Tap a child to view progress and sessions.</p><div class="list">${kids.map(childRow).join('')}</div>`;
+};
+RENDER.pbill=async()=>{ const b=await DB.parentBilling(); const paid=b.invoice&&b.invoice.status==='paid';
+  $('#main').innerHTML=`<div class="bill-hero"><div class="bl">Current balance</div><div class="bv">${paid?'$0.00':money(b.invoice?b.invoice.amount:0)}</div>${paid?'<span class="bok">'+CK+' Paid in full</span>':'<span class="bdue">Due soon</span>'}</div>
+   <div class="sec-h"><h2>Plan</h2></div>
+   <div class="card card-pad"><div class="kv"><span class="k">Package</span><span class="v">Admissions + tutoring</span></div><div class="kv"><span class="k">Children</span><span class="v">${b.kids}</span></div><div class="kv"><span class="k">Billing</span><span class="v">Monthly</span></div></div>
+   <div class="sec-h"><h2>Payment history</h2></div>
+   <div class="card">${b.history.map(h=>`<div class="lineitem"><div class="li-ic" style="background:var(--green-tint);color:var(--green)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg></div><div class="li-b"><div class="li-1">${h[0]}</div><div class="li-2">Paid · ${h[1]}</div></div><div style="font-weight:700">${h[2]}</div></div>`).join('')||'<div class="empty"><div class="e2">No payments yet</div></div>'}</div>
+   <div class="btn-row"><button class="btn btn-primary" onclick="toast('Payment methods opened')">Manage payment</button></div>`;
+};
+
+// ----- TUTOR -----
+RENDER.thome=async()=>{ const d=await DB.tutorHome(); const t=d.tutor; const hero=d.today[0]||d.students[0];
+  $('#main').innerHTML=`
+   ${hero?heroNext(hero.name,hero.next||'Today',d.tutor.accepting?'You':'You',hero.mode):'<div class="card card-pad"><div class="empty"><div class="e1">No students yet</div></div></div>'}
+   <div class="stat3">${statBox(d.students.length,'Students')}${statBox('★ '+t.rating,'Rating')}${statBox(money(t.payout),'This month')}</div>
+   <div class="avail"><div class="ab"><div class="a1">Accepting new students</div><div class="a2">${t.accepting?'Families can request you':'Paused'}</div></div><button class="switch ${t.accepting?'':'off'}" onclick="toggleAvail()"><i></i></button></div>
+   <div class="sec-h"><h2>Your students</h2></div>
+   <div class="list">${d.students.map(tutorRow).join('')}</div>`;
+};
+const tutorRow=s=>`<button class="row ${s.status}" onclick="openTutorStudent('${s.id}')"><div class="r-av">${initials(s.name)}</div><div class="r-body"><div class="r-name">${s.name}</div><div class="r-sub">${s.grade} · ${s.subjects.join(', ')}</div></div><div class="r-meta"><span class="tag t-info">${s.progress}%</span></div></button>`;
+async function toggleAvail(){ const on=await DB.toggleAvailability(); toast(on?'Accepting new bookings':'New bookings paused'); go('thome'); }
+RENDER.tstudents=async()=>{ const list=await DB.tutorStudents();
+  $('#main').innerHTML=`<div class="sec-h"><h2>My students</h2></div><p class="count-note" style="margin-bottom:8px">Tap to log session notes.</p><div class="list">${list.map(tutorRow).join('')}</div>`;
+};
+RENDER.tearn=async()=>{ const e=await DB.tutorEarnings();
+  $('#main').innerHTML=`<div class="hero-next" style="background:linear-gradient(135deg,#10808a,var(--teal-900))"><div class="glow"></div><div class="hk">Earnings · November</div><div class="ht">${money(e.payout)}</div><div class="hs">across 35 sessions · $${e.rate}/hr</div><button class="hbtn" onclick="toast('Payout request submitted')">Request payout</button></div>
+   <div class="stat3">${statBox('35','Sessions')}${statBox('$'+e.rate,'Per hour')}${statBox(e.students,'Students')}</div>
+   <div class="sec-h"><h2>Payout history</h2></div>
+   <div class="card">${e.history.map(p=>`<div class="lineitem"><div class="li-ic" style="background:var(--green-tint);color:var(--green)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg></div><div class="li-b"><div class="li-1">${p[0]}</div><div class="li-2">Paid · ${p[1]}</div></div><div style="font-weight:700">${p[2]}</div></div>`).join('')}</div>`;
+};
+
+// ----- MESSAGES (shared) -----
+RENDER.msg=async()=>{ const list=await DB.conversations();
+  $('#main').innerHTML=`<div class="sec-h"><h2>Messages</h2></div>
+   ${role==='parent'?'<p class="count-note" style="margin-bottom:8px">You can follow every conversation about your children.</p>':''}
+   <div class="list">${list.map(c=>`<button class="row" onclick="openConvo('${c.id}')"><div class="r-av">${initials(c.withName||c.subject)}</div><div class="r-body"><div class="r-name">${c.withName||c.subject} ${c.monitor?'<span class="tag t-info" style="margin-left:4px">monitoring</span>':''}</div><div class="r-sub">${c.last?(c.last.t||''):''}</div></div><div class="r-meta"><div class="mm">${c.last?c.last.time:''}</div></div></button>`).join('')||'<div class="empty"><div class="e2">No messages yet</div></div>'}</div>`;
+};
+async function openConvo(cid){ const c=await DB.messages(cid);
+  const bubbles=c.msgs.map(m=>`<div class="bubble ${m.me?'me':'them'} ${m.flag?'flag':''}"><div class="bx">${m.t}</div>${m.flag?`<div class="flag-note">${svgIc('shield',12)} contact details hidden</div>`:`<div class="bt">${m.time}</div>`}</div>`).join('');
+  openSheet(`<div class="sheet-head"><div class="h-av">${initials(c.withName)}</div><div style="flex:1"><div class="hn">${c.withName}</div><div class="hs">${c.subject||''}</div></div><button class="sheet-x" onclick="closeSheet()">&times;</button></div>
+   <div class="thread" id="thread">${bubbles}</div>
+   ${c.readOnly?'<p class="count-note" style="text-align:center;padding:10px">You are monitoring this conversation (read-only).</p>':`<div class="composer"><input id="msgIn" placeholder="Write a message…" onkeydown="if(event.key==='Enter')sendMsg('${cid}')"><button class="send" onclick="sendMsg('${cid}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4 20-7Z"/></svg></button></div>`}`);
+  const th=$('#thread'); if(th) th.scrollTop=th.scrollHeight;
+}
+async function sendMsg(cid){ const inp=$('#msgIn'); const v=inp.value.trim(); if(!v) return;
+  const flags=await DB.sendMessage(cid,v); if(flags&&flags.length) toast('Contact info was hidden & flagged'); openConvo(cid); }
+
+/* ---------- detail sheets ---------- */
+async function openStudentAdmin(sid){ const s=(await DB.listStudents()).find(x=>x.id===sid)||await DB.childDetail(sid);
+  openSheet(sheetHead(s.name,`${s.grade} · ${s.tutorName||''}`)+`
+   <div class="block"><div class="bt">Progress</div><div class="prog"><i style="width:${s.progress}%"></i></div></div>
+   <div class="block"><div class="bt">Subjects</div><div class="pill-row">${(s.subjects||[]).map(x=>`<span class="subj">${x}</span>`).join('')||'—'}</div></div>
+   <div class="btn-row"><button class="btn btn-primary" onclick="closeSheet();go('msg')">Open messages</button></div>`);
+}
+async function openChild(sid){ const s=await DB.childDetail(sid);
+  openSheet(sheetHead(s.name,`${s.grade} · ${s.tutorName}`)+`
+   <div class="block"><div class="bt">Overall progress</div><div class="prog"><i style="width:${s.progress}%"></i></div></div>
+   <div class="block"><div class="bt">Subjects & progress</div>${subjBars(s.progress)}</div>
+   ${s.past&&s.past.length?`<div class="block"><div class="bt">Recent sessions</div>${s.past.map(p=>`<div class="lineitem" style="padding-left:0"><div class="li-ic" style="background:var(--green-tint);color:var(--green)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 13 4 4L19 7"/></svg></div><div class="li-b"><div class="li-1">${p[0]}</div><div class="li-2">${p[1]} · ${p[2]}</div></div></div>`).join('')}</div>`:''}
+   <div class="btn-row"><button class="btn btn-primary" onclick="closeSheet();go('msg')">Message tutor</button><button class="btn btn-ghost" onclick="toast('Progress report opened')">Report</button></div>`);
+}
+async function openTutorStudent(sid){ const s=(await DB.tutorStudents()).find(x=>x.id===sid);
+  openSheet(sheetHead(s.name,`${s.grade} · ${s.subjects.join(', ')}`)+`
+   <div class="block"><div class="bt">Progress</div><div class="prog"><i style="width:${s.progress}%"></i></div></div>
+   <div class="block"><div class="bt">Log a session note</div><input style="width:100%;height:46px;border:1.5px solid var(--line);border-radius:13px;padding:0 14px;font-size:14px;outline:none" placeholder="What did you cover today?"></div>
+   <div class="btn-row"><button class="btn btn-primary" onclick="toast('Session note saved');closeSheet()">Save note</button><button class="btn btn-ghost" onclick="closeSheet();go('msg')">Message parent</button></div>`);
+}
+const sheetHead=(n,s)=>`<div class="sheet-head"><div class="h-av">${initials(n)}</div><div style="flex:1"><div class="hn">${n}</div><div class="hs">${s}</div></div><button class="sheet-x" onclick="closeSheet()">&times;</button></div>`;
+
+/* ---------- preview / switch (admin) ---------- */
+function openSwitch(){ if(realRole!=='admin'){ return; }
+  const roles=[['admin','Admin console'],['student','Student portal'],['parent','Parent portal'],['tutor','Tutor portal']];
+  openSheet(`<div class="sheet-head"><div style="flex:1"><div class="hn">Switch view</div><div class="hs">Preview the app as any role</div></div><button class="sheet-x" onclick="closeSheet()">&times;</button></div>
+   <div class="list">${roles.map(r=>`<button class="row" onclick="${r[0]==='admin'?'exitPreview()':`preview('${r[0]}')`}"><div class="r-av">${svgIc(r[0]==='admin'?'grid':r[0],20)}</div><div class="r-body"><div class="r-name">${r[1]}${r[0]===role?' · current':''}</div></div></button>`).join('')}</div>`);
+}
+function preview(r){ previewing=true; role=r; closeSheet();
+  $('#previewBar').classList.add('on'); $('#previewLabel').textContent='Previewing the '+cap(r)+' portal';
+  // in preview, swap "me" to a representative seeded member so data resolves (demo only)
+  if(DB.mode==='demo'){ const rep={student:'u-amen',parent:'u-tigist',tutor:'u-beth'}[r]; DB.signInDemo(rep); }
+  buildShell(); go(NAV[r][0][0]);
+}
+function exitPreview(){ previewing=false; role=realRole; if(DB.mode==='demo'){ DB.signInDemo('u-almaz'); }
+  $('#previewBar').classList.remove('on'); buildShell(); go(NAV[role][0][0]); }
+
+/* ---------- sheet + toast + logout ---------- */
+function openSheet(html){ $('#sheetContent').innerHTML=html; $('#sheet').classList.add('on'); $('#sheetBack').classList.add('on'); }
+function closeSheet(){ $('#sheet').classList.remove('on'); $('#sheetBack').classList.remove('on'); }
+let tT; function toast(m){ $('#toastMsg').textContent=m; $('#toast').classList.add('on'); clearTimeout(tT); tT=setTimeout(()=>$('#toast').classList.remove('on'),2200); }
+async function logout(){ await DB.signOut(); previewing=false; role=realRole='admin'; closeSheet(); goHome(); }
+
+/* ---------- boot ---------- */
+(async function(){ DB = USE_SUPABASE ? await SupabaseDriver() : LocalDriver();
+  // if a live session already exists, jump straight in
+  if(USE_SUPABASE && DB.me()){ enterApp(); }
+})();
+</script>
+</body>
+</html>

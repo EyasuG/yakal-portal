@@ -1,0 +1,15 @@
+{
+  "name": "yakal-portal",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tutoring + admissions portal for Yakal Education Services (home + auth + role portals on Postgres/Supabase with RLS).",
+  "type": "module",
+  "scripts": {
+    "start": "npx serve app",
+    "test": "node test/e2e.test.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^24.0.0"
+  },
+  "license": "SEE LICENSE IN LICENSE"
+}

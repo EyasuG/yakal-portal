@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Yakal Console — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Brand (from yakal.me) */
+  --teal:#1099A1; --teal-700:#0C7A80; --teal-900:#06363A; --teal-tint:#E4F2F2; --teal-soft:#F1F8F8;
+  --pink:#CC3366; --pink-700:#A82853; --pink-tint:#FBE7EF;
+  /* Extended, meaning-coded */
+  --amber:#E0972B; --amber-tint:#FBF0DC;
+  --green:#1FA971; --green-tint:#E2F4EC;
+  /* Neutrals */
+  --ink:#0E1719; --slate:#5C6B6D; --mute:#8A9799; --line:#E7ECEC; --line-2:#EFF3F3;
+  --surface:#FFFFFF; --app:#EEF4F4; --app-2:#F6FAFA;
+  --shadow:0 1px 2px rgba(12,40,42,.04), 0 6px 18px rgba(12,40,42,.06);
+  --shadow-lg:0 10px 40px rgba(8,40,44,.18);
+  --r:18px; --r-sm:12px; --r-lg:24px;
+  --ff:"DM Sans", -apple-system, system-ui, sans-serif;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{margin:0; padding:0}
+body{
+  font-family:var(--ff); color:var(--ink); background:var(--app);
+  -webkit-font-smoothing:antialiased; line-height:1.45;
+  padding-bottom:calc(76px + env(safe-area-inset-bottom));
+}
+@media(min-width:920px){ body{padding-bottom:0} }
+button{font-family:inherit; cursor:pointer; border:none; background:none; color:inherit}
+input{font-family:inherit}
+::selection{background:var(--teal-tint)}
+:focus-visible{outline:2.5px solid var(--teal); outline-offset:2px; border-radius:6px}
+
+/* ---------- Shell ---------- */
+.shell{max-width:1180px; margin:0 auto; display:block}
+@media(min-width:920px){
+  .shell{display:grid; grid-template-columns:248px 1fr; gap:0; min-height:100vh; background:var(--surface)}
+}
+
+/* ---------- Sidebar / rail (desktop) ---------- */
+.rail{display:none}
+@media(min-width:920px){
+  .rail{display:flex; flex-direction:column; gap:6px; padding:24px 16px;
+        border-right:1px solid var(--line); position:sticky; top:0; height:100vh; background:var(--app-2)}
+  .rail .brand{display:flex; align-items:center; gap:10px; padding:6px 10px 18px}
+  .rail-link{display:flex; align-items:center; gap:13px; padding:11px 14px; border-radius:12px;
+             color:var(--slate); font-weight:500; font-size:15px; transition:.18s}
+  .rail-link svg{width:21px; height:21px; flex:none}
+  .rail-link:hover{background:var(--teal-soft); color:var(--teal-900)}
+  .rail-link.on{background:var(--teal); color:#fff; box-shadow:0 6px 16px rgba(16,153,161,.32)}
+  .rail-foot{margin-top:auto; padding:14px 10px 4px; border-top:1px solid var(--line)}
+}
+
+/* ---------- Brand mark ---------- */
+.logo{width:34px; height:34px; border-radius:10px; background:linear-gradient(150deg,var(--teal),var(--teal-700));
+      display:grid; place-items:center; flex:none; box-shadow:0 4px 12px rgba(16,153,161,.3)}
+.logo svg{width:19px; height:19px}
+.brand-name{font-weight:700; font-size:15px; letter-spacing:-.2px; line-height:1.05}
+.brand-name span{display:block; font-weight:500; font-size:10.5px; letter-spacing:1.2px; color:var(--teal); text-transform:uppercase}
+
+/* ---------- Main ---------- */
+.main{min-width:0}
+.topbar{position:sticky; top:0; z-index:30; background:rgba(238,244,244,.86);
+        backdrop-filter:saturate(1.2) blur(12px); -webkit-backdrop-filter:saturate(1.2) blur(12px);
+        padding:calc(12px + env(safe-area-inset-top)) 18px 12px}
+@media(min-width:920px){ .topbar{background:rgba(255,255,255,.86); padding-top:18px} }
+.topbar-row{display:flex; align-items:center; gap:12px}
+.greet{flex:1; min-width:0}
+.greet .hi{font-size:12.5px; color:var(--slate); font-weight:500}
+.greet .nm{font-size:20px; font-weight:700; letter-spacing:-.4px; line-height:1.1}
+@media(min-width:920px){ .greet .nm{font-size:23px} }
+.mobile-brand{display:flex; align-items:center; gap:9px}
+@media(min-width:920px){ .mobile-brand{display:none} }
+
+.icon-btn{width:42px; height:42px; border-radius:13px; background:var(--surface); display:grid; place-items:center;
+          box-shadow:var(--shadow); position:relative; color:var(--ink); flex:none}
+.icon-btn svg{width:20px; height:20px}
+.icon-btn .dot{position:absolute; top:9px; right:10px; width:8px; height:8px; border-radius:50%;
+               background:var(--pink); border:2px solid var(--surface)}
+.avatar{width:42px; height:42px; border-radius:50%; flex:none; display:grid; place-items:center;
+        font-weight:700; font-size:14px; color:#fff; background:linear-gradient(150deg,var(--pink),var(--pink-700))}
+
+/* ---------- Content ---------- */
+.content{padding:6px 18px 30px}
+@media(min-width:920px){ .content{padding:8px 28px 40px} }
+.view{display:none; animation:fade .32s ease both}
+.view.on{display:block}
+@keyframes fade{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none}}
+@media(prefers-reduced-motion:reduce){ .view.on{animation:none} *{transition:none!important} }
+
+.sec-h{display:flex; align-items:baseline; justify-content:space-between; margin:22px 2px 12px}
+.sec-h h2{margin:0; font-size:16px; font-weight:700; letter-spacing:-.3px}
+.sec-h .more{font-size:13px; color:var(--teal); font-weight:600}
+.eyebrow{font-size:11px; font-weight:700; letter-spacing:1.4px; text-transform:uppercase; color:var(--teal)}
+
+/* ---------- KPI grid ---------- */
+.kpi-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px}
+@media(min-width:560px){ .kpi-grid{grid-template-columns:repeat(4,1fr)} }
+.kpi{background:var(--surface); border-radius:var(--r); padding:15px 15px 13px; box-shadow:var(--shadow); position:relative; overflow:hidden}
+.kpi .ic{width:34px; height:34px; border-radius:10px; display:grid; place-items:center; margin-bottom:11px}
+.kpi .ic svg{width:18px; height:18px}
+.kpi .val{font-size:26px; font-weight:700; letter-spacing:-1px; line-height:1}
+.kpi .lab{font-size:12.5px; color:var(--slate); margin-top:3px; font-weight:500}
+.kpi .trend{font-size:11.5px; font-weight:600; margin-top:7px; display:inline-flex; align-items:center; gap:3px}
+.up{color:var(--green)} .down{color:var(--pink)}
+.ic.t{background:var(--teal-tint); color:var(--teal)}
+.ic.p{background:var(--pink-tint); color:var(--pink)}
+.ic.a{background:var(--amber-tint); color:var(--amber)}
+.ic.g{background:var(--green-tint); color:var(--green)}
+
+/* ---------- Card ---------- */
+.card{background:var(--surface); border-radius:var(--r); box-shadow:var(--shadow); overflow:hidden}
+.card-pad{padding:16px}
+.two-col{display:grid; gap:12px}
+@media(min-width:760px){ .two-col{grid-template-columns:1.4fr 1fr} }
+
+/* schedule list */
+.sched{display:flex; flex-direction:column}
+.sched-item{display:flex; gap:13px; padding:13px 16px; border-top:1px solid var(--line-2); align-items:center}
+.sched-item:first-child{border-top:none}
+.time-chip{flex:none; width:54px; text-align:center}
+.time-chip .h{font-size:14px; font-weight:700; line-height:1}
+.time-chip .m{font-size:11px; color:var(--mute); font-weight:600}
+.bar{width:3px; align-self:stretch; border-radius:3px; flex:none}
+.sched-body{flex:1; min-width:0}
+.sched-body .s1{font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.sched-body .s2{font-size:12.5px; color:var(--slate); margin-top:1px}
+.mini-av{width:30px; height:30px; border-radius:50%; display:grid; place-items:center; font-size:11px; font-weight:700; color:#fff; flex:none}
+
+/* attention list */
+.alert{display:flex; gap:12px; padding:13px 16px; border-top:1px solid var(--line-2); align-items:center}
+.alert:first-child{border-top:none}
+.alert .ai{width:36px; height:36px; border-radius:11px; display:grid; place-items:center; flex:none}
+.alert .ai svg{width:18px;height:18px}
+.alert-b{flex:1; min-width:0}
+.alert-b .a1{font-size:13.5px; font-weight:600}
+.alert-b .a2{font-size:12px; color:var(--slate)}
+.chev{color:var(--mute); flex:none}
+
+/* ---------- Search + chips ---------- */
+.toolbar{position:sticky; top:0; z-index:5; padding:4px 0 10px; background:var(--app)}
+@media(min-width:920px){ .toolbar{background:var(--surface)} }
+.search{display:flex; align-items:center; gap:10px; background:var(--surface); border-radius:14px;
+        padding:0 14px; height:46px; box-shadow:var(--shadow)}
+.search svg{width:19px; height:19px; color:var(--mute); flex:none}
+.search input{border:none; outline:none; flex:1; font-size:15px; background:none; color:var(--ink); min-width:0}
+.search input::placeholder{color:var(--mute)}
+.chips{display:flex; gap:8px; overflow-x:auto; padding:11px 0 3px; scrollbar-width:none; -ms-overflow-style:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none; padding:8px 14px; border-radius:999px; background:var(--surface); font-size:13px; font-weight:600;
+      color:var(--slate); box-shadow:var(--shadow); transition:.16s; white-space:nowrap}
+.chip.on{background:var(--teal); color:#fff; box-shadow:0 6px 14px rgba(16,153,161,.3)}
+
+/* ---------- Person rows ---------- */
+.list{display:grid; gap:10px; margin-top:4px}
+@media(min-width:680px){ .list{grid-template-columns:1fr 1fr; gap:12px} }
+.row{display:flex; align-items:center; gap:13px; background:var(--surface); border-radius:var(--r);
+     padding:13px 14px; box-shadow:var(--shadow); text-align:left; width:100%; transition:.16s; border-left:3px solid transparent}
+.row:hover{transform:translateY(-1px); box-shadow:0 8px 22px rgba(12,40,42,.1)}
+.row:active{transform:scale(.99)}
+.row.s-ok{border-left-color:var(--green)}
+.row.s-warn{border-left-color:var(--pink)}
+.row.s-up{border-left-color:var(--amber)}
+.row.s-new{border-left-color:var(--teal)}
+.r-av{width:46px; height:46px; border-radius:14px; display:grid; place-items:center; font-weight:700; font-size:15px; color:#fff; flex:none}
+.r-body{flex:1; min-width:0}
+.r-name{font-size:15px; font-weight:600; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.r-sub{font-size:12.5px; color:var(--slate); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.r-meta{text-align:right; flex:none}
+.tag{display:inline-block; font-size:10.5px; font-weight:700; padding:4px 9px; border-radius:999px; letter-spacing:.2px}
+.tag.ok{background:var(--green-tint); color:#137a51}
+.tag.warn{background:var(--pink-tint); color:var(--pink-700)}
+.tag.up{background:var(--amber-tint); color:#b06f10}
+.tag.new{background:var(--teal-tint); color:var(--teal-700)}
+.r-meta .mm{font-size:11.5px; color:var(--mute); margin-top:6px}
+.count-note{font-size:12.5px; color:var(--mute); margin:2px 2px 0; font-weight:500}
+
+/* progress */
+.prog{height:7px; border-radius:99px; background:var(--line); overflow:hidden}
+.prog i{display:block; height:100%; border-radius:99px; background:linear-gradient(90deg,var(--teal),var(--teal-700))}
+
+/* ---------- Admissions board (signature) ---------- */
+.board-intro{display:flex; gap:12px; align-items:flex-start; background:linear-gradient(135deg,var(--teal-900),var(--teal-700));
+             color:#fff; border-radius:var(--r-lg); padding:18px; margin-top:6px; position:relative; overflow:hidden}
+.board-intro .glow{position:absolute; right:-40px; top:-40px; width:160px; height:160px; border-radius:50%;
+                   background:radial-gradient(circle,rgba(204,51,102,.55),transparent 70%)}
+.board-intro h3{margin:0 0 4px; font-size:17px; font-weight:700; letter-spacing:-.3px}
+.board-intro p{margin:0; font-size:13px; opacity:.9; line-height:1.4}
+.board-intro .new-badge{display:inline-block; font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
+                        background:var(--pink); padding:4px 9px; border-radius:99px; margin-bottom:8px}
+
+.funnel{display:flex; gap:8px; margin:16px 0 2px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none}
+.funnel::-webkit-scrollbar{display:none}
+.fstat{flex:1; min-width:84px; background:var(--surface); border-radius:14px; padding:12px 10px; box-shadow:var(--shadow); text-align:center}
+.fstat .fn{font-size:22px; font-weight:700; letter-spacing:-.5px}
+.fstat .fl{font-size:11px; color:var(--slate); font-weight:600; margin-top:2px}
+.fstat .fdot{width:8px; height:8px; border-radius:50%; margin:0 auto 7px}
+
+.board{display:flex; gap:14px; overflow-x:auto; padding:6px 2px 16px; scroll-snap-type:x mandatory; scrollbar-width:thin}
+.board::-webkit-scrollbar{height:8px}
+.board::-webkit-scrollbar-thumb{background:var(--line); border-radius:99px}
+.col{flex:none; width:80%; max-width:300px; scroll-snap-align:start}
+@media(min-width:680px){ .col{width:280px} }
+.col-h{display:flex; align-items:center; gap:8px; margin:0 4px 10px}
+.col-h .cdot{width:9px; height:9px; border-radius:50%}
+.col-h .cname{font-size:13.5px; font-weight:700}
+.col-h .ccount{font-size:12px; font-weight:700; color:var(--mute); background:var(--app); padding:2px 8px; border-radius:99px; margin-left:auto}
+.col-body{display:flex; flex-direction:column; gap:10px}
+.appcard{background:var(--surface); border-radius:16px; padding:13px; box-shadow:var(--shadow); text-align:left; width:100%; transition:.16s; border-top:3px solid transparent}
+.appcard:hover{transform:translateY(-2px); box-shadow:0 10px 24px rgba(12,40,42,.12)}
+.appcard .ah{display:flex; align-items:center; gap:10px}
+.appcard .ah .r-av{width:38px; height:38px; border-radius:11px; font-size:13px}
+.appcard .an{font-size:14px; font-weight:600; line-height:1.15}
+.appcard .ag{font-size:11.5px; color:var(--mute)}
+.appcard .college{font-size:12.5px; color:var(--slate); margin:11px 0 9px; display:flex; align-items:center; gap:6px}
+.appcard .college b{color:var(--ink); font-weight:600}
+.deadline{display:flex; align-items:center; justify-content:space-between; margin-top:9px; padding-top:9px; border-top:1px dashed var(--line)}
+.deadline .dl{font-size:11.5px; color:var(--slate); display:flex; align-items:center; gap:5px}
+.cd{font-size:11px; font-weight:700; padding:3px 8px; border-radius:99px}
+.cd.soon{background:var(--pink-tint); color:var(--pink-700)}
+.cd.mid{background:var(--amber-tint); color:#b06f10}
+.cd.far{background:var(--green-tint); color:#137a51}
+
+/* ---------- Sheet / modal ---------- */
+.scrim{position:fixed; inset:0; background:rgba(10,30,32,.5); opacity:0; pointer-events:none; transition:.28s; z-index:60;
+       backdrop-filter:blur(2px)}
+.scrim.on{opacity:1; pointer-events:auto}
+.sheet{position:fixed; left:0; right:0; bottom:0; z-index:70; background:var(--surface);
+       border-radius:26px 26px 0 0; transform:translateY(100%); transition:transform .34s cubic-bezier(.32,.72,0,1);
+       max-height:92vh; overflow-y:auto; box-shadow:var(--shadow-lg); padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+.sheet.on{transform:none}
+@media(min-width:920px){
+  .sheet{left:50%; right:auto; bottom:auto; top:50%; transform:translate(-50%,-46%) scale(.98); opacity:0;
+         width:480px; border-radius:24px; max-height:88vh}
+  .sheet.on{transform:translate(-50%,-50%); opacity:1}
+}
+.grab{width:38px; height:5px; border-radius:99px; background:var(--line); margin:11px auto 4px}
+@media(min-width:920px){ .grab{display:none} }
+.sheet-head{padding:8px 20px 16px; display:flex; align-items:flex-start; gap:14px; position:sticky; top:0; background:var(--surface); z-index:2}
+.sheet-head .r-av{width:54px; height:54px; border-radius:16px; font-size:18px}
+.sheet-x{margin-left:auto; width:34px; height:34px; border-radius:50%; background:var(--app); display:grid; place-items:center; flex:none}
+.sheet-x svg{width:17px; height:17px; color:var(--slate)}
+.sh-name{font-size:19px; font-weight:700; letter-spacing:-.4px}
+.sh-sub{font-size:13px; color:var(--slate); margin-top:2px}
+.sheet-body{padding:4px 20px 8px}
+
+.kv{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:6px 0 16px}
+.kv .k{background:var(--app-2); border-radius:13px; padding:11px 13px}
+.kv .k .kk{font-size:11px; color:var(--mute); font-weight:600; text-transform:uppercase; letter-spacing:.5px}
+.kv .k .kv2{font-size:14.5px; font-weight:600; margin-top:3px}
+.block{margin:16px 0}
+.block .bt{font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--mute); margin-bottom:9px}
+.pill-row{display:flex; flex-wrap:wrap; gap:7px}
+.subj{font-size:12.5px; font-weight:600; padding:6px 12px; border-radius:99px; background:var(--teal-soft); color:var(--teal-700)}
+.lineitem{display:flex; align-items:center; gap:11px; padding:10px 0; border-top:1px solid var(--line-2)}
+.lineitem:first-child{border-top:none}
+.lineitem .li-ic{width:32px; height:32px; border-radius:10px; background:var(--app); display:grid; place-items:center; flex:none; color:var(--slate)}
+.lineitem .li-ic svg{width:16px; height:16px}
+.lineitem .li-b{flex:1; min-width:0}
+.lineitem .li-1{font-size:13.5px; font-weight:600}
+.lineitem .li-2{font-size:12px; color:var(--slate)}
+.check{width:22px; height:22px; border-radius:7px; border:2px solid var(--line); display:grid; place-items:center; flex:none}
+.check.done{background:var(--green); border-color:var(--green)}
+.check.done svg{width:13px; height:13px; color:#fff}
+
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; height:48px; padding:0 20px;
+     border-radius:999px; font-weight:700; font-size:14.5px; transition:.16s; width:100%}
+.btn svg{width:18px;height:18px}
+.btn-primary{background:var(--teal); color:#fff; box-shadow:0 8px 18px rgba(16,153,161,.32)}
+.btn-primary:hover{background:var(--teal-700)}
+.btn-ghost{background:var(--app); color:var(--ink)}
+.btn-pink{background:var(--pink); color:#fff; box-shadow:0 8px 18px rgba(204,51,102,.3)}
+.btn-row{display:flex; gap:10px; margin-top:8px}
+
+/* stage mover */
+.stage-move{display:flex; gap:7px; overflow-x:auto; padding:4px 0; scrollbar-width:none}
+.stage-move::-webkit-scrollbar{display:none}
+.stage-btn{flex:none; padding:9px 14px; border-radius:99px; font-size:12.5px; font-weight:600; background:var(--app); color:var(--slate); border:1.5px solid transparent}
+.stage-btn.cur{background:var(--teal); color:#fff}
+
+/* ---------- FAB ---------- */
+.fab{position:fixed; right:18px; bottom:calc(88px + env(safe-area-inset-bottom)); z-index:40;
+     width:56px; height:56px; border-radius:19px; background:var(--pink); color:#fff; display:grid; place-items:center;
+     box-shadow:0 10px 26px rgba(204,51,102,.4)}
+.fab svg{width:26px; height:26px}
+@media(min-width:920px){ .fab{bottom:28px; right:28px} }
+
+/* ---------- Bottom nav (mobile) ---------- */
+.tabbar{position:fixed; left:0; right:0; bottom:0; z-index:50; background:rgba(255,255,255,.92);
+        backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-top:1px solid var(--line);
+        display:flex; padding:8px 6px calc(8px + env(safe-area-inset-bottom)); justify-content:space-around}
+@media(min-width:920px){ .tabbar{display:none} }
+.tab{flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:5px 0; color:var(--mute); font-size:10.5px; font-weight:600}
+.tab svg{width:23px; height:23px}
+.tab.on{color:var(--teal)}
+.tab.on svg{stroke-width:2.4}
+
+/* toast */
+.toast{position:fixed; left:50%; bottom:calc(96px + env(safe-area-inset-bottom)); transform:translateX(-50%) translateY(20px);
+       background:var(--ink); color:#fff; padding:12px 18px; border-radius:14px; font-size:13.5px; font-weight:600;
+       z-index:90; opacity:0; pointer-events:none; transition:.3s; box-shadow:var(--shadow-lg); display:flex; gap:9px; align-items:center}
+.toast svg{width:18px; height:18px; color:var(--teal-tint)}
+.toast.on{opacity:1; transform:translateX(-50%) translateY(0)}
+@media(min-width:920px){ .toast{bottom:28px} }
+
+.empty{text-align:center; padding:40px 20px; color:var(--mute)}
+.empty svg{width:38px; height:38px; opacity:.5; margin-bottom:10px}
+.empty .e1{font-size:14.5px; font-weight:600; color:var(--slate)}
+.empty .e2{font-size:13px; margin-top:3px}
+
+/* ---------- Preview bar ---------- */
+.preview-bar{display:none; align-items:center; gap:9px; margin:0 0 10px; padding:9px 13px; border-radius:13px;
+  background:linear-gradient(135deg,var(--teal-900),var(--teal-700)); color:#fff; font-size:12.5px; font-weight:600}
+.preview-bar.on{display:flex}
+.preview-bar .pv-ic{width:22px; height:22px; border-radius:7px; background:rgba(255,255,255,.18); display:grid; place-items:center; flex:none}
+.preview-bar .pv-ic svg{width:13px; height:13px}
+.preview-bar span{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.preview-bar button{background:#fff; color:var(--teal-900); font-weight:700; font-size:12px; padding:7px 12px; border-radius:99px; flex:none}
+
+/* role preview cards (admin overview) */
+.role-cards{display:grid; grid-template-columns:1fr 1fr; gap:11px; margin-top:6px}
+@media(min-width:680px){ .role-cards{grid-template-columns:repeat(4,1fr)} }
+.role-card{background:var(--surface); border-radius:var(--r); padding:15px; box-shadow:var(--shadow); text-align:left; transition:.16s; border-top:3px solid var(--teal)}
+.role-card:hover{transform:translateY(-2px); box-shadow:0 10px 24px rgba(12,40,42,.12)}
+.role-card .rc-ic{width:40px; height:40px; border-radius:12px; display:grid; place-items:center; margin-bottom:11px; background:var(--teal-tint); color:var(--teal)}
+.role-card .rc-ic svg{width:20px; height:20px}
+.role-card .rc-t{font-size:14.5px; font-weight:700}
+.role-card .rc-s{font-size:12px; color:var(--slate); margin-top:2px}
+.role-card .rc-go{font-size:12px; font-weight:700; color:var(--teal); margin-top:10px; display:flex; align-items:center; gap:4px}
+
+/* ---------- Portal: hero next session ---------- */
+.hero{position:relative; overflow:hidden; border-radius:var(--r-lg); padding:18px; color:#fff; margin-top:8px;
+  background:linear-gradient(135deg,var(--teal),var(--teal-700))}
+.hero.warm{background:linear-gradient(135deg,#10808a,var(--teal-900))}
+.hero .hglow{position:absolute; right:-30px; bottom:-40px; width:150px; height:150px; border-radius:50%;
+  background:radial-gradient(circle,rgba(204,51,102,.5),transparent 70%)}
+.hero .hk{font-size:11px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; opacity:.85}
+.hero .ht{font-size:20px; font-weight:700; letter-spacing:-.3px; margin-top:6px}
+.hero .hs{font-size:13.5px; opacity:.92; margin-top:3px}
+.hero .hmeta{display:flex; gap:16px; margin-top:13px; position:relative}
+.hero .hmeta .hm{font-size:12.5px; opacity:.9}
+.hero .hmeta .hm b{display:block; font-size:15px; font-weight:700; opacity:1}
+.hero .hbtn{margin-top:15px; background:#fff; color:var(--teal-900); height:44px; border-radius:99px; font-weight:700;
+  font-size:14px; width:100%; display:inline-flex; align-items:center; justify-content:center; gap:8px; position:relative}
+.hero .hbtn svg{width:18px; height:18px}
+
+/* stat row */
+.stat3{display:grid; grid-template-columns:repeat(3,1fr); gap:11px; margin-top:13px}
+.statbox{background:var(--surface); border-radius:var(--r); padding:14px 12px; box-shadow:var(--shadow); text-align:center}
+.statbox .sv{font-size:21px; font-weight:700; letter-spacing:-.5px}
+.statbox .sl{font-size:11.5px; color:var(--slate); margin-top:2px; font-weight:500}
+
+/* subject bars */
+.sbar{margin:13px 0}
+.sbar:first-child{margin-top:4px}
+.sbar:last-child{margin-bottom:4px}
+.sbar .sbh{display:flex; justify-content:space-between; font-size:13px; font-weight:600; margin-bottom:7px}
+.sbar .sbh .pc{color:var(--teal); font-weight:700}
+
+/* teaser */
+.teaser{display:flex; align-items:center; gap:13px; background:linear-gradient(135deg,#fff,var(--pink-tint));
+  border-radius:var(--r); padding:15px; box-shadow:var(--shadow); margin-top:8px; width:100%; text-align:left; border-left:3px solid var(--pink)}
+.teaser .tz-ic{width:42px; height:42px; border-radius:12px; background:var(--pink); color:#fff; display:grid; place-items:center; flex:none}
+.teaser .tz-ic svg{width:21px; height:21px}
+.teaser .tz-b{flex:1; min-width:0}
+.teaser .tz1{font-size:14px; font-weight:700}
+.teaser .tz2{font-size:12.5px; color:var(--slate)}
+
+/* messages */
+.thread{display:flex; flex-direction:column; gap:9px; padding:6px 0 14px; max-height:46vh; overflow-y:auto}
+.bubble{max-width:80%; display:flex; flex-direction:column}
+.bubble.them{align-self:flex-start}
+.bubble.me{align-self:flex-end; align-items:flex-end}
+.bubble .bx{padding:10px 13px; border-radius:16px; font-size:13.5px; line-height:1.4}
+.bubble.them .bx{background:var(--app); color:var(--ink); border-bottom-left-radius:5px}
+.bubble.me .bx{background:var(--teal); color:#fff; border-bottom-right-radius:5px}
+.bubble .bt2{font-size:10.5px; color:var(--mute); margin-top:4px; padding:0 4px}
+.composer{display:flex; gap:9px; align-items:center; padding-top:10px; border-top:1px solid var(--line)}
+.composer input{flex:1; height:46px; border:none; background:var(--app); border-radius:99px; padding:0 16px; font-size:14px; outline:none}
+.composer .send{width:46px; height:46px; border-radius:50%; background:var(--teal); color:#fff; display:grid; place-items:center; flex:none}
+.composer .send svg{width:19px; height:19px}
+
+/* availability toggle */
+.avail{display:flex; align-items:center; gap:13px; background:var(--surface); border-radius:var(--r); padding:15px; box-shadow:var(--shadow); margin-top:13px}
+.avail .av-b{flex:1}
+.avail .av1{font-size:14px; font-weight:600}
+.avail .av2{font-size:12px; color:var(--slate)}
+.switch{width:48px; height:28px; border-radius:99px; background:var(--green); position:relative; flex:none; transition:.2s}
+.switch.off{background:var(--line)}
+.switch i{position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; transition:.2s; box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.switch.off i{left:23px}
+
+/* billing */
+.bill-hero{background:var(--surface); border-radius:var(--r-lg); padding:20px; box-shadow:var(--shadow); margin-top:8px; text-align:center}
+.bill-hero .bl{font-size:12.5px; color:var(--slate); font-weight:600}
+.bill-hero .bv{font-size:34px; font-weight:700; letter-spacing:-1px; margin:4px 0}
+.bill-hero .bok{display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:700; color:#137a51; background:var(--green-tint); padding:6px 13px; border-radius:99px}
+
+/* ---------- Sign-up screen ---------- */
+.signup{position:fixed; inset:0; z-index:100; background:var(--app); overflow-y:auto; display:none;
+  padding:calc(26px + env(safe-area-inset-top)) 20px calc(30px + env(safe-area-inset-bottom))}
+.signup.on{display:block; animation:fade .3s ease both}
+.su-wrap{max-width:440px; margin:0 auto}
+.su-top{display:flex; align-items:center; gap:11px; margin-bottom:8px}
+.su-top .su-x{margin-left:auto; width:36px; height:36px; border-radius:50%; background:var(--surface); display:grid; place-items:center; box-shadow:var(--shadow)}
+.su-top .su-x svg{width:17px; height:17px; color:var(--slate)}
+.su-h{font-size:25px; font-weight:700; letter-spacing:-.6px; margin:18px 0 5px}
+.su-p{font-size:14px; color:var(--slate); margin-bottom:20px}
+.su-step{display:none}
+.su-step.on{display:block; animation:fade .28s ease both}
+.rolepick{display:flex; flex-direction:column; gap:12px}
+.rolepick .rp{display:flex; align-items:center; gap:14px; background:var(--surface); border-radius:var(--r); padding:17px;
+  box-shadow:var(--shadow); text-align:left; transition:.16s; border:2px solid transparent}
+.rolepick .rp:hover{border-color:var(--teal); transform:translateY(-1px)}
+.rolepick .rp .rp-ic{width:46px; height:46px; border-radius:14px; display:grid; place-items:center; flex:none; color:#fff}
+.rolepick .rp .rp-ic svg{width:23px; height:23px}
+.rolepick .rp .rp1{font-size:16px; font-weight:700}
+.rolepick .rp .rp2{font-size:12.5px; color:var(--slate); margin-top:2px}
+.rolepick .rp .rp-go{margin-left:auto; color:var(--mute)}
+.field{margin-bottom:14px}
+.field label{display:block; font-size:12.5px; font-weight:600; color:var(--slate); margin-bottom:6px}
+.field input,.field select{width:100%; height:50px; border:1.5px solid var(--line); border-radius:14px; padding:0 15px;
+  font-size:15px; background:var(--surface); outline:none; color:var(--ink); transition:.15s}
+.field input:focus,.field select:focus{border-color:var(--teal); box-shadow:0 0 0 3px var(--teal-tint)}
+.su-success{text-align:center; padding:30px 0}
+.su-success .ok-ic{width:74px; height:74px; border-radius:50%; background:var(--green-tint); color:var(--green);
+  display:grid; place-items:center; margin:0 auto 18px}
+.su-success .ok-ic svg{width:38px; height:38px}
+.back-link{font-size:13.5px; font-weight:600; color:var(--slate); margin-top:14px; display:inline-flex; align-items:center; gap:5px}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Desktop rail -->
+  <aside class="rail">
+    <div class="brand">
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 4 7v6c0 4 3.5 7 8 8 4.5-1 8-4 8-8V7l-8-4Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="brand-name">Yakal<span>Console</span></div>
+    </div>
+    <nav id="railLinks"></nav>
+    <div class="rail-foot">
+      <button class="rail-link" id="railFoot" style="width:100%" onclick="openSwitch()"></button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <header class="topbar">
+      <div class="preview-bar" id="previewBar">
+        <span class="pv-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        <span id="previewLabel">Student portal</span>
+        <button onclick="setRole('admin')">Exit preview</button>
+      </div>
+      <div class="topbar-row">
+        <div class="mobile-brand">
+          <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 4 7v6c0 4 3.5 7 8 8 4.5-1 8-4 8-8V7l-8-4Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        </div>
+        <div class="greet">
+          <div class="hi">Good morning,</div>
+          <div class="nm" id="viewTitle">Almaz</div>
+        </div>
+        <button class="icon-btn" onclick="toast('You\'re all caught up on alerts')"><span class="dot"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></button>
+        <button class="avatar" id="topAvatar" onclick="openSwitch()" aria-label="Switch view">AT</button>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- ===== OVERVIEW ===== -->
+      <section class="view on" id="v-overview">
+        <div class="kpi-grid" id="kpis"></div>
+
+        <div class="two-col" style="margin-top:18px">
+          <div>
+            <div class="sec-h"><h2>Today's sessions</h2><span class="more" data-go="tutors">Schedule</span></div>
+            <div class="card"><div class="sched" id="schedList"></div></div>
+          </div>
+          <div>
+            <div class="sec-h"><h2>Needs attention</h2></div>
+            <div class="card"><div id="alertList"></div></div>
+          </div>
+        </div>
+
+        <div class="sec-h"><h2>Admissions deadlines</h2><span class="more" data-go="admissions">Open board</span></div>
+        <div class="card card-pad" id="deadlineMini"></div>
+
+        <div class="sec-h"><h2>Role portals</h2><span class="more" onclick="openSignup()">Sign-up flow</span></div>
+        <p class="count-note" style="margin-bottom:8px">Preview exactly what each member sees after they register.</p>
+        <div class="role-cards">
+          <button class="role-card" onclick="setRole('student')"><div class="rc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 14c-4 0-7 2-7 5v1h14v-1c0-3-3-5-7-5Z"/><circle cx="12" cy="8" r="3.5"/></svg></div><div class="rc-t">Student</div><div class="rc-s">Sessions, progress & tasks</div><div class="rc-go">Preview <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 6 6 6-6 6"/></svg></div></button>
+          <button class="role-card" onclick="setRole('parent')"><div class="rc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2 19c0-3 2.5-5 6-5s6 2 6 5M14.5 18c.2-2.3 1.8-4 4-4 2 0 3.5 1.4 3.5 4"/></svg></div><div class="rc-t">Parent</div><div class="rc-s">Monitor children & messages</div><div class="rc-go">Preview <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 6 6 6-6 6"/></svg></div></button>
+          <button class="role-card" onclick="setRole('tutor')"><div class="rc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M7 9v5c0 1.5 2.5 3 5 3s5-1.5 5-3V9"/></svg></div><div class="rc-t">Tutor</div><div class="rc-s">Schedule, roster & earnings</div><div class="rc-go">Preview <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 6 6 6-6 6"/></svg></div></button>
+          <button class="role-card" style="border-top-color:var(--pink)" onclick="openSignup()"><div class="rc-ic" style="background:var(--pink-tint);color:var(--pink)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg></div><div class="rc-t">Sign-up</div><div class="rc-s">New-member registration</div><div class="rc-go" style="color:var(--pink)">Open flow <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 6 6 6-6 6"/></svg></div></button>
+        </div>
+      </section>
+
+      <!-- ===== STUDENTS ===== -->
+      <section class="view" id="v-students">
+        <div class="toolbar">
+          <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg>
+            <input type="text" placeholder="Search students or parents" oninput="filterStudents(this.value)"></label>
+          <div class="chips" id="studentChips"></div>
+        </div>
+        <div class="count-note" id="studentCount"></div>
+        <div class="list" id="studentList"></div>
+      </section>
+
+      <!-- ===== TUTORS ===== -->
+      <section class="view" id="v-tutors">
+        <div class="toolbar">
+          <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg>
+            <input type="text" placeholder="Search tutors or subjects" oninput="filterTutors(this.value)"></label>
+          <div class="chips" id="tutorChips"></div>
+        </div>
+        <div class="count-note" id="tutorCount"></div>
+        <div class="list" id="tutorList"></div>
+      </section>
+
+      <!-- ===== PARENTS ===== -->
+      <section class="view" id="v-parents">
+        <div class="toolbar">
+          <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg>
+            <input type="text" placeholder="Search parents" oninput="filterParents(this.value)"></label>
+          <div class="chips" id="parentChips"></div>
+        </div>
+        <div class="count-note" id="parentCount"></div>
+        <div class="list" id="parentList"></div>
+      </section>
+
+      <!-- ===== ADMISSIONS ===== -->
+      <section class="view" id="v-admissions">
+        <div class="board-intro">
+          <div class="glow"></div>
+          <div style="flex:1">
+            <span class="new-badge">New service</span>
+            <h3>College Admissions Consulting</h3>
+            <p>Track every client from first college list to enrollment. Tap a card to manage essays, deadlines, and tasks.</p>
+          </div>
+        </div>
+        <div class="funnel" id="funnel"></div>
+        <div class="board" id="board"></div>
+      </section>
+
+      <!-- ===== STUDENT PORTAL ===== -->
+      <section class="view" id="v-shome"></section>
+      <section class="view" id="v-ssessions"></section>
+      <section class="view" id="v-sadm"></section>
+      <section class="view" id="v-smsg"></section>
+
+      <!-- ===== PARENT PORTAL ===== -->
+      <section class="view" id="v-pahome"></section>
+      <section class="view" id="v-pakids"></section>
+      <section class="view" id="v-pamsg"></section>
+      <section class="view" id="v-pabill"></section>
+
+      <!-- ===== TUTOR PORTAL ===== -->
+      <section class="view" id="v-tuhome"></section>
+      <section class="view" id="v-tustudents"></section>
+      <section class="view" id="v-tuearn"></section>
+      <section class="view" id="v-tumsg"></section>
+
+    </div>
+  </main>
+</div>
+
+<!-- Sign-up / registration -->
+<div class="signup" id="signup">
+  <div class="su-wrap">
+    <div class="su-top">
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3 4 7v6c0 4 3.5 7 8 8 4.5-1 8-4 8-8V7l-8-4Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="brand-name">Yakal<span>Education Services</span></div>
+      <button class="su-x" onclick="closeSignup()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <div id="suBody"></div>
+  </div>
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="openAdd()" aria-label="Add new"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+
+<!-- Bottom nav -->
+<nav class="tabbar" id="tabbar"></nav>
+
+<!-- Sheet -->
+<div class="scrim" id="scrim" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true"><div class="grab"></div><div id="sheetContent"></div></div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 13 4 4L19 7"/></svg><span id="toastMsg"></span></div>
+
+<script>
+/* ============ DATA ============ */
+const C = ['#1099A1','#CC3366','#E0972B','#1FA971','#0C7A80','#A82853','#5C6B6D'];
+const ci = s => C[[...s].reduce((a,c)=>a+c.charCodeAt(0),0)%C.length];
+const initials = n => n.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+
+const tutors = [
+  {id:'t1', name:'Eyasu (Josh) Tadesse', role:'Lead STEM Tutor', subjects:['Physics','Geometry I & II','Algebra I & II'], students:8, rating:4.9, rate:48, mode:'In-person · Online', avail:'Mon–Thu afternoons', payout:1840, status:'ok'},
+  {id:'t2', name:'Daniel Bekele', subjects:['Physics','Geometry','Algebra','Pre-Calculus'], role:'STEM Tutor', students:6, rating:4.8, rate:42, mode:'Online', avail:'Evenings & weekends', payout:1260, status:'ok'},
+  {id:'t3', name:'Bethlehem Alemu', subjects:['Algebra','Geometry','SAT Math'], role:'Math & Test Prep', students:7, rating:4.9, rate:45, mode:'In-person · Online', avail:'Tue–Sat', payout:1575, status:'ok'},
+  {id:'t4', name:'Hana Girma', subjects:['Calculus','Physics','SAT Prep'], role:'Advanced Math', students:5, rating:5.0, rate:50, mode:'Online', avail:'Mon, Wed, Fri', payout:1500, status:'ok'},
+  {id:'t5', name:'Marta Solomon', subjects:['College Essays','Applications','Scholarships'], role:'Admissions Counselor', students:12, rating:4.9, rate:65, mode:'Online', avail:'By appointment', payout:2340, status:'new'},
+];
+
+const parents = [
+  {id:'p1', name:'Sara Mekonnen', children:['Liya Mekonnen'], phone:'(240) 555-0142', email:'sara.m@email.com', billing:'Paid', balance:0, plan:'Monthly · 8 sessions', last:'2 days ago', status:'ok'},
+  {id:'p2', name:'Robel Haile', children:['Nahom Haile'], phone:'(240) 555-0188', email:'r.haile@email.com', billing:'Due', balance:360, plan:'Monthly · 12 sessions', last:'Today', status:'warn'},
+  {id:'p3', name:'Tigist Worku', children:['Amen Worku','Saron Worku'], phone:'(301) 555-0119', email:'tigist.w@email.com', billing:'Paid', balance:0, plan:'Admissions package', last:'1 week ago', status:'ok'},
+  {id:'p4', name:'Daniel Asfaw', children:['Yonas Asfaw'], phone:'(240) 555-0173', email:'d.asfaw@email.com', billing:'Overdue', balance:540, plan:'Weekly · SAT prep', last:'5 days ago', status:'warn'},
+  {id:'p5', name:'Helen Girmay', children:['Ruth Girmay'], phone:'(571) 555-0166', email:'helen.g@email.com', billing:'Paid', balance:0, plan:'Admissions + tutoring', last:'Yesterday', status:'ok'},
+  {id:'p6', name:'Samuel Tesfaye', children:['Kaleb Tesfaye'], phone:'(301) 555-0102', email:'s.tesfaye@email.com', billing:'Paid', balance:0, plan:'Monthly · 8 sessions', last:'3 days ago', status:'ok'},
+];
+
+const students = [
+  {id:'s1', name:'Liya Mekonnen', grade:'Grade 10', parent:'Sara Mekonnen', tutor:'Bethlehem Alemu', subjects:['Algebra II','Geometry'], progress:82, next:'Today · 4:00 PM', status:'ok', statusLabel:'On track', mode:'Online'},
+  {id:'s2', name:'Nahom Haile', grade:'Grade 11', parent:'Robel Haile', tutor:'Hana Girma', subjects:['Calculus','Physics'], progress:64, next:'Tomorrow · 5:30 PM', status:'warn', statusLabel:'Payment due', mode:'In-person'},
+  {id:'s3', name:'Amen Worku', grade:'Grade 12', parent:'Tigist Worku', tutor:'Marta Solomon', subjects:['College Essays','SAT Prep'], progress:71, next:'Thu · 6:00 PM', status:'up', statusLabel:'Deadline soon', mode:'Online'},
+  {id:'s4', name:'Saron Worku', grade:'Grade 9', parent:'Tigist Worku', tutor:'Eyasu (Josh) Tadesse', subjects:['Algebra I'], progress:90, next:'Today · 5:00 PM', status:'ok', statusLabel:'On track', mode:'In-person'},
+  {id:'s5', name:'Yonas Asfaw', grade:'Grade 11', parent:'Daniel Asfaw', tutor:'Bethlehem Alemu', subjects:['SAT Math','SAT Verbal'], progress:48, next:'Fri · 4:30 PM', status:'warn', statusLabel:'Overdue invoice', mode:'Online'},
+  {id:'s6', name:'Ruth Girmay', grade:'Grade 12', parent:'Helen Girmay', tutor:'Marta Solomon', subjects:['Applications','Calculus'], progress:77, next:'Wed · 7:00 PM', status:'up', statusLabel:'Deadline soon', mode:'Online'},
+  {id:'s7', name:'Kaleb Tesfaye', grade:'Grade 10', parent:'Samuel Tesfaye', tutor:'Daniel Bekele', subjects:['Physics','Pre-Calculus'], progress:68, next:'Today · 6:30 PM', status:'ok', statusLabel:'On track', mode:'Online'},
+  {id:'s8', name:'Bemnet Alem', grade:'Grade 9', parent:'—', tutor:'Unassigned', subjects:['Geometry'], progress:0, next:'Not scheduled', status:'new', statusLabel:'Needs tutor', mode:'—'},
+];
+
+const today = [
+  {time:'4:00', ampm:'PM', who:'Liya Mekonnen', what:'Algebra II · Bethlehem A.', c:'#1FA971'},
+  {time:'5:00', ampm:'PM', who:'Saron Worku', what:'Algebra I · Josh T.', c:'#1099A1'},
+  {time:'6:00', ampm:'PM', who:'Amen Worku', what:'Essay review · Marta S.', c:'#E0972B'},
+  {time:'6:30', ampm:'PM', who:'Kaleb Tesfaye', what:'Physics · Daniel B.', c:'#1099A1'},
+];
+
+const stages = [
+  {id:'research', name:'Building list', dot:'#1099A1'},
+  {id:'apply', name:'Drafting apps', dot:'#0C7A80'},
+  {id:'submitted', name:'Submitted', dot:'#E0972B'},
+  {id:'decisions', name:'Decisions', dot:'#CC3366'},
+  {id:'enrolled', name:'Enrolled', dot:'#1FA971'},
+];
+
+let applicants = [
+  {id:'a1', name:'Amen Worku', grade:'Grade 12', stage:'apply', top:'Johns Hopkins University', n:7, deadline:'Jan 2', days:9, essays:[['Common App personal statement',true],['JHU supplement',false],['Why major essay',false]], tasks:[['Request 2 recommendation letters',true],['Finalize activities list',true],['Submit FAFSA',false]]},
+  {id:'a2', name:'Ruth Girmay', grade:'Grade 12', stage:'submitted', top:'University of Maryland', n:6, deadline:'Nov 1', days:0, essays:[['Common App personal statement',true],['UMD honors essay',true]], tasks:[['Send official transcripts',true],['Confirm test scores sent',true],['Submit CSS Profile',false]]},
+  {id:'a3', name:'Selam Bekele', grade:'Grade 12', stage:'research', top:'Researching 10 schools', n:0, deadline:'Dec 15', days:22, essays:[['Brainstorm essay topics',false]], tasks:[['Build balanced college list',false],['Schedule campus tours',false]]},
+  {id:'a4', name:'Yared Tesfaye', grade:'Grade 11', stage:'research', top:'Researching 8 schools', n:0, deadline:'Mar 1', days:67, essays:[['Explore prompts',false]], tasks:[['Define target majors',true],['Plan junior-year testing',false]]},
+  {id:'a5', name:'Hana Desta', grade:'Grade 12', stage:'decisions', top:'3 acceptances received', n:8, deadline:'May 1', days:128, essays:[['All essays submitted',true]], tasks:[['Compare financial aid offers',false],['Decide & deposit',false]]},
+  {id:'a6', name:'Nathan Girma', grade:'Grade 12', stage:'submitted', top:'Penn State University', n:5, deadline:'Nov 30', days:6, essays:[['Personal statement',true],['Honors college essay',true]], tasks:[['Mid-year report request',false]]},
+  {id:'a7', name:'Eden Mulu', grade:'Grade 12', stage:'enrolled', top:'University of Maryland', n:1, deadline:'Enrolled', days:200, essays:[['Complete',true]], tasks:[['Submit enrollment deposit',true],['Register for orientation',true]]},
+  {id:'a8', name:'Abel Tadesse', grade:'Grade 12', stage:'apply', top:'Virginia Tech', n:6, deadline:'Jan 15', days:22, essays:[['Common App essay',true],['VT short answers',false]], tasks:[['Polish resume',true],['Counselor recommendation',false]]},
+];
+
+const kpiData = [
+  {ic:'t', svg:'<path d="M12 14c-4 0-7 2-7 5v1h14v-1c0-3-3-5-7-5Z"/><circle cx="12" cy="8" r="3.5"/>', val:'42', lab:'Active students', trend:'+5 this month', dir:'up'},
+  {ic:'g', svg:'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/>', val:'78', lab:'Sessions this week', trend:'+12%', dir:'up'},
+  {ic:'p', svg:'<path d="M22 9 12 4 2 9l10 5 10-5Z"/><path d="M6 11v5c0 1 2.7 3 6 3s6-2 6-3v-5"/>', val:'12', lab:'Admissions clients', trend:'New service', dir:'up'},
+  {ic:'a', svg:'<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>', val:'$18.4k', lab:'Revenue · Nov', trend:'$900 outstanding', dir:'down'},
+];
+
+/* ============ RENDER ============ */
+const $ = s => document.querySelector(s);
+function avatar(name, cls){ return `<div class="${cls}" style="background:linear-gradient(150deg,${ci(name)},${ci(name+'x')})">${initials(name)}</div>`; }
+
+function renderKpis(){
+  $('#kpis').innerHTML = kpiData.map(k=>`
+    <div class="kpi">
+      <div class="ic ${k.ic}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${k.svg}</svg></div>
+      <div class="val">${k.val}</div>
+      <div class="lab">${k.lab}</div>
+      <div class="trend ${k.dir}">${k.dir==='up'?'▲':'●'} ${k.trend}</div>
+    </div>`).join('');
+}
+
+function renderSchedule(){
+  $('#schedList').innerHTML = today.map(t=>`
+    <div class="sched-item">
+      <div class="time-chip"><div class="h">${t.time}</div><div class="m">${t.ampm}</div></div>
+      <div class="bar" style="background:${t.c}"></div>
+      <div class="sched-body"><div class="s1">${t.who}</div><div class="s2">${t.what}</div></div>
+      ${avatar(t.who,'mini-av')}
+    </div>`).join('');
+}
+
+const alerts = [
+  {ic:'<path d="M12 2 2 20h20L12 2Z"/><path d="M12 9v4M12 17h.01"/>', cls:'p', bg:'var(--pink-tint)', col:'var(--pink)', a1:'2 overdue invoices', a2:'$900 from Asfaw & Haile families', go:'parents'},
+  {ic:'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/>', cls:'a', bg:'var(--amber-tint)', col:'var(--amber)', a1:'3 deadlines within 10 days', a2:'JHU, Penn State, Virginia Tech', go:'admissions'},
+  {ic:'<path d="M12 14c-4 0-7 2-7 5v1h14v-1c0-3-3-5-7-5Z"/><circle cx="12" cy="8" r="3.5"/>', cls:'t', bg:'var(--teal-tint)', col:'var(--teal)', a1:'1 student needs a tutor', a2:'Bemnet Alem · Geometry', go:'students'},
+];
+function renderAlerts(){
+  $('#alertList').innerHTML = alerts.map(a=>`
+    <button class="alert" style="width:100%;text-align:left" data-go="${a.go}">
+      <div class="ai" style="background:${a.bg};color:${a.col}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${a.ic}</svg></div>
+      <div class="alert-b"><div class="a1">${a.a1}</div><div class="a2">${a.a2}</div></div>
+      <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg>
+    </button>`).join('');
+}
+
+function cdClass(d){ return d<=7?'soon':d<=21?'mid':'far'; }
+function renderDeadlineMini(){
+  const up = [...applicants].filter(a=>a.stage!=='enrolled').sort((x,y)=>x.days-y.days).slice(0,4);
+  $('#deadlineMini').innerHTML = up.map(a=>`
+    <button class="lineitem" style="width:100%;text-align:left" onclick="openApplicant('${a.id}')">
+      ${avatar(a.name,'mini-av')}
+      <div class="li-b"><div class="li-1">${a.name}</div><div class="li-2">${a.top}</div></div>
+      <span class="cd ${cdClass(a.days)}">${a.days===0?'Due today':'in '+a.days+'d'}</span>
+    </button>`).join('');
+}
+
+/* Students */
+let studentFilter='all', studentQuery='';
+const sChips=[['all','All'],['ok','On track'],['warn','Billing'],['up','Admissions'],['new','Unassigned']];
+function renderStudentChips(){
+  $('#studentChips').innerHTML=sChips.map(c=>`<button class="chip ${c[0]===studentFilter?'on':''}" onclick="setStudentFilter('${c[0]}')">${c[1]}</button>`).join('');
+}
+function setStudentFilter(f){ studentFilter=f; renderStudentChips(); renderStudents(); }
+function filterStudents(q){ studentQuery=q.toLowerCase(); renderStudents(); }
+function renderStudents(){
+  let arr=students.filter(s=>{
+    const m = studentFilter==='all' || s.status===studentFilter || (studentFilter==='up'&&s.status==='up');
+    const q = !studentQuery || (s.name+s.parent+s.tutor+s.subjects.join()).toLowerCase().includes(studentQuery);
+    return m && q;
+  });
+  $('#studentCount').textContent = `${arr.length} of ${students.length} students`;
+  if(!arr.length){ $('#studentList').innerHTML=emptyState('No students match','Try a different filter or search term.'); return; }
+  $('#studentList').innerHTML=arr.map(s=>`
+    <button class="row s-${s.status}" onclick="openStudent('${s.id}')">
+      ${avatar(s.name,'r-av')}
+      <div class="r-body"><div class="r-name">${s.name}</div><div class="r-sub">${s.grade} · ${s.tutor}</div></div>
+      <div class="r-meta"><span class="tag ${tagClass(s.status)}">${s.statusLabel}</span><div class="mm">${s.next.split('·')[0]}</div></div>
+    </button>`).join('');
+}
+const tagClass = st => st==='ok'?'ok':st==='warn'?'warn':st==='up'?'up':'new';
+
+/* Tutors */
+let tutorFilter='all', tutorQuery='';
+const tChips=[['all','All'],['STEM','STEM'],['SAT','Test prep'],['College','Admissions']];
+function renderTutorChips(){ $('#tutorChips').innerHTML=tChips.map(c=>`<button class="chip ${c[0]===tutorFilter?'on':''}" onclick="setTutorFilter('${c[0]}')">${c[1]}</button>`).join(''); }
+function setTutorFilter(f){ tutorFilter=f; renderTutorChips(); renderTutors(); }
+function filterTutors(q){ tutorQuery=q.toLowerCase(); renderTutors(); }
+function renderTutors(){
+  let arr=tutors.filter(t=>{
+    const subs=t.subjects.join().toLowerCase();
+    const m = tutorFilter==='all' || (tutorFilter==='STEM'&&/physics|algebra|geometry|calculus/.test(subs)) || (tutorFilter==='SAT'&&/sat/.test(subs)) || (tutorFilter==='College'&&/essay|application|scholarship/.test(subs));
+    const q=!tutorQuery || (t.name+subs+t.role).toLowerCase().includes(tutorQuery);
+    return m&&q;
+  });
+  $('#tutorCount').textContent=`${arr.length} of ${tutors.length} tutors`;
+  if(!arr.length){ $('#tutorList').innerHTML=emptyState('No tutors match','Try a different filter or search term.'); return; }
+  $('#tutorList').innerHTML=arr.map(t=>`
+    <button class="row ${t.status==='new'?'s-new':'s-ok'}" onclick="openTutor('${t.id}')">
+      ${avatar(t.name,'r-av')}
+      <div class="r-body"><div class="r-name">${t.name}</div><div class="r-sub">${t.role} · ${t.students} students</div></div>
+      <div class="r-meta"><span class="tag ok">★ ${t.rating}</span><div class="mm">$${t.rate}/hr</div></div>
+    </button>`).join('');
+}
+
+/* Parents */
+let parentFilter='all', parentQuery='';
+const pChips=[['all','All'],['Paid','Paid'],['Due','Due'],['Overdue','Overdue']];
+function renderParentChips(){ $('#parentChips').innerHTML=pChips.map(c=>`<button class="chip ${c[0]===parentFilter?'on':''}" onclick="setParentFilter('${c[0]}')">${c[1]}</button>`).join(''); }
+function setParentFilter(f){ parentFilter=f; renderParentChips(); renderParents(); }
+function filterParents(q){ parentQuery=q.toLowerCase(); renderParents(); }
+function renderParents(){
+  let arr=parents.filter(p=>{
+    const m=parentFilter==='all'||p.billing===parentFilter;
+    const q=!parentQuery||(p.name+p.children.join()+p.email).toLowerCase().includes(parentQuery);
+    return m&&q;
+  });
+  $('#parentCount').textContent=`${arr.length} of ${parents.length} families`;
+  if(!arr.length){ $('#parentList').innerHTML=emptyState('No families match','Try a different filter or search term.'); return; }
+  $('#parentList').innerHTML=arr.map(p=>`
+    <button class="row ${p.status==='warn'?'s-warn':'s-ok'}" onclick="openParent('${p.id}')">
+      ${avatar(p.name,'r-av')}
+      <div class="r-body"><div class="r-name">${p.name}</div><div class="r-sub">${p.children.join(', ')}</div></div>
+      <div class="r-meta"><span class="tag ${p.billing==='Paid'?'ok':'warn'}">${p.billing}</span><div class="mm">${p.balance?'$'+p.balance:'Settled'}</div></div>
+    </button>`).join('');
+}
+
+/* Admissions board */
+function renderFunnel(){
+  $('#funnel').innerHTML=stages.map(s=>{
+    const n=applicants.filter(a=>a.stage===s.id).length;
+    return `<div class="fstat"><div class="fdot" style="background:${s.dot}"></div><div class="fn">${n}</div><div class="fl">${s.name}</div></div>`;
+  }).join('');
+}
+function renderBoard(){
+  $('#board').innerHTML=stages.map(s=>{
+    const items=applicants.filter(a=>a.stage===s.id);
+    return `<div class="col">
+      <div class="col-h"><span class="cdot" style="background:${s.dot}"></span><span class="cname">${s.name}</span><span class="ccount">${items.length}</span></div>
+      <div class="col-body">
+        ${items.map(a=>{
+          const done=a.tasks.filter(t=>t[1]).length+a.essays.filter(e=>e[1]).length;
+          const tot=a.tasks.length+a.essays.length;
+          const pct=Math.round(done/tot*100);
+          return `<button class="appcard" style="border-top-color:${s.dot}" onclick="openApplicant('${a.id}')">
+            <div class="ah">${avatar(a.name,'r-av')}<div><div class="an">${a.name}</div><div class="ag">${a.grade}</div></div></div>
+            <div class="college"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 9 12 4 2 9l10 5 10-5Z"/><path d="M6 11v5c0 1 2.7 3 6 3s6-2 6-3v-5"/></svg><b>${a.top}</b></div>
+            <div class="prog"><i style="width:${pct}%"></i></div>
+            <div class="deadline"><span class="dl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>${a.deadline}</span>
+              ${s.id==='enrolled'?'<span class="cd far">Enrolled</span>':`<span class="cd ${cdClass(a.days)}">${a.days===0?'Due today':a.days+'d left'}</span>`}</div>
+          </button>`;
+        }).join('') || `<div style="font-size:12.5px;color:var(--mute);padding:14px;text-align:center;background:var(--app-2);border-radius:14px">No clients here yet</div>`}
+      </div></div>`;
+  }).join('');
+}
+
+/* ============ SHEET ============ */
+const CK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 13 4 4L19 7"/></svg>';
+function openSheet(html){ $('#sheetContent').innerHTML=html; $('#sheet').classList.add('on'); $('#scrim').classList.add('on'); document.body.style.overflow='hidden'; }
+function closeSheet(){ $('#sheet').classList.remove('on'); $('#scrim').classList.remove('on'); document.body.style.overflow=''; }
+function sheetHead(name,sub,sm){ return `<div class="sheet-head">${avatar(name,'r-av')}<div style="flex:1;min-width:0"><div class="sh-name">${name}</div><div class="sh-sub">${sub}</div></div><button class="sheet-x" onclick="closeSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>`; }
+function kvBlock(pairs){ return `<div class="kv">${pairs.map(p=>`<div class="k"><div class="kk">${p[0]}</div><div class="kv2">${p[1]}</div></div>`).join('')}</div>`; }
+
+function openStudent(id){
+  const s=students.find(x=>x.id===id);
+  openSheet(sheetHead(s.name,`${s.grade} · ${s.mode}`)+`<div class="sheet-body">
+    ${kvBlock([['Status',`<span class="tag ${tagClass(s.status)}">${s.statusLabel}</span>`],['Progress',s.progress+'%'],['Parent',s.parent],['Tutor',s.tutor]])}
+    <div class="block"><div class="bt">Course progress</div><div class="prog"><i style="width:${s.progress}%"></i></div></div>
+    <div class="block"><div class="bt">Subjects</div><div class="pill-row">${s.subjects.map(x=>`<span class="subj">${x}</span>`).join('')}</div></div>
+    <div class="block"><div class="bt">Next session</div>
+      <div class="lineitem"><div class="li-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg></div><div class="li-b"><div class="li-1">${s.next}</div><div class="li-2">${s.tutor} · ${s.mode}</div></div></div>
+    </div>
+    <div class="btn-row"><button class="btn btn-primary" onclick="toast('Session scheduled')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Book session</button>
+      <button class="btn btn-ghost" onclick="toast('Message sent to ${s.parent}')">Message parent</button></div></div>`);
+}
+
+function openTutor(id){
+  const t=tutors.find(x=>x.id===id);
+  const assigned=students.filter(s=>s.tutor===t.name);
+  openSheet(sheetHead(t.name,`${t.role} · ★ ${t.rating}`)+`<div class="sheet-body">
+    ${kvBlock([['Students',t.students],['Rate',`$${t.rate}/hr`],['Mode',t.mode],['This month',`$${t.payout.toLocaleString()}`]])}
+    <div class="block"><div class="bt">Teaches</div><div class="pill-row">${t.subjects.map(x=>`<span class="subj">${x}</span>`).join('')}</div></div>
+    <div class="block"><div class="bt">Availability</div><div class="lineitem"><div class="li-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div class="li-b"><div class="li-1">${t.avail}</div><div class="li-2">${t.mode}</div></div></div></div>
+    <div class="block"><div class="bt">Assigned students (${assigned.length})</div>
+      ${assigned.map(s=>`<div class="lineitem">${avatar(s.name,'mini-av')}<div class="li-b"><div class="li-1">${s.name}</div><div class="li-2">${s.subjects.join(', ')}</div></div></div>`).join('')||'<div style="font-size:13px;color:var(--mute)">No students assigned yet.</div>'}</div>
+    <div class="btn-row"><button class="btn btn-primary" onclick="toast('Payout of $${t.payout.toLocaleString()} queued')">Approve payout</button>
+      <button class="btn btn-ghost" onclick="toast('Schedule opened')">View schedule</button></div></div>`);
+}
+
+function openParent(id){
+  const p=parents.find(x=>x.id===id);
+  const kids=students.filter(s=>p.children.includes(s.name));
+  openSheet(sheetHead(p.name,`${p.children.length} student${p.children.length>1?'s':''} · ${p.plan}`)+`<div class="sheet-body">
+    ${kvBlock([['Billing',`<span class="tag ${p.billing==='Paid'?'ok':'warn'}">${p.billing}</span>`],['Balance',p.balance?'$'+p.balance:'$0'],['Phone',p.phone],['Last contact',p.last]])}
+    <div class="block"><div class="bt">Students</div>
+      ${kids.map(s=>`<button class="lineitem" style="width:100%;text-align:left" onclick="openStudent('${s.id}')">${avatar(s.name,'mini-av')}<div class="li-b"><div class="li-1">${s.name}</div><div class="li-2">${s.grade} · ${s.tutor}</div></div><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></button>`).join('')||`<div style="font-size:13px;color:var(--mute)">${p.children.join(', ')}</div>`}</div>
+    <div class="block"><div class="bt">Contact</div>
+      <div class="lineitem"><div class="li-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg></div><div class="li-b"><div class="li-1">${p.email}</div><div class="li-2">Primary email</div></div></div></div>
+    <div class="btn-row">${p.balance?`<button class="btn btn-pink" onclick="toast('Reminder sent to ${p.name}')">Send invoice reminder</button>`:`<button class="btn btn-primary" onclick="toast('Message sent')">Send message</button>`}
+      <button class="btn btn-ghost" onclick="toast('Statement opened')">Statement</button></div></div>`);
+}
+
+function openApplicant(id){
+  const a=applicants.find(x=>x.id===id);
+  const st=stages.find(s=>s.id===a.stage);
+  openSheet(sheetHead(a.name,`${a.grade} · College Admissions`)+`<div class="sheet-body">
+    ${kvBlock([['Stage',`<span style="color:${st.dot}">${st.name}</span>`],['Top choice',a.top.length>16?a.top.slice(0,15)+'…':a.top],['Colleges',a.n||'Building list'],['Next deadline',a.deadline]])}
+    <div class="block"><div class="bt">Move to stage</div><div class="stage-move">${stages.map(s=>`<button class="stage-btn ${s.id===a.stage?'cur':''}" onclick="moveStage('${a.id}','${s.id}')">${s.name}</button>`).join('')}</div></div>
+    <div class="block"><div class="bt">Essays</div>${a.essays.map((e,i)=>`<button class="lineitem" style="width:100%;text-align:left" onclick="toggleTask('${a.id}','e',${i})"><div class="check ${e[1]?'done':''}">${e[1]?CK:''}</div><div class="li-b"><div class="li-1">${e[0]}</div><div class="li-2">${e[1]?'Complete':'In progress'}</div></div></button>`).join('')}</div>
+    <div class="block"><div class="bt">Tasks</div>${a.tasks.map((t,i)=>`<button class="lineitem" style="width:100%;text-align:left" onclick="toggleTask('${a.id}','t',${i})"><div class="check ${t[1]?'done':''}">${t[1]?CK:''}</div><div class="li-b"><div class="li-1">${t[0]}</div><div class="li-2">${t[1]?'Done':'To do'}</div></div></button>`).join('')}</div>
+    <button class="btn btn-primary" onclick="toast('Update saved to ${a.name}\\'s file')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>Save updates</button></div>`);
+}
+function moveStage(id,stage){ const a=applicants.find(x=>x.id===id); a.stage=stage; renderFunnel(); renderBoard(); renderDeadlineMini(); openApplicant(id); toast('Moved to '+stages.find(s=>s.id===stage).name); }
+function toggleTask(id,kind,i){ const a=applicants.find(x=>x.id===id); const arr=kind==='e'?a.essays:a.tasks; arr[i][1]=!arr[i][1]; renderBoard(); openApplicant(id); }
+
+function openAdd(){
+  const on=document.querySelector('.view.on').id.replace('v-','');
+  const opts=[['student','Add a student','New learner & guardian'],['tutor','Add a tutor','New instructor profile'],['parent','Add a parent','New family account'],['applicant','Add admissions client','Start a college file']];
+  openSheet(`<div class="sheet-head"><div style="flex:1"><div class="sh-name">Add new</div><div class="sh-sub">What would you like to create?</div></div><button class="sheet-x" onclick="closeSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="sheet-body">${opts.map(o=>`<button class="lineitem" style="width:100%;text-align:left" onclick="toast('${o[1]} — form ready')"><div class="li-ic" style="background:var(--teal-tint);color:var(--teal)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div><div class="li-b"><div class="li-1">${o[1]}</div><div class="li-2">${o[2]}</div></div><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></button>`).join('')}</div>`);
+}
+
+function emptyState(t,s){ return `<div class="empty" style="grid-column:1/-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg><div class="e1">${t}</div><div class="e2">${s}</div></div>`; }
+
+/* ============ ROLES & NAV ============ */
+const ICON={
+  grid:'<rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/>',
+  student:'<path d="M12 14c-4 0-7 2-7 5v1h14v-1c0-3-3-5-7-5Z"/><circle cx="12" cy="8" r="3.5"/>',
+  tutor:'<path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M7 9v5c0 1.5 2.5 3 5 3s5-1.5 5-3V9"/>',
+  parent:'<circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2 19c0-3 2.5-5 6-5s6 2 6 5M14.5 18c.2-2.3 1.8-4 4-4 2 0 3.5 1.4 3.5 4"/>',
+  cap:'<path d="M22 9 12 4 2 9l10 5 10-5Z"/><path d="M6 11v5c0 1 2.7 3 6 3s6-2 6-3v-5"/>',
+  cal:'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/>',
+  chat:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  wallet:'<rect x="2" y="6" width="20" height="13" rx="2.5"/><path d="M16 12.5h.02"/><path d="M2 10.5h20"/>'
+};
+const NAV={
+  admin:[['overview','Home','grid'],['students','Students','student'],['tutors','Tutors','tutor'],['parents','Parents','parent'],['admissions','Admissions','cap']],
+  student:[['shome','Home','grid'],['ssessions','Sessions','cal'],['sadm','Admissions','cap'],['smsg','Messages','chat']],
+  parent:[['pahome','Home','grid'],['pakids','Children','student'],['pamsg','Messages','chat'],['pabill','Billing','wallet']],
+  tutor:[['tuhome','Today','grid'],['tustudents','Students','student'],['tuearn','Earnings','wallet'],['tumsg','Messages','chat']]
+};
+const IDENT={
+  admin:{name:'Almaz T.',short:'Almaz',initials:'AT',role:'Administrator'},
+  student:{name:'Amen Worku',short:'Amen',initials:'AW',role:'Student · Grade 12',sid:'s3',aid:'a1'},
+  parent:{name:'Tigist Worku',short:'Tigist',initials:'TW',role:'Parent / Guardian',kids:['s3','s4'],pid:'p3'},
+  tutor:{name:'Bethlehem Alemu',short:'Bethlehem',initials:'BA',role:'Tutor',tid:'t3'}
+};
+const ROLE_HI={admin:'Manage',student:'Your learning',parent:'Your family',tutor:'Your teaching'};
+const cap=s=>s[0].toUpperCase()+s.slice(1);
+function greetWord(){ const h=new Date().getHours(); return (h<12?'Good morning,':h<18?'Good afternoon,':'Good evening,'); }
+let currentRole='admin';
+
+function renderNav(){
+  const items=NAV[currentRole];
+  const mk=(cls)=>items.map((it,i)=>`<button class="${cls} ${i===0?'on':''}" data-go="${it[0]}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ICON[it[2]]}</svg>${it[1]}</button>`).join('');
+  $('#railLinks').innerHTML=mk('rail-link');
+  $('#tabbar').innerHTML=mk('tab');
+}
+function go(view){
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+view));
+  document.querySelectorAll('.tab,.rail-link').forEach(t=>t.classList.toggle('on',t.dataset.go===view));
+  const nav=NAV[currentRole], item=nav.find(i=>i[0]===view), id=IDENT[currentRole];
+  if(item && item===nav[0]){ $('#viewTitle').textContent=id.short; $('.greet .hi').textContent=greetWord(); }
+  else { $('#viewTitle').textContent=item?item[1]:''; $('.greet .hi').textContent=ROLE_HI[currentRole]; }
+  window.scrollTo({top:0,behavior:'smooth'}); closeSheet();
+}
+function setRole(role){
+  currentRole=role; renderNav();
+  const id=IDENT[role];
+  $('#topAvatar').textContent=id.initials;
+  $('#railFoot').innerHTML=`<div class="avatar" style="width:32px;height:32px;font-size:12px">${id.initials}</div><div style="flex:1;min-width:0;text-align:left"><div style="font-size:13.5px;font-weight:600;color:var(--ink)">${id.name}</div><div style="font-size:11px">${id.role}</div></div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mute)" stroke-width="2"><path d="M8 9l4-4 4 4M16 15l-4 4-4-4"/></svg>`;
+  const pb=$('#previewBar');
+  if(role==='admin') pb.classList.remove('on');
+  else { pb.classList.add('on'); $('#previewLabel').textContent=cap(role==='parent'?'parent':role)+' portal · '+id.name; }
+  $('.fab').style.display=role==='admin'?'grid':'none';
+  if(role==='student') renderStudent();
+  if(role==='parent') renderParent();
+  if(role==='tutor') renderTutor();
+  go(NAV[role][0][0]); closeSheet(); closeSignup();
+}
+document.addEventListener('click',e=>{ const el=e.target.closest('[data-go]'); if(el){ go(el.dataset.go); } });
+
+function openSwitch(){
+  const roles=[['admin','Admin console','Full management dashboard','grid'],['student','Student portal','What a student sees','student'],['parent','Parent portal','What a parent sees','parent'],['tutor','Tutor portal','What a tutor sees','tutor']];
+  openSheet(`<div class="sheet-head"><div style="flex:1"><div class="sh-name">Switch view</div><div class="sh-sub">Preview the app as any role</div></div><button class="sheet-x" onclick="closeSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="sheet-body">${roles.map(r=>`<button class="lineitem" style="width:100%;text-align:left" onclick="setRole('${r[0]}')"><div class="li-ic" style="${r[0]===currentRole?'background:var(--teal);color:#fff':'background:var(--teal-tint);color:var(--teal)'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${ICON[r[3]]}</svg></div><div class="li-b"><div class="li-1">${r[1]}${r[0]===currentRole?' · current':''}</div><div class="li-2">${r[2]}</div></div><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></button>`).join('')}
+  <button class="btn btn-ghost" style="margin-top:12px" onclick="openSignup()">See the new-member sign-up</button></div>`);
+}
+
+/* ============ SHARED PORTAL HELPERS ============ */
+const statBox=(v,l)=>`<div class="statbox"><div class="sv">${v}</div><div class="sl">${l}</div></div>`;
+const subjBars=arr=>arr.map(x=>`<div class="sbar"><div class="sbh"><span>${x[0]}</span><span class="pc">${x[1]}%</span></div><div class="prog"><i style="width:${x[1]}%"></i></div></div>`).join('');
+const calIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>';
+function heroNext(s,warm){
+  const parts=s.next.split(' · ');
+  const online=s.mode==='Online';
+  const icon=online?'<path d="m23 7-7 5 7 5V7Z"/><rect x="1" y="5" width="15" height="14" rx="2"/>':'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>';
+  return `<div class="hero ${warm?'warm':''}"><div class="hglow"></div>
+    <div class="hk">Next session</div>
+    <div class="ht">${s.subjects[0]}</div>
+    <div class="hs">with ${s.tutor}</div>
+    <div class="hmeta"><div class="hm"><b>${parts[0]}</b>${parts[1]||''}</div><div class="hm"><b>${s.mode}</b>${online?'Video link ready':'In person'}</div></div>
+    <button class="hbtn" onclick="toast('${online?'Opening your video room…':'Session details confirmed'}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${icon}</svg>${online?'Join session':'View details'}</button>
+  </div>`;
+}
+
+/* ============ STUDENT PORTAL ============ */
+let sAssign=[
+  {t:'Common App essay — draft 2',c:'College Essays',d:'Due Fri',done:false},
+  {t:'SAT practice test 3',c:'SAT Prep',d:'Due Tue',done:false},
+  {t:'Revise activities list',c:'Applications',d:'Completed',done:true}
+];
+function assignList(){ return sAssign.map((a,i)=>`<button class="lineitem" style="width:100%;text-align:left" onclick="toggleAssign(${i})"><div class="check ${a.done?'done':''}">${a.done?CK:''}</div><div class="li-b"><div class="li-1">${a.t}</div><div class="li-2">${a.c} · ${a.d}</div></div></button>`).join(''); }
+function toggleAssign(i){ sAssign[i].done=!sAssign[i].done; renderStudent(); }
+const admItem=(x,k,i)=>`<button class="lineitem" style="width:100%;text-align:left" onclick="toggleSAdm('${k}',${i})"><div class="check ${x[1]?'done':''}">${x[1]?CK:''}</div><div class="li-b"><div class="li-1">${x[0]}</div><div class="li-2">${x[1]?'Complete':'In progress'}</div></div></button>`;
+function toggleSAdm(k,i){ const a=applicants.find(x=>x.id===IDENT.student.aid); (k==='e'?a.essays:a.tasks)[i][1]=!(k==='e'?a.essays:a.tasks)[i][1]; renderStudent(); renderBoard(); renderFunnel(); }
+function renderStudent(){
+  const s=students.find(x=>x.id===IDENT.student.sid);
+  const a=applicants.find(x=>x.id===IDENT.student.aid);
+  $('#v-shome').innerHTML=`
+    ${heroNext(s)}
+    <div class="stat3">${statBox('12','Sessions done')}${statBox('18h','This term')}${statBox('5','Day streak')}</div>
+    <div class="sec-h"><h2>Subjects & progress</h2></div>
+    <div class="card card-pad">${subjBars([['College Essays',72],['SAT Prep',61],['Applications',80]])}</div>
+    <div class="sec-h"><h2>Assignments due</h2><span class="more" data-go="ssessions">Sessions</span></div>
+    <div class="card">${assignList()}</div>
+    <button class="teaser" data-go="sadm"><div class="tz-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">${ICON.cap}</svg></div><div class="tz-b"><div class="tz1">Your college applications</div><div class="tz2">${a.top} · deadline in ${a.days} days</div></div><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></button>`;
+  const up=[[s.subjects[0],s.next,s.tutor,'var(--teal)']];
+  if(s.subjects[1]) up.push([s.subjects[1],'Next week · time TBD',s.tutor,'var(--amber)']);
+  const hist=[['Algebra & essay structure','Marta Solomon','Oct 24'],['SAT timing drills','Bethlehem Alemu','Oct 19'],['Personal statement review','Marta Solomon','Oct 12']];
+  $('#v-ssessions').innerHTML=`
+    <div class="sec-h"><h2>Upcoming</h2><span class="more" onclick="toast('Reschedule request sent')">Reschedule</span></div>
+    <div class="card">${up.map(u=>`<div class="lineitem"><div class="li-ic" style="background:${u[3]}1a;color:${u[3]}">${calIcon}</div><div class="li-b"><div class="li-1">${u[0]}</div><div class="li-2">${u[1]} · ${u[2]}</div></div></div>`).join('')}</div>
+    <div class="sec-h"><h2>Past sessions</h2></div>
+    <div class="card">${hist.map(h=>`<div class="lineitem"><div class="li-ic" style="background:var(--green-tint);color:var(--green)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 13 4 4L19 7"/></svg></div><div class="li-b"><div class="li-1">${h[0]}</div><div class="li-2">${h[1]} · ${h[2]}</div></div></div>`).join('')}</div>`;
+  $('#v-sadm').innerHTML=`
+    <div class="board-intro"><div class="glow"></div><div style="flex:1"><span class="new-badge">Your application</span><h3>${a.top}</h3><p>${a.n} colleges on your list · next deadline ${a.deadline}</p></div></div>
+    <div class="stat3" style="margin-top:14px">${statBox(a.days+'d','To deadline')}${statBox(a.essays.filter(e=>e[1]).length+'/'+a.essays.length,'Essays')}${statBox(a.tasks.filter(t=>t[1]).length+'/'+a.tasks.length,'Tasks')}</div>
+    <div class="sec-h"><h2>Essays</h2></div><div class="card">${a.essays.map((e,i)=>admItem(e,'e',i)).join('')}</div>
+    <div class="sec-h"><h2>To-do</h2></div><div class="card">${a.tasks.map((t,i)=>admItem(t,'t',i)).join('')}</div>
+    <p class="count-note" style="margin-top:14px">Need help? Message your counselor from the Messages tab.</p>`;
+  $('#v-smsg').innerHTML=`<div class="sec-h"><h2>Messages</h2></div><p class="count-note" style="margin-bottom:8px">Your tutors and the Yakal team.</p><div class="list">${msgList('student')}</div>`;
+}
+
+/* ============ PARENT PORTAL ============ */
+function childRow(s){ return `<button class="row s-${s.status}" onclick="openChild('${s.id}')">${avatar(s.name,'r-av')}<div class="r-body"><div class="r-name">${s.name}</div><div class="r-sub">${s.grade} · ${s.tutor}</div></div><div class="r-meta"><span class="tag ${tagClass(s.status)}">${s.statusLabel}</span><div class="mm">${s.progress}%</div></div></button>`; }
+function openChild(id){
+  const s=students.find(x=>x.id===id);
+  openSheet(sheetHead(s.name,`${s.grade} · ${s.tutor}`)+`<div class="sheet-body">
+    ${kvBlock([['Status',`<span class="tag ${tagClass(s.status)}">${s.statusLabel}</span>`],['Progress',s.progress+'%'],['Tutor',s.tutor],['Mode',s.mode]])}
+    <div class="block"><div class="bt">Overall progress</div><div class="prog"><i style="width:${s.progress}%"></i></div></div>
+    <div class="block"><div class="bt">Subjects</div><div class="pill-row">${s.subjects.map(x=>`<span class="subj">${x}</span>`).join('')}</div></div>
+    <div class="block"><div class="bt">Next session</div><div class="lineitem"><div class="li-ic">${calIcon}</div><div class="li-b"><div class="li-1">${s.next}</div><div class="li-2">${s.tutor} · ${s.mode}</div></div></div></div>
+    <div class="btn-row"><button class="btn btn-primary" onclick="closeSheet();go('pamsg')">Message tutor</button><button class="btn btn-ghost" onclick="toast('Progress report opened')">Progress report</button></div></div>`);
+}
+function renderParent(){
+  const kids=IDENT.parent.kids.map(k=>students.find(s=>s.id===k));
+  const updates=[
+    ['g','Saron scored 90% on the algebra quiz','Today · from Josh T.'],
+    ['t','Amen — JHU supplement reviewed','Yesterday · from Marta S.'],
+    ['a','Heads up: JHU deadline in 9 days','Action may be needed']
+  ];
+  const uic={g:'<path d="m5 13 4 4L19 7"/>',t:ICON.chat,a:'<path d="M12 2 2 20h20L12 2Z"/><path d="M12 9v4M12 17h.01"/>'};
+  const ubg={g:'var(--green-tint)',t:'var(--teal-tint)',a:'var(--amber-tint)'};
+  const uco={g:'var(--green)',t:'var(--teal)',a:'var(--amber)'};
+  const summary=`<div class="card card-pad" style="margin-top:8px;display:flex;gap:18px;justify-content:space-around;text-align:center">
+    <div><div style="font-size:22px;font-weight:700">${kids.length}</div><div style="font-size:12px;color:var(--slate)">Children</div></div>
+    <div><div style="font-size:22px;font-weight:700">3</div><div style="font-size:12px;color:var(--slate)">Sessions this week</div></div>
+    <div><div style="font-size:22px;font-weight:700;color:var(--pink)">1</div><div style="font-size:12px;color:var(--slate)">Deadline soon</div></div></div>`;
+  $('#v-pahome').innerHTML=`${summary}
+    <div class="sec-h"><h2>Your children</h2><span class="more" data-go="pakids">All</span></div>
+    <div class="list">${kids.map(childRow).join('')}</div>
+    <div class="sec-h"><h2>Recent updates</h2></div>
+    <div class="card">${updates.map(u=>`<div class="lineitem"><div class="li-ic" style="background:${ubg[u[0]]};color:${uco[u[0]]}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${uic[u[0]]}</svg></div><div class="li-b"><div class="li-1">${u[1]}</div><div class="li-2">${u[2]}</div></div></div>`).join('')}</div>`;
+  $('#v-pakids').innerHTML=`<div class="sec-h"><h2>Your children</h2></div><p class="count-note" style="margin-bottom:8px">Tap a child to view progress, sessions and subjects.</p><div class="list">${kids.map(childRow).join('')}</div>`;
+  $('#v-pamsg').innerHTML=`<div class="sec-h"><h2>Messages</h2></div><p class="count-note" style="margin-bottom:8px">Talk with your children's tutors and the Yakal team.</p><div class="list">${msgList('parent')}</div>`;
+  const hist=[['November tuition','Nov 1','$480'],['October tuition','Oct 1','$480'],['September tuition','Sep 1','$480']];
+  $('#v-pabill').innerHTML=`
+    <div class="bill-hero"><div class="bl">Current balance</div><div class="bv">$0.00</div><span class="bok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 13 4 4L19 7"/></svg>Paid in full</span></div>
+    <div class="sec-h"><h2>Plan</h2></div>
+    <div class="card card-pad">${kvBlock([['Package','Admissions + tutoring'],['Billing','Monthly'],['Students',IDENT.parent.kids.length],['Next charge','Dec 1']])}</div>
+    <div class="sec-h"><h2>Payment history</h2></div>
+    <div class="card">${hist.map(h=>`<div class="lineitem"><div class="li-ic" style="background:var(--green-tint);color:var(--green)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg></div><div class="li-b"><div class="li-1">${h[0]}</div><div class="li-2">Paid · ${h[1]}</div></div><div style="font-weight:700;font-size:14px">${h[2]}</div></div>`).join('')}</div>
+    <div class="btn-row"><button class="btn btn-primary" onclick="toast('Payment methods opened')">Manage payment</button><button class="btn btn-ghost" onclick="toast('Statement downloaded')">Statement</button></div>`;
+}
+
+/* ============ TUTOR PORTAL ============ */
+let availOn=true;
+function tutorStudentRow(s){ return `<button class="row s-${s.status}" onclick="openTutorStudent('${s.id}')">${avatar(s.name,'r-av')}<div class="r-body"><div class="r-name">${s.name}</div><div class="r-sub">${s.grade} · ${s.subjects.join(', ')}</div></div><div class="r-meta"><span class="tag ${tagClass(s.status)}">${s.progress}%</span></div></button>`; }
+function openTutorStudent(id){
+  const s=students.find(x=>x.id===id);
+  openSheet(sheetHead(s.name,`${s.grade} · ${s.subjects.join(', ')}`)+`<div class="sheet-body">
+    ${kvBlock([['Progress',s.progress+'%'],['Next',s.next.split(' · ')[0]],['Parent',s.parent],['Mode',s.mode]])}
+    <div class="block"><div class="bt">Progress</div><div class="prog"><i style="width:${s.progress}%"></i></div></div>
+    <div class="block"><div class="bt">Log a session note</div><input class="field" style="width:100%;height:46px;border:1.5px solid var(--line);border-radius:13px;padding:0 14px;font-size:14px;outline:none" placeholder="What did you cover today?"></div>
+    <div class="btn-row"><button class="btn btn-primary" onclick="toast('Session note saved')">Save note</button><button class="btn btn-ghost" onclick="closeSheet();go('tumsg')">Message parent</button></div></div>`);
+}
+function toggleAvail(){ availOn=!availOn; renderTutor(); toast(availOn?'You are now accepting new bookings':'New bookings paused'); }
+function renderTutor(){
+  const t=tutors.find(x=>x.id===IDENT.tutor.tid);
+  const mine=students.filter(s=>s.tutor===t.name);
+  const todayMine=mine.filter(s=>s.next.includes('Today'));
+  const upMine=mine.filter(s=>!s.next.includes('Today'));
+  const heroStu=mine.find(s=>s.next.includes('Today'))||mine[0];
+  $('#v-tuhome').innerHTML=`
+    ${heroNext(heroStu)}
+    <div class="stat3">${statBox(mine.length,'My students')}${statBox('★ '+t.rating,'Rating')}${statBox('$'+t.payout.toLocaleString(),'This month')}</div>
+    <div class="avail"><div class="av-b"><div class="av1">Accepting new students</div><div class="av2">${availOn?'Families can request you':'Paused — hidden from new requests'}</div></div><button class="switch ${availOn?'':'off'}" onclick="toggleAvail()" aria-label="Toggle availability"><i></i></button></div>
+    <div class="sec-h"><h2>Today's sessions</h2></div>
+    <div class="card">${(todayMine.length?todayMine:upMine).map(s=>`<div class="lineitem"><div class="li-ic" style="background:var(--teal-tint);color:var(--teal)">${calIcon}</div><div class="li-b"><div class="li-1">${s.name}</div><div class="li-2">${s.subjects[0]} · ${s.next}</div></div>${avatar(s.name,'mini-av')}</div>`).join('')||'<div class="empty"><div class="e1">No sessions today</div><div class="e2">Enjoy the break.</div></div>'}</div>`;
+  $('#v-tustudents').innerHTML=`<div class="sec-h"><h2>My students</h2></div><p class="count-note" style="margin-bottom:8px">Tap a student to view progress or log notes.</p><div class="list">${mine.map(tutorStudentRow).join('')}</div>`;
+  const ph=[['October payout','Oct 31','$1,420'],['September payout','Sep 30','$1,260']];
+  $('#v-tuearn').innerHTML=`
+    <div class="hero warm"><div class="hglow"></div><div class="hk">Earnings · November</div><div class="ht">$${t.payout.toLocaleString()}</div><div class="hs">across 35 sessions · $${t.rate}/hr</div><button class="hbtn" onclick="toast('Payout request submitted')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Request payout</button></div>
+    <div class="stat3">${statBox('35','Sessions')}${statBox('$'+t.rate,'Per hour')}${statBox(mine.length,'Students')}</div>
+    <div class="sec-h"><h2>Payout history</h2></div>
+    <div class="card">${ph.map(p=>`<div class="lineitem"><div class="li-ic" style="background:var(--green-tint);color:var(--green)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg></div><div class="li-b"><div class="li-1">${p[0]}</div><div class="li-2">Paid · ${p[1]}</div></div><div style="font-weight:700;font-size:14px">${p[2]}</div></div>`).join('')}</div>`;
+  $('#v-tumsg').innerHTML=`<div class="sec-h"><h2>Messages</h2></div><p class="count-note" style="margin-bottom:8px">Parents of your students and the Yakal team.</p><div class="list">${msgList('tutor')}</div>`;
+}
+
+/* ============ MESSAGES ============ */
+const convos={
+  parent:[
+    {id:'cp1',who:'Marta Solomon',role:'Admissions counselor',msgs:[{me:false,t:"Amen's JHU supplement draft looks strong — I left a few comments in the doc.",time:'9:12 AM'},{me:true,t:'Thank you! When is the next session?',time:'9:30 AM'},{me:false,t:"Thursday at 6 PM. We'll finalize the “why this major” essay together.",time:'9:34 AM'}]},
+    {id:'cp2',who:'Eyasu (Josh) Tadesse',role:'Tutor · Saron',msgs:[{me:false,t:'Saron did great in algebra today — 90% on the quiz!',time:'Yesterday'},{me:true,t:'Wonderful news, thank you for the update.',time:'Yesterday'}]},
+    {id:'cp3',who:'Yakal Front Desk',role:'Support',msgs:[{me:false,t:'Your November statement is ready — no balance due. Thank you!',time:'Mon'}]}
+  ],
+  student:[
+    {id:'cs1',who:'Marta Solomon',role:'Admissions counselor',msgs:[{me:false,t:'Nice work on draft 1. Tighten the opening paragraph before Thursday.',time:'10:02 AM'},{me:true,t:"Got it — I'll revise the intro tonight.",time:'10:20 AM'}]},
+    {id:'cs2',who:'Bethlehem Alemu',role:'SAT Math tutor',msgs:[{me:false,t:'Practice test 3 is assigned. Try to finish by Tuesday so we can review.',time:'Yesterday'}]},
+    {id:'cs3',who:'Yakal Front Desk',role:'Support',msgs:[{me:false,t:'Welcome to Yakal! Your portal is all set up. 🎓',time:'Last week'}]}
+  ],
+  tutor:[
+    {id:'ct1',who:'Sara Mekonnen',role:'Parent · Liya',msgs:[{me:false,t:"Could we move Liya's session to 4:30 next week?",time:'8:40 AM'},{me:true,t:"Sure — 4:30 Tuesday works. I'll update the schedule.",time:'8:52 AM'}]},
+    {id:'ct2',who:'Daniel Asfaw',role:'Parent · Yonas',msgs:[{me:false,t:'How is Yonas progressing on SAT math?',time:'Yesterday'},{me:true,t:"Steady — section scores are up about 60 points. I'll send a recap.",time:'Yesterday'}]},
+    {id:'ct3',who:'Yakal Operations',role:'Admin',msgs:[{me:false,t:'Reminder: submit session notes by Friday so payouts process on time.',time:'Wed'}]}
+  ]
+};
+function msgList(role){
+  return convos[role].map(c=>{ const last=c.msgs[c.msgs.length-1];
+    return `<button class="row s-new" onclick="openConvo('${role}','${c.id}')">${avatar(c.who,'r-av')}<div class="r-body"><div class="r-name">${c.who}</div><div class="r-sub">${last.me?'You: ':''}${last.t}</div></div><div class="r-meta"><div class="mm">${last.time}</div></div></button>`;
+  }).join('');
+}
+function openConvo(role,id){
+  const c=convos[role].find(x=>x.id===id);
+  const bubbles=c.msgs.map(m=>`<div class="bubble ${m.me?'me':'them'}"><div class="bx">${m.t}</div><div class="bt2">${m.time}</div></div>`).join('');
+  openSheet(sheetHead(c.who,c.role)+`<div class="sheet-body"><div class="thread">${bubbles}</div>
+    <div class="composer"><input id="msgInput" placeholder="Write a message…" onkeydown="if(event.key==='Enter')sendMsg('${role}','${id}')"><button class="send" onclick="sendMsg('${role}','${id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4 20-7Z"/></svg></button></div></div>`);
+  const th=document.querySelector('#sheetContent .thread'); if(th) th.scrollTop=th.scrollHeight;
+}
+function sendMsg(role,id){ const inp=$('#msgInput'); const v=inp.value.trim(); if(!v) return; convos[role].find(x=>x.id===id).msgs.push({me:true,t:v,time:'Now'}); openConvo(role,id); }
+
+/* ============ SIGN-UP ============ */
+const ROLE_META={
+  student:{ic:'student',col:'var(--teal)',t:'Student',d:'Book sessions, track progress and tasks'},
+  parent:{ic:'parent',col:'var(--pink)',t:'Parent / Guardian',d:'Monitor your child and message tutors'},
+  tutor:{ic:'tutor',col:'var(--amber)',t:'Tutor',d:'Manage your schedule, students and earnings'}
+};
+const FIELDS={
+  student:[['Full name','Amen Worku'],['Email','amen@email.com'],['Grade level','select:Grade 9,Grade 10,Grade 11,Grade 12'],['Subjects of interest','SAT prep, Calculus']],
+  parent:[['Full name','Tigist Worku'],['Email','tigist@email.com'],['Phone','(301) 555-0119'],["Child's name",'Amen Worku']],
+  tutor:[['Full name','Bethlehem Alemu'],['Email','beth@email.com'],['Subjects you teach','Algebra, Geometry, SAT Math'],['Years of experience','select:1–2 years,3–5 years,5+ years']]
+};
+let suRole=null;
+function openSignup(){ closeSheet(); suRole=null; suStep('pick'); $('#signup').classList.add('on'); document.body.style.overflow='hidden'; }
+function closeSignup(){ $('#signup').classList.remove('on'); document.body.style.overflow=''; }
+function suStep(step){
+  const b=$('#suBody');
+  if(step==='pick'){
+    b.innerHTML=`<h1 class="su-h">Create your account</h1><p class="su-p">Who's joining Yakal? Pick the role that fits — you'll land in your own portal.</p>
+    <div class="rolepick">${Object.keys(ROLE_META).map(r=>{const m=ROLE_META[r];return `<button class="rp" onclick="suPick('${r}')"><div class="rp-ic" style="background:${m.col}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">${ICON[m.ic]}</svg></div><div><div class="rp1">${m.t}</div><div class="rp2">${m.d}</div></div><svg class="rp-go" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></button>`;}).join('')}</div>`;
+  } else if(step==='form'){
+    const m=ROLE_META[suRole];
+    b.innerHTML=`<h1 class="su-h">${m.t} sign-up</h1><p class="su-p">${m.d}.</p>
+    ${FIELDS[suRole].map((f,i)=>{ const isSel=String(f[1]).startsWith('select:');
+      const ctrl=isSel?`<select id="${i===0?'suName':''}">${f[1].slice(7).split(',').map(o=>`<option>${o}</option>`).join('')}</select>`:`<input id="${i===0?'suName':''}" placeholder="${f[1]}">`;
+      return `<div class="field"><label>${f[0]}</label>${ctrl}</div>`;}).join('')}
+    <button class="btn btn-primary" style="margin-top:6px" onclick="suCreate()">Create account</button>
+    <div style="text-align:center"><button class="back-link" onclick="suStep('pick')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m15 18-6-6 6-6"/></svg>Choose a different role</button></div>`;
+  } else if(step==='done'){
+    const m=ROLE_META[suRole]; const nm=(window._suName||m.t);
+    b.innerHTML=`<div class="su-success"><div class="ok-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 13 4 4L19 7"/></svg></div>
+      <h1 class="su-h" style="margin:0 0 6px">Welcome, ${nm.split(' ')[0]}!</h1>
+      <p class="su-p" style="margin-bottom:20px">Your ${m.t.toLowerCase()} account is ready. Here's the portal you'll use every day.</p>
+      <button class="btn btn-primary" onclick="enterPortal()">Enter my portal</button>
+      <div style="text-align:center"><button class="back-link" onclick="closeSignup()">Back to admin console</button></div></div>`;
+  }
+}
+function suPick(r){ suRole=r; suStep('form'); }
+function suCreate(){ const el=$('#suName'); window._suName=el&&el.value?el.value:ROLE_META[suRole].t; suStep('done'); }
+function enterPortal(){ const r=suRole; closeSignup(); setRole(r); toast('Account created — welcome to Yakal'); }
+
+/* toast */
+let tT;
+function toast(msg){ $('#toastMsg').textContent=msg; $('#toast').classList.add('on'); clearTimeout(tT); tT=setTimeout(()=>$('#toast').classList.remove('on'),2200); }
+
+/* ============ INIT ============ */
+renderKpis(); renderSchedule(); renderAlerts(); renderDeadlineMini();
+renderStudentChips(); renderStudents();
+renderTutorChips(); renderTutors();
+renderParentChips(); renderParents();
+renderFunnel(); renderBoard();
+setRole('admin');
+</script>
+</body>
+</html>
