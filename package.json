@@ -6,10 +6,13 @@
   "type": "module",
   "scripts": {
     "start": "npx serve app",
-    "test": "node test/e2e.test.mjs"
+    "test": "node test/e2e.test.mjs",
+    "migrate": "node scripts/migrate.mjs",
+    "migrate:seed": "node scripts/migrate.mjs --seed"
   },
   "devDependencies": {
-    "jsdom": "^24.0.0"
+    "jsdom": "^24.0.0",
+    "pg": "^8.22.0"
   },
   "license": "SEE LICENSE IN LICENSE"
 }
