@@ -26,7 +26,9 @@ yakal-portal/
 │   └── admin-prototype.html# earlier standalone prototype (reference only)
 ├── test/
 │   └── e2e.test.mjs        # headless run-through of every role + the guards
-└── .github/workflows/ci.yml
+└── .github/workflows/
+    ├── ci.yml              # runs tests on every push / PR
+    └── deploy.yml          # tests, then deploys app/ to GitHub Pages
 ```
 
 ## Quick start (demo, zero backend)
@@ -81,6 +83,38 @@ One data-layer interface, two drivers:
   visibility. Activates automatically when project keys are present.
 
 Same method names, so going live is configuration, not a rewrite.
+
+## Local development
+
+```bash
+git clone <your-repo-url> yakal-portal
+cd yakal-portal
+npm install        # installs the test toolchain (jsdom)
+npm start          # serves app/ at http://localhost:3000
+npm test           # runs the headless end-to-end suite
+```
+
+The app is a single static file with no build step — edit `app/index.html`
+and refresh. The `db/` SQL and `docs/` markdown are the backend and reference.
+
+## Deploy (GitHub Pages, automatic)
+
+This repo ships with `.github/workflows/deploy.yml`. On every push to `main` it
+runs the tests and, if they pass, publishes `app/` to GitHub Pages. The
+deployed site runs in **demo mode** (no keys committed), so it's a safe,
+shareable, testable build.
+
+**One-time setup:** on GitHub, go to **Settings → Pages → Build and deployment
+→ Source → GitHub Actions**. After the first successful run your app is live at:
+
+```
+https://<your-username>.github.io/<repo-name>/
+```
+
+To make the deployed site talk to a real backend, add your Supabase URL + anon
+key to the two constants at the top of `app/index.html` (the anon key is safe
+to expose publicly — Row-Level Security protects the data; never commit the
+service-role key).
 
 ## Tests
 
