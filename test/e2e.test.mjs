@@ -10,7 +10,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const html = fs.readFileSync(path.join(here, '..', 'app', 'index.html'), 'utf8');
+// This suite exercises the offline demo driver (the in-browser mirror of the
+// RLS rules). Force demo mode even when live Supabase keys are configured in
+// the app, so CI validates the access-control logic without a real backend.
+const html = fs.readFileSync(path.join(here, '..', 'app', 'index.html'), 'utf8')
+  .replace(/const SUPABASE_URL = "[^"]*"/, 'const SUPABASE_URL = ""')
+  .replace(/const SUPABASE_ANON_KEY = "[^"]*"/, 'const SUPABASE_ANON_KEY = ""');
 
 const errors = [];
 const dom = new JSDOM(html, {
