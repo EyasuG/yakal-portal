@@ -22,23 +22,34 @@ set check_function_bodies = off;
 create or replace function app.handle_new_user() returns trigger
   language plpgsql security definer set search_path = public, app as $$
 declare
-  org uuid;
+  org   uuid;
+  v_role app.user_role := coalesce((new.raw_user_meta_data->>'role')::app.user_role, 'student');
+  v_name text         := coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email,'@',1));
 begin
   select id into org from organizations order by created_at limit 1;
   insert into profiles (id, org_id, role, full_name, email)
-  values (
-    new.id,
-    org,
-    coalesce((new.raw_user_meta_data->>'role')::app.user_role, 'student'),
-    coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email,'@',1)),
-    new.email
-  )
+  values (new.id, org, v_role, v_name, new.email)
   on conflict (id) do nothing;
+
   -- tutors get a tutor_profiles row too
-  if (new.raw_user_meta_data->>'role') = 'tutor' then
+  if v_role = 'tutor' then
     insert into tutor_profiles (profile_id, org_id) values (new.id, org)
     on conflict do nothing;
   end if;
+
+  -- students get a linked students row, otherwise every student portal view
+  -- (which reads through app.my_student_id()) has nothing to load. last_name
+  -- is NOT NULL, so a single-word name yields an empty (but valid) last name.
+  if v_role = 'student'
+     and not exists (select 1 from students where user_id = new.id) then
+    insert into students (org_id, user_id, first_name, last_name)
+    values (
+      org, new.id,
+      split_part(v_name, ' ', 1),
+      trim(regexp_replace(v_name, '^\S+', ''))
+    );
+  end if;
+
   return new;
 end $$;
 
