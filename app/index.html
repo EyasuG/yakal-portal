@@ -476,7 +476,8 @@ function LocalDriver(){
     async adminFlags(){ const out=[]; S.conversations.forEach(c=>c.msgs.forEach(m=>{ if(m.flag) out.push({who:name(m.from),student:S.students.find(s=>s.id===c.student)?.name,reasons:m.flag,excerpt:m.t,time:m.time}); })); return out; },
     async tutorRisk(){ const map={}; S.conversations.forEach(c=>c.msgs.forEach(m=>{ if(m.flag&&prof(m.from)?.role==='tutor'){ map[m.from]=(map[m.from]||0)+1; }})); return Object.entries(map).map(([id,n])=>({name:name(id),flags:n})); },
     // ---- STUDENT ----
-    async studentHome(){ const s=studentOfUser(); return {student:s,progress:S.progress[s.id]||[],homework:S.homework[s.id]||[],application:S.applications[s.id],tutorName:name(s.tutor)}; },
+    async studentHome(){ const s=studentOfUser(); return {student:s,progress:S.progress[s.id]||[],homework:S.homework[s.id]||[],application:S.applications[s.id],tutorName:name(s.tutor),nextSession:{sessionId:'demo-'+s.id,meetingUrl:s.meetingUrl||null}}; },
+    async ensureMeeting(sessionId){ return 'https://zoom.us/j/'+encodeURIComponent(sessionId); },
     async studentSessions(){ const s=studentOfUser(); return {next:{subject:s.subjects[0],when:s.next,tutor:name(s.tutor),mode:s.mode},past:(S.sessionsPast[s.id]||[]).map(p=>[p[0],name(p[1]),p[2]])}; },
     async toggleHomework(i){ const s=studentOfUser(); S.homework[s.id][i].done=!S.homework[s.id][i].done; save(); },
     async toggleAppItem(kind,i){ const s=studentOfUser(); const a=S.applications[s.id]; (kind==='e'?a.essays:a.tasks)[i][1]=!(kind==='e'?a.essays:a.tasks)[i][1]; save(); },
@@ -485,7 +486,7 @@ function LocalDriver(){
     async childDetail(sid){ if(!canSee(sid)) throw new Error('Not authorized'); const s=S.students.find(x=>x.id===sid); return {...s,tutorName:name(s.tutor),progress:S.progress[sid]||[],past:(S.sessionsPast[sid]||[]).map(p=>[p[0],name(p[1]),p[2]])}; },
     async parentBilling(){ const inv=S.invoices.find(i=>i.parent===me.id); return {invoice:inv,history:S.payments[me.id]||[],kids:myKids().length}; },
     // ---- TUTOR ----
-    async tutorHome(){ const t=S.tutors[me.id]; const mine=S.students.filter(s=>s.tutor===me.id); return {tutor:t,students:mine.map(s=>({...s,parentName:name((S.guardianships.find(g=>g.student===s.id)||{}).parent)})),today:mine.filter(s=>s.next.includes('Today'))}; },
+    async tutorHome(){ const t=S.tutors[me.id]; const mine=S.students.filter(s=>s.tutor===me.id); return {tutor:t,students:mine.map(s=>({...s,parentName:name((S.guardianships.find(g=>g.student===s.id)||{}).parent)})),today:mine.filter(s=>s.next.includes('Today')),nextSession:{sessionId:'demo-tutor-'+me.id,meetingUrl:null}}; },
     async tutorStudents(){ return S.students.filter(s=>s.tutor===me.id).map(s=>({...s,parentName:name((S.guardianships.find(g=>g.student===s.id)||{}).parent)})); },
     async tutorEarnings(){ const t=S.tutors[me.id]; return {payout:t.payout,rate:t.rate,students:S.students.filter(s=>s.tutor===me.id).length,
         history:[['October payout','Oct 31','$1,420'],['September payout','Sep 30','$1,260']]}; },
@@ -551,14 +552,22 @@ async function SupabaseDriver(){
     async adminFlags(){ const { data } = await sb.from('message_flags').select('kind,excerpt,created_at,profiles(full_name)').order('created_at',{ascending:false}); return (data||[]).map(f=>({who:f.profiles?.full_name,reasons:[f.kind],excerpt:f.excerpt,time:new Date(f.created_at).toLocaleDateString()})); },
     async tutorRisk(){ const { data } = await sb.from('admin_tutor_risk').select('*').gt('open_flags',0); return (data||[]).map(r=>({name:r.full_name,flags:r.open_flags})); },
     async studentHome(){ const { data:s } = await sb.from('students').select('*').limit(1).single();
-      const [pr,hw,ap] = await Promise.all([
+      const [pr,hw,ap,ns] = await Promise.all([
         sb.from('progress_snapshots').select('percent,subjects(name)').eq('student_id',s.id),
         sb.from('homework').select('*').eq('student_id',s.id),
-        sb.from('applications').select('*').eq('student_id',s.id).limit(1).maybeSingle()]);
-      return {student:{id:s.id,name:s.first_name+' '+s.last_name,grade:s.grade,subjects:[],next:'',mode:'Online'},
+        sb.from('applications').select('*').eq('student_id',s.id).limit(1).maybeSingle(),
+        sb.from('sessions').select('id,mode,meeting_url,scheduled_start').eq('student_id',s.id).gte('scheduled_start',new Date().toISOString()).order('scheduled_start',{ascending:true}).limit(1).maybeSingle()]);
+      const nx=ns.data;
+      return {student:{id:s.id,name:s.first_name+' '+s.last_name,grade:s.grade,subjects:[],next:nx?new Date(nx.scheduled_start).toLocaleString([], {weekday:'short',hour:'numeric',minute:'2-digit'}):'',mode:nx&&nx.mode==='in_person'?'In person':'Online'},
         progress:(pr.data||[]).map(p=>[p.subjects?.name||'Subject',p.percent]),
         homework:(hw.data||[]).map(h=>({t:h.title,c:'',d:h.due_date||'',done:h.status==='graded'})),
-        application:ap.data,tutorName:''};
+        application:ap.data,tutorName:'',nextSession:nx?{sessionId:nx.id,meetingUrl:nx.meeting_url}:null};
+    },
+    async ensureMeeting(sessionId){
+      const { data, error } = await sb.functions.invoke('zoom-create-meeting',{ body:{ session_id: sessionId } });
+      if(error){ let m='Could not create the video room.'; try{ m=(await error.context.json()).error||m; }catch(e){} throw new Error(m); }
+      if(data&&data.error) throw new Error(data.error);
+      return data&&data.join_url;
     },
     async studentSessions(){ const { data:s } = await sb.from('students').select('id,first_name').limit(1).single();
       const { data } = await sb.from('sessions').select('*,subjects(name)').eq('student_id',s.id).order('scheduled_start',{ascending:false});
@@ -578,7 +587,9 @@ async function SupabaseDriver(){
     async tutorHome(){ const { data:tp } = await sb.from('tutor_profiles').select('*').eq('profile_id',prof.id).single();
       const { data:asg } = await sb.from('tutoring_assignments').select('students(id,first_name,last_name,grade)').eq('tutor_id',prof.id).eq('status','active');
       const students=(asg||[]).map(a=>({id:a.students.id,name:a.students.first_name+' '+a.students.last_name,grade:a.students.grade,status:'ok',progress:0,subjects:[],next:'',mode:'',parentName:''}));
-      return {tutor:{rating:tp.rating,rate:tp.hourly_rate,accepting:tp.accepting,payout:0},students,today:[]};
+      const { data:nx } = await sb.from('sessions').select('id,mode,meeting_url,scheduled_start,students(first_name,last_name)').eq('tutor_id',prof.id).gte('scheduled_start',new Date().toISOString()).order('scheduled_start',{ascending:true}).limit(1).maybeSingle();
+      return {tutor:{rating:tp.rating,rate:tp.hourly_rate,accepting:tp.accepting,payout:0},students,today:[],
+        nextSession:nx?{sessionId:nx.id,meetingUrl:nx.meeting_url}:null};
     },
     async tutorStudents(){ return (await this.tutorHome()).students; },
     async tutorEarnings(){ const { data } = await sb.from('payouts').select('*').eq('tutor_id',prof.id).order('created_at',{ascending:false});
@@ -684,11 +695,19 @@ const RENDER={};
 const statBox=(v,l)=>`<div class="statbox"><div class="sv">${v}</div><div class="sl">${l}</div></div>`;
 const subjBars=a=>a.map(x=>`<div class="sbar"><div class="sbh"><span>${x[0]}</span><span class="pc">${x[1]}%</span></div><div class="prog"><i style="width:${x[1]}%"></i></div></div>`).join('');
 const calIc='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'+ICON.cal+'</svg>';
-function heroNext(subject,when,who,mode){ const online=mode!=='In person';
+function heroNext(subject,when,who,mode,opts){ opts=opts||{}; const online=mode!=='In person';
   const icon=online?'<path d="m23 7-7 5 7 5V7Z"/><rect x="1" y="5" width="15" height="14" rx="2"/>':'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>';
+  const canCreate=(opts.role==='tutor'||opts.role==='admin')&&opts.sessionId;
+  let action,label;
+  if(!online){ action="toast('Session details confirmed')"; label='View details'; }
+  else if(opts.meetingUrl){ action=`openMeeting('${opts.meetingUrl}')`; label='Join session'; }
+  else if(canCreate){ action=`createRoom('${opts.sessionId}')`; label='Create video room'; }
+  else { action="toast('Your tutor will open the video room at session time')"; label='Join session'; }
   return `<div class="hero-next"><div class="glow"></div><div class="hk">Next session</div><div class="ht">${subject}</div><div class="hs">with ${who}</div>
    <div class="hmeta"><div class="hm"><b>${when}</b></div><div class="hm"><b>${mode||'Online'}</b></div></div>
-   <button class="hbtn" onclick="toast('${online?'Opening your video room…':'Session details confirmed'}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${icon}</svg>${online?'Join session':'View details'}</button></div>`; }
+   <button class="hbtn" onclick="${action}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${icon}</svg>${label}</button></div>`; }
+function openMeeting(url){ if(url) window.open(url,'_blank','noopener'); }
+async function createRoom(sid){ try{ toast('Creating video room…'); const url=await DB.ensureMeeting(sid); if(url){ openMeeting(url); toast('Video room ready'); } }catch(e){ toast(e.message||'Could not create the video room'); } }
 
 // ----- ADMIN -----
 RENDER.overview=async()=>{ const o=await DB.adminOverview();
@@ -727,7 +746,7 @@ RENDER.trust=async()=>{ const flags=await DB.adminFlags(); const risk=await DB.t
 // ----- STUDENT -----
 RENDER.shome=async()=>{ const d=await DB.studentHome(); const s=d.student;
   $('#main').innerHTML=`
-   ${heroNext(s.subjects[0]||'Session',s.next||'This week',d.tutorName||'your tutor',s.mode)}
+   ${heroNext(s.subjects[0]||'Session',s.next||'This week',d.tutorName||'your tutor',s.mode,{role:'student',sessionId:d.nextSession&&d.nextSession.sessionId,meetingUrl:d.nextSession&&d.nextSession.meetingUrl})}
    <div class="stat3">${statBox('12','Sessions')}${statBox('18h','This term')}${statBox('5','Day streak')}</div>
    <div class="sec-h"><h2>Subjects & progress</h2></div>
    <div class="card card-pad">${subjBars(d.progress)}</div>
@@ -786,7 +805,7 @@ RENDER.pbill=async()=>{ const b=await DB.parentBilling(); const paid=b.invoice&&
 // ----- TUTOR -----
 RENDER.thome=async()=>{ const d=await DB.tutorHome(); const t=d.tutor; const hero=d.today[0]||d.students[0];
   $('#main').innerHTML=`
-   ${hero?heroNext(hero.name,hero.next||'Today',d.tutor.accepting?'You':'You',hero.mode):'<div class="card card-pad"><div class="empty"><div class="e1">No students yet</div></div></div>'}
+   ${hero?heroNext(hero.name,hero.next||'Today',d.tutor.accepting?'You':'You',hero.mode,{role:role,sessionId:d.nextSession&&d.nextSession.sessionId,meetingUrl:d.nextSession&&d.nextSession.meetingUrl}):'<div class="card card-pad"><div class="empty"><div class="e1">No students yet</div></div></div>'}
    <div class="stat3">${statBox(d.students.length,'Students')}${statBox('★ '+t.rating,'Rating')}${statBox(money(t.payout),'This month')}</div>
    <div class="avail"><div class="ab"><div class="a1">Accepting new students</div><div class="a2">${t.accepting?'Families can request you':'Paused'}</div></div><button class="switch ${t.accepting?'':'off'}" onclick="toggleAvail()"><i></i></button></div>
    <div class="sec-h"><h2>Your students</h2></div>
