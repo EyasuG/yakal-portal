@@ -1,91 +1,71 @@
-// Headless end-to-end test for the Yakal portal.
-// Boots app/index.html in jsdom (demo driver) and walks every role's portal,
-// the parent-monitoring view, the contact-redaction guard, and admin preview.
+// Access-control test for the Yakal portal.
 //
-//   npm install && npm test
+// The app is now a React/Vite build, so this suite exercises the demo data
+// driver directly (the in-browser mirror of the database's Row-Level Security
+// rules) by importing the real modules — no DOM needed. It asserts the three
+// product guarantees: parents monitor their child's threads, staff visibility
+// is scoped, and contact info is scanned + redacted.
 //
-import { JSDOM } from 'jsdom';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+//   npm test
+//
+import assert from 'node:assert/strict';
+import { LocalDriver } from '../app/src/db.js';
+import { scan, redact } from '../app/src/seed.js';
 
-const here = path.dirname(fileURLToPath(import.meta.url));
-// This suite exercises the offline demo driver (the in-browser mirror of the
-// RLS rules). Force demo mode even when live Supabase keys are configured in
-// the app, so CI validates the access-control logic without a real backend.
-const html = fs.readFileSync(path.join(here, '..', 'app', 'index.html'), 'utf8')
-  .replace(/const SUPABASE_URL = "[^"]*"/, 'const SUPABASE_URL = ""')
-  .replace(/const SUPABASE_ANON_KEY = "[^"]*"/, 'const SUPABASE_ANON_KEY = ""');
+// The driver guards localStorage already; this just keeps Node quiet.
+globalThis.localStorage ??= { getItem: () => null, setItem() {}, removeItem() {} };
 
-const errors = [];
-const dom = new JSDOM(html, {
-  runScripts: 'dangerously', pretendToBeVisual: true, url: 'http://localhost/',
-  beforeParse(w) { w.scrollTo = () => {}; w.matchMedia = () => ({ matches: false, addListener() {}, removeListener() {} }); }
-});
-const w = dom.window, d = w.document;
-w.onerror = (m) => errors.push('window.onerror: ' + m);
-await new Promise(r => setTimeout(r, 150));
+let pass = 0;
+const check = async (label, fn) => { await fn(); pass++; console.log('  ✓ ' + label); };
+const driver = () => LocalDriver();
 
-const run = async (label, fn) => { try { await fn(); } catch (e) { errors.push(label + ': ' + e.message); } };
-const ev = (x) => w.eval(x);
-const NAV = ev('NAV');
-const meRole = () => ev('DB').me().role;
-
-await run('boot: home visible', () => { if (!d.getElementById('screen-home').classList.contains('on')) throw new Error('home not shown'); });
-await run('boot: demo driver', () => { if (ev('DB').mode !== 'demo') throw new Error('expected demo driver'); });
-
-for (const [demoId, expectRole] of [['u-almaz', 'admin'], ['u-amen', 'student'], ['u-tigist', 'parent'], ['u-beth', 'tutor']]) {
-  await run('login ' + expectRole, async () => {
-    await w.demoLogin(demoId);
-    if (meRole() !== expectRole) throw new Error('role=' + meRole());
-    if (!d.getElementById('screen-app').classList.contains('on')) throw new Error('app not shown');
-  });
-  for (const item of NAV[expectRole]) {
-    await run(`view ${expectRole}/${item[0]}`, async () => {
-      await w.go(item[0]);
-      const main = d.getElementById('main').innerHTML;
-      if (!main || main.includes('Could not load')) throw new Error('render failed');
-      if (main.includes('class="spin"')) throw new Error('stuck on spinner');
-    });
-  }
-  await run('logout ' + expectRole, async () => {
-    await w.logout();
-    if (!d.getElementById('screen-home').classList.contains('on')) throw new Error('did not return home');
-  });
-}
-
-await run('parent opens monitored convo', async () => {
-  await w.demoLogin('u-tigist'); await w.go('msg'); await w.openConvo('c1');
-  const sc = d.getElementById('sheetContent').innerHTML;
-  if (!sc.includes('monitoring') && !sc.includes('read-only')) throw new Error('monitoring state missing');
+// ---- message scanner (anti-disintermediation) ----
+await check('scanner flags phone + off-platform language', () => {
+  const r = scan('Actually just text me at 301-555-9999 so we can sort it off the app');
+  assert.ok(r.includes('phone'), 'phone not flagged');
+  assert.ok(r.includes('external_platform'), 'off-platform language not flagged');
 });
-await run('flagged message redacted in UI', async () => {
-  await w.demoLogin('u-beth'); await w.go('msg'); await w.openConvo('c4');
-  const sc = d.getElementById('sheetContent').innerHTML;
-  if (sc.includes('301-555-9999')) throw new Error('phone NOT redacted');
-  if (!sc.includes('contact details hidden')) throw new Error('flag note missing');
+await check('scanner flags payment handles and emails', () => {
+  assert.ok(scan('venmo @beth').includes('payment_handle'));
+  assert.ok(scan('reach me at beth@gmail.com').includes('email'));
 });
-await run('sending contact info gets redacted', async () => {
-  await w.demoLogin('u-beth'); await w.go('msg'); await w.openConvo('c4');
-  d.getElementById('msgIn').value = 'reach me at venmo @beth or 240-555-1212';
-  await w.sendMsg('c4');
-  if (d.getElementById('sheetContent').innerHTML.includes('240-555-1212')) throw new Error('new phone NOT redacted');
-});
-await run('admin preview as student', async () => {
-  await w.demoLogin('u-almaz'); w.preview('student');
-  if (!d.getElementById('previewBar').classList.contains('on')) throw new Error('preview bar not shown');
-  if (ev('role') !== 'student') throw new Error('role not switched');
-});
-await run('admin exit preview', async () => {
-  w.exitPreview();
-  if (d.getElementById('previewBar').classList.contains('on')) throw new Error('preview bar still on');
-  if (ev('role') !== 'admin') throw new Error('did not return to admin');
-});
-await run('admin trust shows flag', async () => {
-  await w.demoLogin('u-almaz'); await w.go('trust');
-  const m = d.getElementById('main').innerHTML.toLowerCase();
-  if (!m.includes('phone') && !m.includes('external')) throw new Error('flag not surfaced');
+await check('redact strips contact info', () => {
+  const out = redact('call 301-555-9999 or beth@gmail.com');
+  assert.ok(!out.includes('301-555-9999'), 'phone not redacted');
+  assert.ok(!out.includes('beth@gmail.com'), 'email not redacted');
 });
 
-if (errors.length) { console.error('FAILURES:\n' + errors.join('\n')); process.exit(1); }
-console.log('All end-to-end checks passed.');
+// ---- student visibility: admin all, tutor scoped, student self ----
+await check('admin sees all students, tutor sees only assigned, student sees self', async () => {
+  let d = driver(); await d.signInDemo('u-almaz');
+  assert.equal((await d.listStudents()).length, 3, 'admin should see all 3 students');
+  d = driver(); await d.signInDemo('u-beth');
+  assert.equal((await d.listStudents()).length, 2, 'tutor Beth should see only her 2 students');
+  d = driver(); await d.signInDemo('u-amen');
+  assert.equal((await d.listStudents()).length, 1, 'student should see only themselves');
+});
+
+// ---- parent message monitoring ----
+await check('parent monitors a thread about their child even as a non-participant', async () => {
+  const d = driver(); await d.signInDemo('u-tigist');
+  const convos = await d.conversations();
+  const c1 = convos.find(c => c.id === 'c1');
+  assert.ok(c1, 'Tigist should see c1 (about her child Amen)');
+  assert.equal(c1.monitor, true, 'c1 should be flagged as monitored (she is not a participant)');
+  assert.equal(convos.length, 3, "Tigist should see exactly her children's threads");
+});
+await check('an unrelated parent cannot see another child\'s thread', async () => {
+  const d = driver(); await d.signInDemo('u-sara');
+  const ids = (await d.conversations()).map(c => c.id);
+  assert.ok(!ids.includes('c1'), 'Sara must not see c1');
+});
+
+// ---- contact info redacted in-thread for non-admins ----
+await check('flagged message is redacted inside the conversation', async () => {
+  const d = driver(); await d.signInDemo('u-beth');
+  const { msgs } = await d.messages('c4');
+  const rendered = msgs.map(m => m.t).join(' ');
+  assert.ok(!rendered.includes('301-555-9999'), 'phone number leaked in the rendered thread');
+});
+
+console.log(`\nAll ${pass} access-control checks passed.`);

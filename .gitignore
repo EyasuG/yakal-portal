@@ -4,5 +4,7 @@ node_modules/
 *.log
 .DS_Store
 dist/
+app/dist/
+supabase/.temp/
 .vscode/
 .idea/
