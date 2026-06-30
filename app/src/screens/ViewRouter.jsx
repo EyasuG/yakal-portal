@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Section from '../components/Section.jsx';
 import CollegeAdmissionsView from './CollegeAdmissionsView.jsx';
+import { initials } from '../lib/utils.js';
 
 function ViewRouter({ activeView, db, viewVersion, onRefresh }) {
   switch (activeView) {
@@ -113,7 +114,7 @@ function StudentsView({ db }) {
         {students.map((student) => (
           <button key={student.id} className="w-full rounded-3xl border border-slate-200 bg-white p-5 text-left transition hover:bg-slate-50" onClick={() => window.openSheet({ type: 'profile', profile: student })}>
             <div className="flex items-center gap-4">
-              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">{student.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()}</div>
+              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">{initials(student.name)}</div>
               <div className="grow">
                 <div className="font-semibold text-slate-900">{student.name}</div>
                 <div className="text-sm text-slate-500">{student.grade} · {student.tutorName}</div>
@@ -149,7 +150,7 @@ function TutorsView({ db }) {
           <div key={tutor.id} className="rounded-3xl border border-slate-200 bg-white p-5">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-amber-100 text-amber-700">{tutor.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()}</div>
+                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-amber-100 text-amber-700">{initials(tutor.name)}</div>
                 <div>
                   <div className="font-semibold text-slate-900">{tutor.name}</div>
                   <div className="text-sm text-slate-500">★ {tutor.rating} · {tutor.students} students · ${tutor.rate}/hr</div>
@@ -329,7 +330,7 @@ function ParentHomeView({ db }) {
         <StatBox label="Deadline soon" value="1" tone="pink" />
       </div>
       <Section title="Your children" actionLabel="All" action={() => window.go('pkids')}>
-        <div className="space-y-3">{kids.map((child) => <button key={child.id} className="w-full rounded-3xl border border-slate-200 bg-white p-5 text-left transition hover:bg-slate-50" onClick={() => window.openChild(child.id)}><div className="flex items-center gap-4"><div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">{child.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()}</div><div className="grow"><div className="font-semibold text-slate-900">{child.name}</div><div className="text-sm text-slate-500">{child.grade} · {child.tutorName}</div></div><div className="text-sm text-slate-500">{child.progress}%</div></div></button>)}</div>
+        <div className="space-y-3">{kids.map((child) => <button key={child.id} className="w-full rounded-3xl border border-slate-200 bg-white p-5 text-left transition hover:bg-slate-50" onClick={() => window.openChild(child.id)}><div className="flex items-center gap-4"><div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">{initials(child.name)}</div><div className="grow"><div className="font-semibold text-slate-900">{child.name}</div><div className="text-sm text-slate-500">{child.grade} · {child.tutorName}</div></div><div className="text-sm text-slate-500">{child.progress}%</div></div></button>)}</div>
       </Section>
       <Section title="Recent updates">
         <div className="space-y-3">
@@ -354,7 +355,7 @@ function ParentKidsView({ db }) {
   return (
     <div className="space-y-6">
       <Section title="Your children">
-        <div className="space-y-3">{kids.map((child) => <button key={child.id} className="w-full rounded-3xl border border-slate-200 bg-white p-5 text-left transition hover:bg-slate-50" onClick={() => window.openChild(child.id)}><div className="flex items-center gap-4"><div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">{child.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()}</div><div className="grow"><div className="font-semibold text-slate-900">{child.name}</div><div className="text-sm text-slate-500">{child.grade} · {child.tutorName}</div></div><div className="text-sm text-slate-500">{child.progress}%</div></div></button>)}</div>
+        <div className="space-y-3">{kids.map((child) => <button key={child.id} className="w-full rounded-3xl border border-slate-200 bg-white p-5 text-left transition hover:bg-slate-50" onClick={() => window.openChild(child.id)}><div className="flex items-center gap-4"><div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">{initials(child.name)}</div><div className="grow"><div className="font-semibold text-slate-900">{child.name}</div><div className="text-sm text-slate-500">{child.grade} · {child.tutorName}</div></div><div className="text-sm text-slate-500">{child.progress}%</div></div></button>)}</div>
       </Section>
     </div>
   );
@@ -423,7 +424,7 @@ function TutorHomeView({ db }) {
         </div>
       </div>
       <Section title="Your students">
-        <div className="space-y-3">{data.students.map((student) => <button key={student.id} className="w-full rounded-3xl border border-slate-200 bg-white p-5 text-left transition hover:bg-slate-50" onClick={() => window.openTutorStudent(student.id)}><div className="flex items-center gap-4"><div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">{student.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()}</div><div className="grow"><div className="font-semibold text-slate-900">{student.name}</div><div className="text-sm text-slate-500">{student.grade} · {student.subjects.join(', ')}</div></div><div className="text-sm text-slate-500">{student.progress}%</div></div></button>)}</div>
+        <div className="space-y-3">{data.students.map((student) => <button key={student.id} className="w-full rounded-3xl border border-slate-200 bg-white p-5 text-left transition hover:bg-slate-50" onClick={() => window.openTutorStudent(student.id)}><div className="flex items-center gap-4"><div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">{initials(student.name)}</div><div className="grow"><div className="font-semibold text-slate-900">{student.name}</div><div className="text-sm text-slate-500">{student.grade} · {student.subjects.join(', ')}</div></div><div className="text-sm text-slate-500">{student.progress}%</div></div></button>)}</div>
       </Section>
     </div>
   );
@@ -441,7 +442,7 @@ function TutorStudentsView({ db }) {
   return (
     <div className="space-y-6">
       <Section title="My students">
-        <div className="space-y-3">{students.map((student) => <button key={student.id} className="w-full rounded-3xl border border-slate-200 bg-white p-5 text-left transition hover:bg-slate-50" onClick={() => window.openTutorStudent(student.id)}><div className="flex items-center gap-4"><div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">{student.name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()}</div><div className="grow"><div className="font-semibold text-slate-900">{student.name}</div><div className="text-sm text-slate-500">{student.grade} · {student.subjects.join(', ')}</div></div><div className="text-sm text-slate-500">{student.progress}%</div></div></button>)}</div>
+        <div className="space-y-3">{students.map((student) => <button key={student.id} className="w-full rounded-3xl border border-slate-200 bg-white p-5 text-left transition hover:bg-slate-50" onClick={() => window.openTutorStudent(student.id)}><div className="flex items-center gap-4"><div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">{initials(student.name)}</div><div className="grow"><div className="font-semibold text-slate-900">{student.name}</div><div className="text-sm text-slate-500">{student.grade} · {student.subjects.join(', ')}</div></div><div className="text-sm text-slate-500">{student.progress}%</div></div></button>)}</div>
       </Section>
     </div>
   );
@@ -495,7 +496,7 @@ function MessagesView({ db, onOpenConvo }) {
         {messages.length ? messages.map((conv) => (
           <button key={conv.id} className="w-full rounded-3xl border border-slate-200 bg-white p-5 text-left transition hover:bg-slate-50" onClick={() => onOpenConvo(conv.id)}>
             <div className="flex items-center gap-4">
-              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">{conv.withName.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()}</div>
+              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">{initials(conv.withName)}</div>
               <div className="grow">
                 <div className="font-semibold text-slate-900">{conv.withName} {conv.monitor ? <span className="ml-2 rounded-full bg-teal-50 px-2 py-1 text-xs font-semibold text-teal-700">monitoring</span> : null}</div>
                 <div className="text-sm text-slate-500">{conv.last?.t}</div>

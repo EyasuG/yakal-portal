@@ -10,14 +10,24 @@ const DEMO_ACCOUNTS = [
   { id: 'u-almaz', name: 'Almaz T.', role: 'Administrator', color: 'bg-slate-900' },
   { id: 'u-tigist', name: 'Tigist Worku', role: 'Parent', color: 'bg-pink-500' },
   { id: 'u-amen', name: 'Amen Worku', role: 'Student', color: 'bg-teal-600' },
-  { id: 'u-beth', name: 'Bethlehem A.', role: 'Tutor', color: 'bg-amber-600' }
+  { id: 'u-beth', name: 'Bethlehem A.', role: 'Tutor', color: 'bg-amber-600' },
+  { id: 'u-mesfin', name: 'Mesfin Tadesse', role: 'Tutoring Admin', color: 'bg-teal-800' },
+  { id: 'u-selam', name: 'Selam Abebe', role: 'Admissions Admin', color: 'bg-pink-700' },
+  { id: 'u-hana', name: 'Hana Girma', role: 'Counselor', color: 'bg-amber-700' }
 ];
 
 const NAV = {
   admin: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['tutors', 'Tutors', 'tutor'], ['msg', 'Messages', 'chat'], ['trust', 'Trust', 'shield']],
   student: [['shome', 'Home', 'grid'], ['ssessions', 'Sessions', 'cal'], ['college', 'College', 'cap'], ['sadm', 'My App', 'cap'], ['msg', 'Messages', 'chat']],
   parent: [['phome', 'Home', 'grid'], ['pkids', 'Children', 'student'], ['college', 'College', 'cap'], ['msg', 'Messages', 'chat'], ['pbill', 'Billing', 'wallet']],
-  tutor: [['thome', 'Today', 'grid'], ['tstudents', 'Students', 'student'], ['tearn', 'Earnings', 'wallet'], ['msg', 'Messages', 'chat']]
+  tutor: [['thome', 'Today', 'grid'], ['tstudents', 'Students', 'student'], ['tearn', 'Earnings', 'wallet'], ['msg', 'Messages', 'chat']],
+  // Program-scoped staff. Views are reused; Row-Level Security limits each
+  // role to its own program's data (a tutoring admin never sees admissions
+  // applications, and vice-versa).
+  super_admin: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['tutors', 'Tutors', 'tutor'], ['msg', 'Messages', 'chat'], ['trust', 'Trust', 'shield']],
+  tutoring_admin: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['tutors', 'Tutors', 'tutor'], ['msg', 'Messages', 'chat']],
+  admissions_admin: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['college', 'College', 'cap'], ['msg', 'Messages', 'chat']],
+  counselor: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['college', 'College', 'cap'], ['msg', 'Messages', 'chat']]
 };
 
 function App() {
@@ -134,7 +144,10 @@ function App() {
         'u-almaz': 'almaz@yakal.me',
         'u-tigist': 'tigist@email.com',
         'u-amen': 'amen@email.com',
-        'u-beth': 'beth@yakal.me'
+        'u-beth': 'beth@yakal.me',
+        'u-mesfin': 'tadmin@yakal.me',
+        'u-selam': 'aadmin@yakal.me',
+        'u-hana': 'hana@yakal.me'
       };
 
       try {

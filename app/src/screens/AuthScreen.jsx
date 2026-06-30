@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ROLE_META } from '../lib/utils.js';
+import { USE_SUPABASE } from '../db.js';
 
 function AuthScreen({ visible, authMode, signupRole, onSwitchMode, onPickRole, onLogin, onSignup, onClose, onDemoLogin, demoAccounts, authError, modeNote }) {
   const [email, setEmail] = useState('');
@@ -33,7 +34,7 @@ function AuthScreen({ visible, authMode, signupRole, onSwitchMode, onPickRole, o
             {authMode === 'login' ? (
               <div className="space-y-5">
                 <Field label="Email" value={email} onChange={setEmail} type="email" placeholder="you@email.com" />
-                {typeof onLogin === 'function' ? null : null}
+                {USE_SUPABASE ? <Field label="Password" value={password} onChange={setPassword} type="password" placeholder="••••••••" /> : null}
                 <button className="w-full rounded-full bg-teal-600 px-5 py-3 text-sm font-semibold text-white" onClick={() => onLogin(email, password)}>Log in</button>
               </div>
             ) : (
@@ -45,6 +46,7 @@ function AuthScreen({ visible, authMode, signupRole, onSwitchMode, onPickRole, o
                 </div>
                 <Field label="Full name" value={name} onChange={setName} placeholder="Your name" />
                 <Field label="Email" value={email} onChange={setEmail} type="email" placeholder="you@email.com" />
+                {USE_SUPABASE ? <Field label="Password" value={password} onChange={setPassword} type="password" placeholder="Choose a password (6+ characters)" /> : null}
                 <button className="w-full rounded-full bg-teal-600 px-5 py-3 text-sm font-semibold text-white" onClick={() => onSignup(name, email, password)}>Create account</button>
               </div>
             )}

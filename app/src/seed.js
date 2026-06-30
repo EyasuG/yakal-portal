@@ -5,8 +5,10 @@ export function seed() {
       { id: 'u-almaz', role: 'admin', full_name: 'Almaz Tadesse', email: 'almaz@yakal.me', phone: '301-555-0001' },
       { id: 'u-beth', role: 'tutor', full_name: 'Bethlehem Alemu', email: 'beth@yakal.me', phone: '301-555-0002' },
       { id: 'u-josh', role: 'tutor', full_name: 'Eyasu (Josh) Tadesse', email: 'josh@yakal.me', phone: '301-555-0003' },
-      { id: 'u-hana', role: 'tutor', full_name: 'Hana Girma', email: 'hana@yakal.me', phone: '301-555-0004' },
+      { id: 'u-hana', role: 'counselor', full_name: 'Hana Girma', email: 'hana@yakal.me', phone: '301-555-0004' },
       { id: 'u-daniel', role: 'tutor', full_name: 'Daniel Asfaw', email: 'daniel@yakal.me', phone: '301-555-0005' },
+      { id: 'u-mesfin', role: 'tutoring_admin', full_name: 'Mesfin Tadesse', email: 'tadmin@yakal.me', phone: '301-555-0006' },
+      { id: 'u-selam', role: 'admissions_admin', full_name: 'Selam Abebe', email: 'aadmin@yakal.me', phone: '301-555-0007' },
       { id: 'u-tigist', role: 'parent', full_name: 'Tigist Worku', email: 'tigist@email.com', phone: '301-555-0010' },
       { id: 'u-sara', role: 'parent', full_name: 'Sara Mekonnen', email: 'sara@email.com', phone: '301-555-0011' },
       { id: 'u-amen', role: 'student', full_name: 'Amen Worku', email: 'amen@email.com', phone: '301-555-0012' }

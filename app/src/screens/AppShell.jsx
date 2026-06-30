@@ -52,9 +52,16 @@ const NAV = {
   admin: [['overview', 'Home'], ['students', 'Students'], ['tutors', 'Tutors'], ['msg', 'Messages'], ['trust', 'Trust']],
   student: [['shome', 'Home'], ['ssessions', 'Sessions'], ['college', 'College'], ['sadm', 'My App'], ['msg', 'Messages']],
   parent: [['phome', 'Home'], ['pkids', 'Children'], ['college', 'College'], ['msg', 'Messages'], ['pbill', 'Billing']],
-  tutor: [['thome', 'Today'], ['tstudents', 'Students'], ['tearn', 'Earnings'], ['msg', 'Messages']]
+  tutor: [['thome', 'Today'], ['tstudents', 'Students'], ['tearn', 'Earnings'], ['msg', 'Messages']],
+  super_admin: [['overview', 'Home'], ['students', 'Students'], ['tutors', 'Tutors'], ['msg', 'Messages'], ['trust', 'Trust']],
+  tutoring_admin: [['overview', 'Home'], ['students', 'Students'], ['tutors', 'Tutors'], ['msg', 'Messages']],
+  admissions_admin: [['overview', 'Home'], ['students', 'Students'], ['college', 'College'], ['msg', 'Messages']],
+  counselor: [['overview', 'Home'], ['students', 'Students'], ['college', 'College'], ['msg', 'Messages']]
 };
 
-const ROLE_HI = { admin: 'Admin console', student: 'Your learning', parent: 'Your family', tutor: 'Your teaching' };
+const ROLE_HI = {
+  admin: 'Admin console', student: 'Your learning', parent: 'Your family', tutor: 'Your teaching',
+  super_admin: 'Admin console', tutoring_admin: 'Tutoring admin', admissions_admin: 'Admissions admin', counselor: 'Admissions counseling'
+};
 
 export default AppShell;
