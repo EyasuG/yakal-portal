@@ -44,6 +44,19 @@ function LoadingCard({ label = 'Loading…' }) {
   return <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center text-slate-500">{label}</div>;
 }
 
+function ProgramBadges({ programs }) {
+  if (!programs || !programs.length) return null;
+  return (
+    <span className="flex flex-wrap gap-1.5">
+      {programs.map((p) => (
+        <span key={p} className={`rounded-full px-2 py-0.5 text-xs font-semibold ${p === 'admissions' ? 'bg-pink-50 text-pink-600' : 'bg-teal-50 text-teal-700'}`}>
+          {p === 'admissions' ? 'Admissions' : 'Tutoring'}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 function OverviewView({ db }) {
   const [overview, setOverview] = useState(null);
 
@@ -104,11 +117,12 @@ function StudentsView({ db }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-semibold text-slate-900">Students</h2>
           <p className="text-sm text-slate-500">{students.length} total</p>
         </div>
+        <button className="rounded-full bg-teal-600 px-4 py-2 text-sm font-semibold text-white" onClick={() => window.openBookSheet()}>+ Book a session</button>
       </div>
       <div className="space-y-3">
         {students.map((student) => (
@@ -117,7 +131,10 @@ function StudentsView({ db }) {
               <div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">{initials(student.name)}</div>
               <div className="grow">
                 <div className="font-semibold text-slate-900">{student.name}</div>
-                <div className="text-sm text-slate-500">{student.grade} · {student.tutorName}</div>
+                <div className="mt-1 flex items-center gap-2 text-sm text-slate-500">
+                  <span>{student.grade}</span>
+                  <ProgramBadges programs={student.programs} />
+                </div>
               </div>
               <div className="text-sm text-slate-500">{student.progress ? student.progress + '%' : ''}</div>
             </div>
@@ -441,7 +458,7 @@ function TutorStudentsView({ db }) {
 
   return (
     <div className="space-y-6">
-      <Section title="My students">
+      <Section title="My students" actionLabel="+ Book a session" action={() => window.openBookSheet()}>
         <div className="space-y-3">{students.map((student) => <button key={student.id} className="w-full rounded-3xl border border-slate-200 bg-white p-5 text-left transition hover:bg-slate-50" onClick={() => window.openTutorStudent(student.id)}><div className="flex items-center gap-4"><div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">{initials(student.name)}</div><div className="grow"><div className="font-semibold text-slate-900">{student.name}</div><div className="text-sm text-slate-500">{student.grade} · {student.subjects.join(', ')}</div></div><div className="text-sm text-slate-500">{student.progress}%</div></div></button>)}</div>
       </Section>
     </div>

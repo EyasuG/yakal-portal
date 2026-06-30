@@ -55,8 +55,10 @@ export function LocalDriver() {
       };
     },
     async listStudents() {
-      return S.students.filter(s => canSee(s.id)).map(s => ({ ...s, tutorName: name(s.tutor) }));
+      return S.students.filter(s => canSee(s.id)).map(s => ({ ...s, tutorName: name(s.tutor), programs: s.programs || [] }));
     },
+    async bookableStudents() { return this.listStudents(); },
+    async bookSession({ student_id }) { return 'demo-' + student_id; },
     async listTutors() {
       return Object.entries(S.tutors).map(([id, t]) => ({ id, name: name(id), ...t, students: S.students.filter(s => s.tutor === id).length }));
     },
@@ -231,7 +233,27 @@ export async function SupabaseDriver() {
     },
     async listStudents() {
       const { data } = await sb.from('students').select('id,first_name,last_name,grade,status');
-      return (data || []).map(s => ({ id: s.id, name: `${s.first_name} ${s.last_name}`, grade: s.grade, status: 'ok', tutorName: '', progress: 0, subjects: [], next: '', mode: '' }));
+      const ids = (data || []).map(s => s.id);
+      const progs = {};
+      if (ids.length) {
+        const { data: en } = await sb.from('enrollments').select('student_id,program').in('student_id', ids);
+        (en || []).forEach(r => { (progs[r.student_id] = progs[r.student_id] || []).push(r.program); });
+      }
+      return (data || []).map(s => ({ id: s.id, name: `${s.first_name} ${s.last_name}`, grade: s.grade, status: 'ok', tutorName: '', progress: 0, subjects: [], next: '', mode: '', programs: progs[s.id] || [] }));
+    },
+    // Students the current user may book a session with (RLS-scoped roster).
+    async bookableStudents() { return this.listStudents(); },
+    async bookSession({ student_id, start, end, mode, program }) {
+      const isTutor = prof.role === 'tutor';
+      const row = {
+        org_id: prof.org_id, student_id, staff_id: prof.id,
+        tutor_id: (program === 'tutoring' && isTutor) ? prof.id : null,
+        scheduled_start: start, scheduled_end: end,
+        mode, program, status: 'scheduled', created_by: prof.id
+      };
+      const { data, error } = await sb.from('sessions').insert(row).select('id').single();
+      if (error) throw new Error(error.message);
+      return data.id;
     },
     async listTutors() {
       const { data } = await sb.from('tutor_profiles').select('profile_id,rating,hourly_rate,accepting,profiles(full_name)');

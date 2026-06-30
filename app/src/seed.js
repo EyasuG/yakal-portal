@@ -22,15 +22,15 @@ export function seed() {
     students: [
       {
         id: 's-amen', user_id: 'u-amen', name: 'Amen Worku', grade: 'Grade 12', tutor: 'u-beth', progress: 78, status: 'ok',
-        subjects: ['College Essays', 'SAT Prep'], next: 'Thu · 6:00 PM', mode: 'Online'
+        subjects: ['College Essays', 'SAT Prep'], next: 'Thu · 6:00 PM', mode: 'Online', programs: ['tutoring', 'admissions']
       },
       {
         id: 's-saron', user_id: null, name: 'Saron Worku', grade: 'Grade 9', tutor: 'u-josh', progress: 85, status: 'ok',
-        subjects: ['Algebra I'], next: 'Wed · 4:30 PM', mode: 'In person'
+        subjects: ['Algebra I'], next: 'Wed · 4:30 PM', mode: 'In person', programs: ['tutoring']
       },
       {
         id: 's-liya', user_id: null, name: 'Liya Mekonnen', grade: 'Grade 11', tutor: 'u-beth', progress: 64, status: 'warn',
-        subjects: ['Geometry', 'SAT Math'], next: 'Today · 4:00 PM', mode: 'Online'
+        subjects: ['Geometry', 'SAT Math'], next: 'Today · 4:00 PM', mode: 'Online', programs: ['tutoring', 'admissions']
       }
     ],
     guardianships: [
