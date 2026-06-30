@@ -15,8 +15,8 @@ const DEMO_ACCOUNTS = [
 
 const NAV = {
   admin: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['tutors', 'Tutors', 'tutor'], ['msg', 'Messages', 'chat'], ['trust', 'Trust', 'shield']],
-  student: [['shome', 'Home', 'grid'], ['ssessions', 'Sessions', 'cal'], ['sadm', 'Admissions', 'cap'], ['msg', 'Messages', 'chat']],
-  parent: [['phome', 'Home', 'grid'], ['pkids', 'Children', 'student'], ['msg', 'Messages', 'chat'], ['pbill', 'Billing', 'wallet']],
+  student: [['shome', 'Home', 'grid'], ['ssessions', 'Sessions', 'cal'], ['college', 'College', 'cap'], ['sadm', 'My App', 'cap'], ['msg', 'Messages', 'chat']],
+  parent: [['phome', 'Home', 'grid'], ['pkids', 'Children', 'student'], ['college', 'College', 'cap'], ['msg', 'Messages', 'chat'], ['pbill', 'Billing', 'wallet']],
   tutor: [['thome', 'Today', 'grid'], ['tstudents', 'Students', 'student'], ['tearn', 'Earnings', 'wallet'], ['msg', 'Messages', 'chat']]
 };
 

@@ -50,8 +50,8 @@ function AppShell({ visible, user, role, previewing, activeView, navItems, onNav
 
 const NAV = {
   admin: [['overview', 'Home'], ['students', 'Students'], ['tutors', 'Tutors'], ['msg', 'Messages'], ['trust', 'Trust']],
-  student: [['shome', 'Home'], ['ssessions', 'Sessions'], ['sadm', 'Admissions'], ['msg', 'Messages']],
-  parent: [['phome', 'Home'], ['pkids', 'Children'], ['msg', 'Messages'], ['pbill', 'Billing']],
+  student: [['shome', 'Home'], ['ssessions', 'Sessions'], ['college', 'College'], ['sadm', 'My App'], ['msg', 'Messages']],
+  parent: [['phome', 'Home'], ['pkids', 'Children'], ['college', 'College'], ['msg', 'Messages'], ['pbill', 'Billing']],
   tutor: [['thome', 'Today'], ['tstudents', 'Students'], ['tearn', 'Earnings'], ['msg', 'Messages']]
 };
 

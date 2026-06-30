@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Section from '../components/Section.jsx';
+import CollegeAdmissionsView from './CollegeAdmissionsView.jsx';
 
 function ViewRouter({ activeView, db, viewVersion, onRefresh }) {
   switch (activeView) {
@@ -17,6 +18,8 @@ function ViewRouter({ activeView, db, viewVersion, onRefresh }) {
       return <StudentSessionsView db={db} key={viewVersion} />;
     case 'sadm':
       return <StudentAdmissionsView db={db} key={viewVersion} />;
+    case 'college':
+      return <CollegeAdmissionsView key={viewVersion} />;
     case 'phome':
       return <ParentHomeView db={db} key={viewVersion} />;
     case 'pkids':
