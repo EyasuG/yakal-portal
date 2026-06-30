@@ -43,13 +43,16 @@ Deno.serve(async (req) => {
 
     const [{ data: profile }, { data: session }] = await Promise.all([
       admin.from("profiles").select("role").eq("id", user.id).single(),
-      admin.from("sessions").select("id, tutor_id, scheduled_start, scheduled_end, mode, meeting_url, subjects(name)").eq("id", session_id).single(),
+      admin.from("sessions").select("id, tutor_id, staff_id, scheduled_start, scheduled_end, mode, meeting_url, subjects(name)").eq("id", session_id).single(),
     ]);
 
     if (!session) return json(404, { error: "Session not found." });
 
-    const allowed = profile?.role === "admin" || session.tutor_id === user.id;
-    if (!allowed) return json(403, { error: "Only the assigned tutor or an admin can create the room." });
+    const ADMIN_ROLES = ["admin", "super_admin", "tutoring_admin", "admissions_admin"];
+    const allowed = ADMIN_ROLES.includes(profile?.role ?? "")
+      || session.tutor_id === user.id
+      || session.staff_id === user.id;
+    if (!allowed) return json(403, { error: "Only the session's tutor/counselor or an admin can create the room." });
 
     // Idempotent: if a room already exists, hand it back.
     if (session.meeting_url) return json(200, { join_url: session.meeting_url, reused: true });

@@ -276,14 +276,19 @@ function StudentSessionsView({ db }) {
   return (
     <div className="space-y-6">
       <Section title="Upcoming">
-        <div className="rounded-3xl border border-slate-200 bg-white p-5">
-          <div className="flex items-center gap-4">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">📅</div>
-            <div>
-              <div className="font-semibold text-slate-900">{data.next.subject}</div>
-              <div className="text-sm text-slate-500">{data.next.when} · {data.next.tutor}</div>
+        <div className="space-y-3">
+          {(data.upcoming && data.upcoming.length) ? data.upcoming.map((sess) => (
+            <div key={sess.sessionId} className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5">
+              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">📅</div>
+              <div className="grow">
+                <div className="font-semibold text-slate-900">{sess.subject}</div>
+                <div className="text-sm text-slate-500">{sess.when} · {sess.mode}</div>
+              </div>
+              {sess.mode !== 'In person' ? (
+                <button className="rounded-full bg-teal-600 px-4 py-2 text-sm font-semibold text-white" onClick={() => sess.meetingUrl ? window.openMeeting(sess.meetingUrl) : window.toast('Your tutor will open the video room at session time')}>Join</button>
+              ) : null}
             </div>
-          </div>
+          )) : <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-slate-600">No upcoming sessions yet.</div>}
         </div>
       </Section>
       <Section title="Past sessions">

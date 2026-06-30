@@ -89,8 +89,10 @@ export function LocalDriver() {
     async ensureMeeting(sessionId) { return 'https://zoom.us/j/' + encodeURIComponent(sessionId); },
     async studentSessions() {
       const s = studentOfUser();
+      const next = { sessionId: 'demo-' + s.id, subject: s.subjects[0], when: s.next, tutor: name(s.tutor), mode: s.mode, meetingUrl: s.meetingUrl || null };
       return {
-        next: { subject: s.subjects[0], when: s.next, tutor: name(s.tutor), mode: s.mode },
+        next,
+        upcoming: [next],
         past: (S.sessionsPast[s.id] || []).map(p => [p[0], name(p[1]), p[2]])
       };
     },
@@ -297,9 +299,13 @@ export async function SupabaseDriver() {
     },
     async studentSessions() {
       const { data: s } = await sb.from('students').select('id,first_name').limit(1).single();
-      const { data } = await sb.from('sessions').select('*,subjects(name)').eq('student_id', s.id).order('scheduled_start', { ascending: false });
+      const { data } = await sb.from('sessions').select('id,mode,status,meeting_url,scheduled_start,subjects(name)').eq('student_id', s.id).order('scheduled_start', { ascending: true });
+      const now = Date.now();
+      const fmt = (d) => new Date(d).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      const upcoming = (data || []).filter(x => new Date(x.scheduled_start).getTime() >= now && x.status !== 'canceled')
+        .map(x => ({ sessionId: x.id, subject: x.subjects?.name || 'Session', when: fmt(x.scheduled_start), mode: x.mode === 'in_person' ? 'In person' : 'Online', meetingUrl: x.meeting_url }));
       const past = (data || []).filter(x => x.status === 'completed').map(x => [x.subjects?.name || 'Session', '', new Date(x.scheduled_start).toLocaleDateString()]);
-      return { next: { subject: 'Next session', when: '', tutor: '', mode: 'Online' }, past };
+      return { next: upcoming[0] || null, upcoming, past };
     },
     async toggleHomework() {},
     async toggleAppItem() {},

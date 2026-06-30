@@ -286,22 +286,28 @@ function App() {
     if (!db) return;
     try {
       const students = await db.bookableStudents();
+      const canChooseProgram = role === 'super_admin' || role === 'admin';
       const program = (role === 'counselor' || role === 'admissions_admin') ? 'admissions' : 'tutoring';
-      setSheetData({ type: 'book', students, program });
+      setSheetData({ type: 'book', students, program, canChooseProgram });
     } catch (e) {
       toast('Could not load your roster.');
     }
   }
 
-  async function doBook({ studentId, date, time, durationMin, mode, program }) {
+  async function doBook({ studentId, date, time, durationMin, mode, program, createRoom }) {
     if (!studentId || !date || !time) { toast('Pick a student, date and time.'); return; }
     const start = new Date(`${date}T${time}`);
     if (isNaN(start.getTime())) { toast('Enter a valid date and time.'); return; }
     const end = new Date(start.getTime() + (durationMin || 60) * 60000);
     try {
-      await db.bookSession({ student_id: studentId, start: start.toISOString(), end: end.toISOString(), mode, program });
+      const sessionId = await db.bookSession({ student_id: studentId, start: start.toISOString(), end: end.toISOString(), mode, program });
       setSheetData(null);
-      toast('Session booked');
+      if (createRoom && sessionId) {
+        try { await db.ensureMeeting(sessionId); toast('Session booked · video room ready'); }
+        catch (e) { toast('Session booked. Video room could not be created yet.'); }
+      } else {
+        toast('Session booked');
+      }
       setViewVersion((v) => v + 1);
     } catch (e) {
       toast(e.message || 'Could not book the session.');

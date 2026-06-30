@@ -104,7 +104,9 @@ function BookForm({ data, onBook, onClose }) {
   const [time, setTime] = useState('16:00');
   const [durationMin, setDurationMin] = useState(60);
   const [mode, setMode] = useState('online');
-  const programLabel = data.program === 'admissions' ? 'Admissions' : 'Tutoring';
+  const [program, setProgram] = useState(data.program || 'tutoring');
+  const [createRoom, setCreateRoom] = useState(true);
+  const programLabel = program === 'admissions' ? 'Admissions' : 'Tutoring';
 
   return (
     <div>
@@ -123,6 +125,14 @@ function BookForm({ data, onBook, onClose }) {
               {data.students.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </label>
+          {data.canChooseProgram ? (
+            <label className="block">
+              <span className="text-sm font-medium text-slate-600">Program</span>
+              <select value={program} onChange={(e) => setProgram(e.target.value)} className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none">
+                <option value="tutoring">Tutoring</option><option value="admissions">Admissions</option>
+              </select>
+            </label>
+          ) : null}
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
               <span className="text-sm font-medium text-slate-600">Date</span>
@@ -147,7 +157,13 @@ function BookForm({ data, onBook, onClose }) {
               </select>
             </label>
           </div>
-          <button className="w-full rounded-full bg-teal-600 px-5 py-3 text-sm font-semibold text-white" onClick={() => onBook({ studentId, date, time, durationMin, mode, program: data.program })}>Book session</button>
+          {mode === 'online' ? (
+            <label className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
+              <input type="checkbox" checked={createRoom} onChange={(e) => setCreateRoom(e.target.checked)} className="h-4 w-4 accent-teal-600" />
+              Create a Zoom room now
+            </label>
+          ) : null}
+          <button className="w-full rounded-full bg-teal-600 px-5 py-3 text-sm font-semibold text-white" onClick={() => onBook({ studentId, date, time, durationMin, mode, program, createRoom: mode === 'online' && createRoom })}>Book session</button>
         </div>
       ) : (
         <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">No students on your roster yet.</div>
