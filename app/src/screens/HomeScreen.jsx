@@ -1,4 +1,52 @@
+import { useState } from 'react';
 import { initials } from '../lib/utils.js';
+
+const SubjIcon = ({ children }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">{children}</svg>
+);
+
+const SUBJECTS = [
+  { name: 'K-12 Math', accent: 'teal', desc: 'Number sense, fractions, pre-algebra and beyond — strong fundamentals built grade by grade, from elementary through high school.',
+    icon: <SubjIcon><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M8 7h8M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01" /></SubjIcon> },
+  { name: 'K-12 ELA', accent: 'amber', desc: 'Reading comprehension, writing, grammar and vocabulary across elementary, middle, and high school English Language Arts.',
+    icon: <SubjIcon><path d="M12 7c-1.6-1.2-4-2-6.5-2H4v13h1.5c2.5 0 4.9.8 6.5 2 1.6-1.2 4-2 6.5-2H20V5h-1.5c-2.5 0-4.9.8-6.5 2Z" /><path d="M12 7v13" /></SubjIcon> },
+  { name: 'Algebra', accent: 'teal', desc: 'Equations, functions and problem-solving — the backbone that the rest of high-school math is built on.',
+    icon: <SubjIcon><path d="M4 20V4M4 20h16" /><path d="M5 16c5 0 6-9 11-10" /></SubjIcon> },
+  { name: 'Geometry', accent: 'teal', desc: 'Shapes, angles, proofs and spatial reasoning, taught with plenty of visual, hands-on practice.',
+    icon: <SubjIcon><path d="M12 4 21 20H3z" /><path d="M12 4v16" /></SubjIcon> },
+  { name: 'Pre-Calculus', accent: 'teal', desc: 'Trigonometry, sequences and advanced functions — the bridge from algebra into calculus.',
+    icon: <SubjIcon><path d="M3 12c3-8 6-8 9 0s6 8 9 0" /></SubjIcon> },
+  { name: 'Calculus', accent: 'teal', desc: 'Limits, derivatives and integrals taught step by step, with intuition before formulas.',
+    icon: <SubjIcon><path d="M15 4c-2 0-2.5 1.6-2.5 4v8c0 2.4-.5 4-2.5 4" /><path d="M9 12h6" /></SubjIcon> },
+  { name: 'Physics', accent: 'amber', desc: 'Mechanics, energy and electricity grounded in real-world intuition and exam technique.',
+    icon: <SubjIcon><circle cx="12" cy="12" r="1.6" /><ellipse cx="12" cy="12" rx="9" ry="3.6" /><ellipse cx="12" cy="12" rx="9" ry="3.6" transform="rotate(60 12 12)" /><ellipse cx="12" cy="12" rx="9" ry="3.6" transform="rotate(120 12 12)" /></SubjIcon> },
+  { name: 'SAT Prep', accent: 'pink', desc: 'Targeted strategy, content review and timed practice for the digital SAT, with progress tracking.',
+    icon: <SubjIcon><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1.5" /></SubjIcon> },
+  { name: 'ACT Prep', accent: 'pink', desc: 'Section-by-section coaching and pacing strategy for the ACT, English through Science.',
+    icon: <SubjIcon><circle cx="12" cy="13" r="8" /><path d="M12 13V9M9 2h6M18.5 5.5 17 7" /></SubjIcon> },
+  { name: 'AP Courses', accent: 'pink', desc: 'Exam-focused support across AP subjects to deepen mastery and earn college credit.',
+    icon: <SubjIcon><circle cx="12" cy="9" r="5" /><path d="m8.5 13-1.5 8 5-3 5 3-1.5-8" /></SubjIcon> },
+  { name: 'College Essays', accent: 'pink', desc: 'One-on-one coaching to brainstorm, draft and polish authentic, standout application essays.',
+    icon: <SubjIcon><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" /><path d="M14 3v6h6M8 13h5M8 17h3" /></SubjIcon> }
+];
+
+const ACCENT = {
+  teal: 'bg-teal-50 text-teal-700',
+  pink: 'bg-pink-50 text-pink-600',
+  amber: 'bg-amber-50 text-amber-700'
+};
+
+function SubjectCard({ subject, open, onToggle }) {
+  return (
+    <button onClick={onToggle} aria-expanded={open} className={`flex flex-col items-start rounded-3xl border bg-white p-6 text-left transition hover:shadow-md ${open ? 'border-teal-300 shadow-md' : 'border-slate-200 hover:border-teal-200'}`}>
+      <span className={`grid h-12 w-12 place-items-center rounded-2xl ${ACCENT[subject.accent]}`}>{subject.icon}</span>
+      <span className="mt-4 text-base font-semibold text-slate-900">{subject.name}</span>
+      {open
+        ? <span className="mt-2 text-sm leading-6 text-slate-600">{subject.desc}</span>
+        : <span className="mt-1 text-sm font-medium text-teal-700">Learn more →</span>}
+    </button>
+  );
+}
 
 const DEMO_ACCOUNTS = [
   { id: 'u-almaz', name: 'Almaz T.', role: 'Administrator', color: 'bg-slate-900' },
@@ -8,6 +56,7 @@ const DEMO_ACCOUNTS = [
 ];
 
 function HomeScreen({ visible, onOpenAuth, onScroll }) {
+  const [openSubject, setOpenSubject] = useState(null);
   return (
     <div id="screen-home" className={`screen ${visible ? 'on' : ''}`}>
       <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur-sm">
@@ -77,9 +126,14 @@ function HomeScreen({ visible, onOpenAuth, onScroll }) {
             <h2 className="text-3xl font-semibold text-slate-900">Subjects we tutor</h2>
             <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">Building confidence one session at a time.</p>
           </div>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            {['Algebra', 'Geometry', 'Pre-Calculus', 'Calculus', 'Physics', 'SAT Prep', 'ACT Prep', 'AP Courses', 'College Essays'].map((subject) => (
-              <span key={subject} className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700">{subject}</span>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {SUBJECTS.map((subject) => (
+              <SubjectCard
+                key={subject.name}
+                subject={subject}
+                open={openSubject === subject.name}
+                onToggle={() => setOpenSubject(openSubject === subject.name ? null : subject.name)}
+              />
             ))}
           </div>
         </section>
