@@ -22,9 +22,11 @@ set check_function_bodies = off;
 create or replace function app.handle_new_user() returns trigger
   language plpgsql security definer set search_path = public, app as $$
 declare
-  org   uuid;
-  v_role app.user_role := coalesce((new.raw_user_meta_data->>'role')::app.user_role, 'student');
-  v_name text         := coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email,'@',1));
+  org       uuid;
+  v_role    app.user_role := coalesce((new.raw_user_meta_data->>'role')::app.user_role, 'student');
+  v_name    text := coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email,'@',1));
+  v_program text := new.raw_user_meta_data->>'program';
+  v_student uuid;
 begin
   select id into org from organizations order by created_at limit 1;
   insert into profiles (id, org_id, role, full_name, email, metadata)
@@ -52,7 +54,15 @@ begin
       org, new.id,
       split_part(v_name, ' ', 1),
       trim(regexp_replace(v_name, '^\S+', ''))
-    );
+    )
+    returning id into v_student;
+
+    -- auto-enroll the new student in the program they signed up for
+    if v_program in ('tutoring', 'admissions') then
+      insert into enrollments (org_id, student_id, program)
+      values (org, v_student, v_program::app.program)
+      on conflict (student_id, program) do nothing;
+    end if;
   end if;
 
   return new;

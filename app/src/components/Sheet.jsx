@@ -105,6 +105,7 @@ function BookForm({ data, onBook, onClose }) {
   const [durationMin, setDurationMin] = useState(60);
   const [mode, setMode] = useState('online');
   const [program, setProgram] = useState(data.program || 'tutoring');
+  const [sessionType, setSessionType] = useState('individual');
   const [createRoom, setCreateRoom] = useState(true);
   const programLabel = program === 'admissions' ? 'Admissions' : 'Tutoring';
 
@@ -130,6 +131,18 @@ function BookForm({ data, onBook, onClose }) {
               <span className="text-sm font-medium text-slate-600">Program</span>
               <select value={program} onChange={(e) => setProgram(e.target.value)} className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none">
                 <option value="tutoring">Tutoring</option><option value="admissions">Admissions</option>
+              </select>
+            </label>
+          ) : null}
+          {program === 'tutoring' ? (
+            <label className="block">
+              <span className="text-sm font-medium text-slate-600">Session type</span>
+              <select value={sessionType} onChange={(e) => setSessionType(e.target.value)} className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none">
+                <option value="individual">1-on-1 tutoring</option>
+                <option value="group">Group session (our location)</option>
+                <option value="camp">Summer camp</option>
+                <option value="bootcamp">STEM bootcamp</option>
+                <option value="math_lab">Math Lab</option>
               </select>
             </label>
           ) : null}
@@ -163,7 +176,7 @@ function BookForm({ data, onBook, onClose }) {
               Create a Zoom room now
             </label>
           ) : null}
-          <button className="w-full rounded-full bg-teal-600 px-5 py-3 text-sm font-semibold text-white" onClick={() => onBook({ studentId, date, time, durationMin, mode, program, createRoom: mode === 'online' && createRoom })}>Book session</button>
+          <button className="w-full rounded-full bg-teal-600 px-5 py-3 text-sm font-semibold text-white" onClick={() => onBook({ studentId, date, time, durationMin, mode, program, sessionType: program === 'tutoring' ? sessionType : 'individual', createRoom: mode === 'online' && createRoom })}>Book session</button>
         </div>
       ) : (
         <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">No students on your roster yet.</div>

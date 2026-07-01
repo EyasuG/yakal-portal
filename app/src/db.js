@@ -247,13 +247,14 @@ export async function SupabaseDriver() {
     },
     // Students the current user may book a session with (RLS-scoped roster).
     async bookableStudents() { return this.listStudents(); },
-    async bookSession({ student_id, start, end, mode, program }) {
+    async bookSession({ student_id, start, end, mode, program, sessionType }) {
       const isTutor = prof.role === 'tutor';
       const row = {
         org_id: prof.org_id, student_id, staff_id: prof.id,
         tutor_id: (program === 'tutoring' && isTutor) ? prof.id : null,
         scheduled_start: start, scheduled_end: end,
-        mode, program, status: 'scheduled', created_by: prof.id
+        mode, program, session_type: (program === 'tutoring' ? (sessionType || 'individual') : 'individual'),
+        status: 'scheduled', created_by: prof.id
       };
       const { data, error } = await sb.from('sessions').insert(row).select('id').single();
       if (error) throw new Error(error.message);

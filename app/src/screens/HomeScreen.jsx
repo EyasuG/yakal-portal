@@ -126,9 +126,10 @@ function HomeScreen({ visible, onOpenAuth, onScroll }) {
             <ServiceCard
               accent="teal"
               eyebrow="Program 01"
-              title="1-on-1 Tutoring"
-              tagline="K-12 academics & test prep"
-              copy="Personalized weekly sessions in math, sciences, ELA, and SAT/ACT prep — online or in person — with progress tracked every step of the way."
+              title="Tutoring & Enrichment"
+              tagline="K-12 academics, test prep & STEM"
+              copy="One-on-one sessions plus small-group classes, summer camps, STEM bootcamps and Math Labs at our Silver Spring location — in math, sciences, ELA and SAT/ACT prep, online or in person."
+              offerings={['1-on-1 tutoring', 'Group sessions', 'Summer camps', 'STEM bootcamps', 'Math Labs']}
               roles={[['Tutors', 'lead sessions & log progress'], ['Parents', 'monitor grades & messages'], ['Students', 'attend & track homework']]}
               icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-7 w-7"><path d="M4 19V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2Z" /><path d="M8 7h7M8 11h5" /></svg>}
               cta="Get started" onCta={() => onOpenAuth('signup', 'parent', 'tutoring')}
@@ -206,7 +207,7 @@ const SERVICE_STYLE = {
   pink: { grad: 'from-brand-pink to-brand-pinkdark', soft: 'bg-brand-pink/10 text-brand-pink' }
 };
 
-function ServiceCard({ accent, eyebrow, title, tagline, copy, roles, icon, cta, onCta, joinLabel, onJoin }) {
+function ServiceCard({ accent, eyebrow, title, tagline, copy, roles, offerings, icon, cta, onCta, joinLabel, onJoin }) {
   const s = SERVICE_STYLE[accent];
   return (
     <div className="relative flex flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white p-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
@@ -220,6 +221,14 @@ function ServiceCard({ accent, eyebrow, title, tagline, copy, roles, icon, cta, 
       </div>
       <div className={`relative mt-4 inline-flex w-fit rounded-full ${s.soft} px-3 py-1 text-xs font-semibold`}>{tagline}</div>
       <p className="relative mt-4 leading-7 text-slate-600">{copy}</p>
+      {offerings ? (
+        <div className="relative mt-5">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Ways to learn</div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {offerings.map((o) => <span key={o} className={`rounded-full ${s.soft} px-3 py-1 text-xs font-semibold`}>{o}</span>)}
+          </div>
+        </div>
+      ) : null}
       <div className="relative mt-6 space-y-3 border-t border-slate-100 pt-6">
         <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Who's involved</div>
         {roles.map(([r, d]) => (
