@@ -31,19 +31,26 @@ const SUBJECTS = [
 ];
 
 const ACCENT = {
-  teal: 'bg-teal-50 text-teal-700',
-  pink: 'bg-pink-50 text-pink-600',
-  amber: 'bg-amber-50 text-amber-700'
+  teal: { chip: 'bg-brand-teal/10 text-brand-teal', text: 'text-brand-teal', glow: 'from-brand-teal/25', ring: 'ring-brand-teal/40' },
+  pink: { chip: 'bg-brand-pink/10 text-brand-pink', text: 'text-brand-pink', glow: 'from-brand-pink/25', ring: 'ring-brand-pink/40' },
+  amber: { chip: 'bg-brand-amber/10 text-brand-amber', text: 'text-brand-amber', glow: 'from-brand-amber/25', ring: 'ring-brand-amber/40' }
 };
 
 function SubjectCard({ subject, open, onToggle }) {
+  const a = ACCENT[subject.accent];
   return (
-    <button onClick={onToggle} aria-expanded={open} className={`flex flex-col items-start rounded-3xl border bg-white p-6 text-left transition hover:shadow-md ${open ? 'border-teal-300 shadow-md' : 'border-slate-200 hover:border-teal-200'}`}>
-      <span className={`grid h-12 w-12 place-items-center rounded-2xl ${ACCENT[subject.accent]}`}>{subject.icon}</span>
-      <span className="mt-4 text-base font-semibold text-slate-900">{subject.name}</span>
-      {open
-        ? <span className="mt-2 text-sm leading-6 text-slate-600">{subject.desc}</span>
-        : <span className="mt-1 text-sm font-medium text-teal-700">Learn more →</span>}
+    <button onClick={onToggle} aria-expanded={open}
+      className={`group relative flex flex-col items-start overflow-hidden rounded-3xl border bg-white p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${open ? `border-transparent ring-2 ${a.ring} shadow-xl` : 'border-slate-200'}`}>
+      <span className={`pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gradient-to-br ${a.glow} to-transparent blur-2xl transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-60 group-hover:opacity-100'}`} />
+      <span className={`relative grid h-14 w-14 place-items-center rounded-2xl ${a.chip} ring-1 ring-inset ring-white/40`}>{subject.icon}</span>
+      <span className="relative mt-5 text-lg font-semibold text-slate-900">{subject.name}</span>
+      <span className={`relative grid transition-all duration-300 ${open ? 'mt-2 grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+        <span className="overflow-hidden text-sm leading-6 text-slate-600">{subject.desc}</span>
+      </span>
+      <span className={`relative mt-3 inline-flex items-center gap-1.5 text-sm font-semibold ${a.text}`}>
+        {open ? 'Show less' : 'Learn more'}
+        <span className={`transition-transform duration-300 ${open ? 'rotate-90' : ''}`}>→</span>
+      </span>
     </button>
   );
 }
@@ -110,15 +117,45 @@ function HomeScreen({ visible, onOpenAuth, onScroll }) {
             </div>
           </div>
         </section>
-        <section id="services" className="mt-28 space-y-8">
+        <section id="services" className="mt-28 space-y-10">
           <div className="text-center">
-            <h2 className="text-3xl font-semibold text-slate-900">How we help</h2>
-            <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">From weekly tutoring to the full college application journey.</p>
+            <h2 className="text-3xl font-semibold text-slate-900 md:text-4xl">Two services, one journey</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">Academic tutoring and college admissions consulting — distinct programs that reinforce each other, run through a single connected portal.</p>
           </div>
-          <div className="grid gap-6 lg:grid-cols-3">
-            <FeatureCard title="1:1 Tutoring" copy="Math, sciences, and test prep tailored to each student, online or in person." accent="bg-teal-100" />
-            <FeatureCard title="Admissions consulting" copy="Essays, school lists, and deadlines — productized into Essentials, Premier & Elite." accent="bg-pink-100" />
-            <FeatureCard title="Progress you can see" copy="Parents track sessions, grades, and messages from one simple dashboard." accent="bg-amber-100" />
+          <div className="grid gap-6 lg:grid-cols-2">
+            <ServiceCard
+              accent="teal"
+              eyebrow="Program 01"
+              title="1-on-1 Tutoring"
+              tagline="K-12 academics & test prep"
+              copy="Personalized weekly sessions in math, sciences, ELA, and SAT/ACT prep — online or in person — with progress tracked every step of the way."
+              roles={[['Tutors', 'lead sessions & log progress'], ['Parents', 'monitor grades & messages'], ['Students', 'attend & track homework']]}
+              icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-7 w-7"><path d="M4 19V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2Z" /><path d="M8 7h7M8 11h5" /></svg>}
+              cta="Get started" onCta={() => onOpenAuth('signup', 'parent')}
+              joinLabel="Become a tutor" onJoin={() => onOpenAuth('signup', 'tutor')}
+            />
+            <ServiceCard
+              accent="pink"
+              eyebrow="Program 02"
+              title="College Admissions Consulting"
+              tagline="Essentials · Premier · Elite"
+              copy="Essays, balanced school lists, deadlines, and financial-aid timelines — guided one-on-one from sophomore year all the way to Decision Day."
+              roles={[['Counselors', 'guide essays & applications'], ['Parents', 'monitor the roadmap'], ['Students', 'build their college list']]}
+              icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-7 w-7"><path d="M22 9 12 4 2 9l10 5 10-5Z" /><path d="M6 11v5c0 1 2.7 3 6 3s6-2 6-3v-5" /></svg>}
+              cta="Get started" onCta={() => onOpenAuth('signup', 'parent')}
+              joinLabel="Join our team" onJoin={() => onOpenAuth('signup', 'tutor')}
+            />
+          </div>
+          <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-gradient-to-r from-brand-teal/5 via-white to-brand-pink/5 p-8">
+            <div className="flex flex-col items-center gap-3 text-center">
+              <div className="inline-flex items-center gap-2 text-sm font-semibold">
+                <span className="rounded-full bg-brand-teal/10 px-3 py-1 text-brand-teal">Tutoring</span>
+                <span className="text-slate-400">+</span>
+                <span className="rounded-full bg-brand-pink/10 px-3 py-1 text-brand-pink">Admissions</span>
+              </div>
+              <h3 className="text-2xl font-semibold text-slate-900">Better together</h3>
+              <p className="max-w-2xl leading-7 text-slate-600">Strong grades and test scores from tutoring become the foundation an admissions counselor builds on. A student can be enrolled in <span className="font-semibold text-slate-900">both</span> — and one family portal keeps tutors, counselors, parents, and students in sync, with parents able to monitor everything in one place.</p>
+            </div>
           </div>
         </section>
         <section id="subjects" className="mt-28 rounded-[28px] bg-white p-10 shadow-sm">
@@ -164,12 +201,38 @@ function PortalButton({ label, description, accent, onClick }) {
   );
 }
 
-function FeatureCard({ title, copy, accent }) {
+const SERVICE_STYLE = {
+  teal: { grad: 'from-brand-teal to-brand-tealdark', soft: 'bg-brand-teal/10 text-brand-teal' },
+  pink: { grad: 'from-brand-pink to-brand-pinkdark', soft: 'bg-brand-pink/10 text-brand-pink' }
+};
+
+function ServiceCard({ accent, eyebrow, title, tagline, copy, roles, icon, cta, onCta, joinLabel, onJoin }) {
+  const s = SERVICE_STYLE[accent];
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-      <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl ${accent} text-teal-900`}>✓</div>
-      <h3 className="text-xl font-semibold text-slate-900">{title}</h3>
-      <p className="mt-3 text-slate-600">{copy}</p>
+    <div className="relative flex flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white p-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+      <div className={`pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full bg-gradient-to-br ${s.grad} opacity-10 blur-2xl`} />
+      <div className="relative flex items-center gap-4">
+        <div className={`grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br ${s.grad} text-white shadow-lg`}>{icon}</div>
+        <div>
+          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">{eyebrow}</div>
+          <h3 className="text-2xl font-bold text-slate-900">{title}</h3>
+        </div>
+      </div>
+      <div className={`relative mt-4 inline-flex w-fit rounded-full ${s.soft} px-3 py-1 text-xs font-semibold`}>{tagline}</div>
+      <p className="relative mt-4 leading-7 text-slate-600">{copy}</p>
+      <div className="relative mt-6 space-y-3 border-t border-slate-100 pt-6">
+        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Who's involved</div>
+        {roles.map(([r, d]) => (
+          <div key={r} className="flex items-start gap-3">
+            <span className={`mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg ${s.soft} text-xs font-bold`}>{r[0]}</span>
+            <div className="text-sm"><span className="font-semibold text-slate-900">{r}</span> <span className="text-slate-500">— {d}</span></div>
+          </div>
+        ))}
+      </div>
+      <div className="relative mt-7 flex flex-wrap gap-3">
+        <button onClick={onCta} className={`rounded-full bg-gradient-to-r ${s.grad} px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:opacity-95`}>{cta}</button>
+        <button onClick={onJoin} className="rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50">{joinLabel}</button>
+      </div>
     </div>
   );
 }
