@@ -27,8 +27,13 @@ declare
   v_name text         := coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email,'@',1));
 begin
   select id into org from organizations order by created_at limit 1;
-  insert into profiles (id, org_id, role, full_name, email)
-  values (new.id, org, v_role, v_name, new.email)
+  insert into profiles (id, org_id, role, full_name, email, metadata)
+  values (
+    new.id, org, v_role, v_name, new.email,
+    case when new.raw_user_meta_data ? 'program'
+         then jsonb_build_object('interested_program', new.raw_user_meta_data->>'program')
+         else '{}'::jsonb end
+  )
   on conflict (id) do nothing;
 
   -- tutors get a tutor_profiles row too

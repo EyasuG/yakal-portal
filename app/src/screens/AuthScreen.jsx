@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { ROLE_META } from '../lib/utils.js';
 import { USE_SUPABASE } from '../db.js';
 
-function AuthScreen({ visible, authMode, signupRole, onSwitchMode, onPickRole, onLogin, onSignup, onClose, onDemoLogin, demoAccounts, authError, modeNote }) {
+const PROGRAM_LABEL = { tutoring: '1-on-1 Tutoring', admissions: 'College Admissions Consulting' };
+
+function AuthScreen({ visible, authMode, signupRole, signupProgram, onSwitchMode, onPickRole, onLogin, onSignup, onClose, onDemoLogin, demoAccounts, authError, modeNote }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -39,6 +41,12 @@ function AuthScreen({ visible, authMode, signupRole, onSwitchMode, onPickRole, o
               </div>
             ) : (
               <div className="space-y-5">
+                {signupProgram && PROGRAM_LABEL[signupProgram] ? (
+                  <div className={`flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold ${signupProgram === 'admissions' ? 'bg-brand-pink/10 text-brand-pink' : 'bg-brand-teal/10 text-brand-teal'}`}>
+                    <span className="text-lg leading-none">✦</span>
+                    Getting started with {PROGRAM_LABEL[signupProgram]}
+                  </div>
+                ) : null}
                 <div className="flex flex-wrap gap-2">
                   {Object.keys(ROLE_META).map((r) => (
                     <button key={r} className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${signupRole === r ? 'border-teal-600 bg-teal-50 text-teal-700' : 'border-slate-200 bg-white text-slate-600'}`} onClick={() => onPickRole(r)}>{ROLE_META[r].label}</button>

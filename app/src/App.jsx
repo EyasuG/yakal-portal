@@ -38,6 +38,7 @@ function App() {
   const [screen, setScreen] = useState('home');
   const [authMode, setAuthMode] = useState('login');
   const [signupRole, setSignupRole] = useState('student');
+  const [signupProgram, setSignupProgram] = useState(null);
   const [authError, setAuthError] = useState('');
   const [modeNote, setModeNote] = useState('');
   const [role, setRole] = useState(initialUser?.role || 'admin');
@@ -93,11 +94,12 @@ function App() {
 
   const currentNav = NAV[role] || NAV.admin;
 
-  function openAuth(mode, roleChoice) {
+  function openAuth(mode, roleChoice, program) {
     if (roleChoice) {
       setSignupRole(roleChoice);
       mode = 'signup';
     }
+    setSignupProgram(program || null);
     setScreen('auth');
     setAuthMode(mode);
     setAuthError('');
@@ -183,7 +185,7 @@ function App() {
     try {
       if (!fullName || !email) return setAuthError('Name and email are required.');
       if (USE_SUPABASE && password.length < 6) return setAuthError('Password must be at least 6 characters.');
-      await db.signUp({ full_name: fullName, email, password, role: signupRole });
+      await db.signUp({ full_name: fullName, email, password, role: signupRole, program: signupProgram });
       toast('Welcome to Yakal!');
       enterApp(null, db);
     } catch (error) {
@@ -327,6 +329,7 @@ function App() {
         visible={screen === 'auth'}
         authMode={authMode}
         signupRole={signupRole}
+        signupProgram={signupProgram}
         onSwitchMode={setAuthMode}
         onPickRole={setSignupRole}
         onLogin={doLogin}

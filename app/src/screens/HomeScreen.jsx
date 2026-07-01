@@ -131,7 +131,7 @@ function HomeScreen({ visible, onOpenAuth, onScroll }) {
               copy="Personalized weekly sessions in math, sciences, ELA, and SAT/ACT prep — online or in person — with progress tracked every step of the way."
               roles={[['Tutors', 'lead sessions & log progress'], ['Parents', 'monitor grades & messages'], ['Students', 'attend & track homework']]}
               icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-7 w-7"><path d="M4 19V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2Z" /><path d="M8 7h7M8 11h5" /></svg>}
-              cta="Get started" onCta={() => onOpenAuth('signup', 'parent')}
+              cta="Get started" onCta={() => onOpenAuth('signup', 'parent', 'tutoring')}
               joinLabel="Become a tutor" onJoin={() => onOpenAuth('signup', 'tutor')}
             />
             <ServiceCard
@@ -142,7 +142,7 @@ function HomeScreen({ visible, onOpenAuth, onScroll }) {
               copy="Essays, balanced school lists, deadlines, and financial-aid timelines — guided one-on-one from sophomore year all the way to Decision Day."
               roles={[['Counselors', 'guide essays & applications'], ['Parents', 'monitor the roadmap'], ['Students', 'build their college list']]}
               icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-7 w-7"><path d="M22 9 12 4 2 9l10 5 10-5Z" /><path d="M6 11v5c0 1 2.7 3 6 3s6-2 6-3v-5" /></svg>}
-              cta="Get started" onCta={() => onOpenAuth('signup', 'parent')}
+              cta="Get started" onCta={() => onOpenAuth('signup', 'parent', 'admissions')}
               joinLabel="Join our team" onJoin={() => onOpenAuth('signup', 'tutor')}
             />
           </div>

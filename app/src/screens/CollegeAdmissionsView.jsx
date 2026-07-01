@@ -87,15 +87,29 @@ const TEST_PLAN = [
 const SAT_MONTHS = ['Aug', 'Oct', 'Nov', 'Dec', 'Mar', 'May', 'Jun'];
 const ACT_MONTHS = ['Sep', 'Oct', 'Dec', 'Feb', 'Apr', 'Jun', 'Jul'];
 
+const Ic = ({ children }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">{children}</svg>
+);
+const ICN = {
+  doc: <Ic><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" /><path d="M14 3v6h6" /></Ic>,
+  aid: <Ic><path d="M12 2v20M16.5 6H9.75a3.25 3.25 0 0 0 0 6.5h4.5a3.25 3.25 0 0 1 0 6.5H7" /></Ic>,
+  compass: <Ic><circle cx="12" cy="12" r="9" /><path d="m15 9-2 5-5 2 2-5 5-2Z" /></Ic>,
+  target: <Ic><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1.5" /></Ic>,
+  clock: <Ic><circle cx="12" cy="12" r="9" /><path d="M12 8v4l3 2" /></Ic>,
+  play: <Ic><circle cx="12" cy="12" r="9" /><path d="m10 9 5 3-5 3z" /></Ic>,
+  info: <Ic><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></Ic>
+};
+const RES_ACCENT = { teal: 'bg-brand-teal/10 text-brand-teal', pink: 'bg-brand-pink/10 text-brand-pink', amber: 'bg-brand-amber/10 text-brand-amber' };
+
 const RESOURCES = [
-  { t: 'Common App', d: 'Apply to 1,000+ colleges in one place', url: 'https://www.commonapp.org' },
-  { t: 'FAFSA — Federal Student Aid', d: 'Federal grants, loans & work-study', url: 'https://studentaid.gov' },
-  { t: 'CSS Profile', d: 'Institutional aid at many private colleges', url: 'https://cssprofile.collegeboard.org' },
-  { t: 'BigFuture (College Board)', d: 'College search, planning & scholarships', url: 'https://bigfuture.collegeboard.org' },
-  { t: 'Digital SAT & Bluebook', d: 'Register and practice for the digital SAT', url: 'https://satsuite.collegeboard.org/digital' },
-  { t: 'The ACT', d: 'Register and prep for the ACT', url: 'https://www.act.org' },
-  { t: 'Khan Academy', d: 'Free SAT prep and academic help', url: 'https://www.khanacademy.org' },
-  { t: 'NACAC fee waivers', d: 'Application fee-waiver information', url: 'https://www.nacacnet.org' },
+  { t: 'Common App', d: 'Apply to 1,000+ colleges in one place', url: 'https://www.commonapp.org', accent: 'teal', icon: 'doc' },
+  { t: 'FAFSA — Federal Student Aid', d: 'Federal grants, loans & work-study', url: 'https://studentaid.gov', accent: 'amber', icon: 'aid' },
+  { t: 'CSS Profile', d: 'Institutional aid at many private colleges', url: 'https://cssprofile.collegeboard.org', accent: 'amber', icon: 'aid' },
+  { t: 'BigFuture (College Board)', d: 'College search, planning & scholarships', url: 'https://bigfuture.collegeboard.org', accent: 'teal', icon: 'compass' },
+  { t: 'Digital SAT & Bluebook', d: 'Register and practice for the digital SAT', url: 'https://satsuite.collegeboard.org/digital', accent: 'pink', icon: 'target' },
+  { t: 'The ACT', d: 'Register and prep for the ACT', url: 'https://www.act.org', accent: 'pink', icon: 'clock' },
+  { t: 'Khan Academy', d: 'Free SAT prep and academic help', url: 'https://www.khanacademy.org', accent: 'teal', icon: 'play' },
+  { t: 'NACAC fee waivers', d: 'Application fee-waiver information', url: 'https://www.nacacnet.org', accent: 'amber', icon: 'info' },
 ];
 
 function Badge({ kind }) {
@@ -198,12 +212,13 @@ export default function CollegeAdmissionsView() {
       <Section title="Key resources">
         <div className="grid gap-3 sm:grid-cols-2">
           {RESOURCES.map((r) => (
-            <a key={r.t} href={r.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between gap-3 rounded-3xl border border-slate-200 bg-white p-5 transition hover:bg-slate-50">
-              <div>
+            <a key={r.t} href={r.url} target="_blank" rel="noopener noreferrer" className="group flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5 transition-all duration-300 hover:-translate-y-1 hover:border-brand-teal/30 hover:shadow-lg">
+              <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-2xl ${RES_ACCENT[r.accent]}`}>{ICN[r.icon]}</span>
+              <div className="grow">
                 <div className="font-semibold text-slate-900">{r.t}</div>
-                <div className="mt-1 text-sm text-slate-500">{r.d}</div>
+                <div className="mt-0.5 text-sm text-slate-500">{r.d}</div>
               </div>
-              <span className="text-slate-400">↗</span>
+              <span className="text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-brand-teal">↗</span>
             </a>
           ))}
         </div>

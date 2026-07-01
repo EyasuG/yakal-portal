@@ -23,10 +23,10 @@ export function LocalDriver() {
 
   return {
     mode: 'demo',
-    async signUp({ email, full_name, role }) {
+    async signUp({ email, full_name, role, program }) {
       if (S.profiles.some(p => p.email === email)) throw new Error('An account with that email already exists.');
       const id = 'u-' + Math.random().toString(36).slice(2, 8);
-      const p = { id, role, full_name, email, phone: '' };
+      const p = { id, role, full_name, email, phone: '', metadata: program ? { interested_program: program } : {} };
       S.profiles.push(p);
       if (role === 'tutor') S.tutors[id] = { rating: 5.0, rate: 40, payout: 0, accepting: true, subjects: [] };
       me = p;
@@ -206,8 +206,10 @@ export async function SupabaseDriver() {
 
   return {
     mode: 'live',
-    async signUp({ email, password, full_name, role }) {
-      const { data, error } = await sb.auth.signUp({ email, password, options: { data: { full_name, role } } });
+    async signUp({ email, password, full_name, role, program }) {
+      const meta = { full_name, role };
+      if (program) meta.program = program;
+      const { data, error } = await sb.auth.signUp({ email, password, options: { data: meta } });
       if (error) throw new Error(error.message);
       await loadProfile();
       return prof;
