@@ -99,7 +99,7 @@ function Sheet({ data, onClose, onSend, onPreview, onExitPreview, onBook, role }
 }
 
 function BookForm({ data, onBook, onClose }) {
-  const [studentId, setStudentId] = useState(data.students?.[0]?.id || '');
+  const [studentIds, setStudentIds] = useState(data.students?.[0] ? [data.students[0].id] : []);
   const [date, setDate] = useState('');
   const [time, setTime] = useState('16:00');
   const [durationMin, setDurationMin] = useState(60);
@@ -108,6 +108,8 @@ function BookForm({ data, onBook, onClose }) {
   const [sessionType, setSessionType] = useState('individual');
   const [createRoom, setCreateRoom] = useState(true);
   const programLabel = program === 'admissions' ? 'Admissions' : 'Tutoring';
+  const isGroup = program === 'tutoring' && sessionType !== 'individual';
+  const toggleStudent = (id) => setStudentIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
 
   return (
     <div>
@@ -120,12 +122,6 @@ function BookForm({ data, onBook, onClose }) {
       </div>
       {data.students?.length ? (
         <div className="space-y-4">
-          <label className="block">
-            <span className="text-sm font-medium text-slate-600">Student</span>
-            <select value={studentId} onChange={(e) => setStudentId(e.target.value)} className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none">
-              {data.students.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-          </label>
           {data.canChooseProgram ? (
             <label className="block">
               <span className="text-sm font-medium text-slate-600">Program</span>
@@ -146,6 +142,26 @@ function BookForm({ data, onBook, onClose }) {
               </select>
             </label>
           ) : null}
+          {isGroup ? (
+            <div>
+              <div className="text-sm font-medium text-slate-600">Students <span className="text-slate-400">· {studentIds.length} selected</span></div>
+              <div className="mt-1 max-h-44 space-y-1 overflow-y-auto rounded-2xl border border-slate-200 p-2">
+                {data.students.map((s) => (
+                  <label key={s.id} className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2 hover:bg-slate-50">
+                    <input type="checkbox" checked={studentIds.includes(s.id)} onChange={() => toggleStudent(s.id)} className="h-4 w-4 accent-teal-600" />
+                    <span className="text-sm text-slate-800">{s.name}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <label className="block">
+              <span className="text-sm font-medium text-slate-600">Student</span>
+              <select value={studentIds[0] || ''} onChange={(e) => setStudentIds([e.target.value])} className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none">
+                {data.students.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </label>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
               <span className="text-sm font-medium text-slate-600">Date</span>
@@ -176,7 +192,7 @@ function BookForm({ data, onBook, onClose }) {
               Create a Zoom room now
             </label>
           ) : null}
-          <button className="w-full rounded-full bg-teal-600 px-5 py-3 text-sm font-semibold text-white" onClick={() => onBook({ studentId, date, time, durationMin, mode, program, sessionType: program === 'tutoring' ? sessionType : 'individual', createRoom: mode === 'online' && createRoom })}>Book session</button>
+          <button className="w-full rounded-full bg-teal-600 px-5 py-3 text-sm font-semibold text-white" onClick={() => onBook({ studentIds, date, time, durationMin, mode, program, sessionType: program === 'tutoring' ? sessionType : 'individual', createRoom: mode === 'online' && createRoom })}>Book session</button>
         </div>
       ) : (
         <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">No students on your roster yet.</div>

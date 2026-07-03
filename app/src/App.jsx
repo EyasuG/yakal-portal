@@ -296,13 +296,14 @@ function App() {
     }
   }
 
-  async function doBook({ studentId, date, time, durationMin, mode, program, sessionType, createRoom }) {
-    if (!studentId || !date || !time) { toast('Pick a student, date and time.'); return; }
+  async function doBook({ studentIds, date, time, durationMin, mode, program, sessionType, createRoom }) {
+    const ids = (studentIds || []).filter(Boolean);
+    if (!ids.length || !date || !time) { toast('Pick at least one student, a date and time.'); return; }
     const start = new Date(`${date}T${time}`);
     if (isNaN(start.getTime())) { toast('Enter a valid date and time.'); return; }
     const end = new Date(start.getTime() + (durationMin || 60) * 60000);
     try {
-      const sessionId = await db.bookSession({ student_id: studentId, start: start.toISOString(), end: end.toISOString(), mode, program, sessionType });
+      const sessionId = await db.bookSession({ student_ids: ids, start: start.toISOString(), end: end.toISOString(), mode, program, sessionType });
       setSheetData(null);
       if (createRoom && sessionId) {
         try { await db.ensureMeeting(sessionId); toast('Session booked · video room ready'); }

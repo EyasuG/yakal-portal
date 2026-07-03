@@ -58,7 +58,7 @@ export function LocalDriver() {
       return S.students.filter(s => canSee(s.id)).map(s => ({ ...s, tutorName: name(s.tutor), programs: s.programs || [] }));
     },
     async bookableStudents() { return this.listStudents(); },
-    async bookSession({ student_id }) { return 'demo-' + student_id; },
+    async bookSession({ student_id, student_ids }) { const ids = (student_ids && student_ids.length ? student_ids : [student_id]).filter(Boolean); return 'demo-' + (ids[0] || 'x'); },
     async listTutors() {
       return Object.entries(S.tutors).map(([id, t]) => ({ id, name: name(id), ...t, students: S.students.filter(s => s.tutor === id).length }));
     },
@@ -247,10 +247,12 @@ export async function SupabaseDriver() {
     },
     // Students the current user may book a session with (RLS-scoped roster).
     async bookableStudents() { return this.listStudents(); },
-    async bookSession({ student_id, start, end, mode, program, sessionType }) {
+    async bookSession({ student_id, student_ids, start, end, mode, program, sessionType }) {
+      const ids = (student_ids && student_ids.length ? student_ids : [student_id]).filter(Boolean);
+      if (!ids.length) throw new Error('Pick at least one student.');
       const isTutor = prof.role === 'tutor';
       const row = {
-        org_id: prof.org_id, student_id, staff_id: prof.id,
+        org_id: prof.org_id, student_id: ids[0], staff_id: prof.id,
         tutor_id: (program === 'tutoring' && isTutor) ? prof.id : null,
         scheduled_start: start, scheduled_end: end,
         mode, program, session_type: (program === 'tutoring' ? (sessionType || 'individual') : 'individual'),
@@ -258,6 +260,8 @@ export async function SupabaseDriver() {
       };
       const { data, error } = await sb.from('sessions').insert(row).select('id').single();
       if (error) throw new Error(error.message);
+      const { error: pe } = await sb.from('session_participants').insert(ids.map((sid) => ({ session_id: data.id, student_id: sid })));
+      if (pe) throw new Error(pe.message);
       return data.id;
     },
     async listTutors() {
@@ -278,13 +282,16 @@ export async function SupabaseDriver() {
     },
     async studentHome() {
       const { data: s } = await sb.from('students').select('*').limit(1).single();
+      if (!s) return { student: { id: null, name: '', grade: '', subjects: [], next: '', mode: 'Online' }, progress: [], homework: [], application: null, tutorName: '', nextSession: null };
       const [pr, hw, ap, ns] = await Promise.all([
         sb.from('progress_snapshots').select('percent,subjects(name)').eq('student_id', s.id),
         sb.from('homework').select('*').eq('student_id', s.id),
         sb.from('applications').select('*').eq('student_id', s.id).limit(1).maybeSingle(),
-        sb.from('sessions').select('id,mode,meeting_url,scheduled_start').eq('student_id', s.id).gte('scheduled_start', new Date().toISOString()).order('scheduled_start', { ascending: true }).limit(1).maybeSingle()
+        sb.from('session_participants').select('sessions(id,mode,meeting_url,scheduled_start,status)').eq('student_id', s.id)
       ]);
-      const nx = ns.data;
+      const now0 = Date.now();
+      const nx = (ns.data || []).map(r => r.sessions).filter(x => x && x.status !== 'canceled' && new Date(x.scheduled_start).getTime() >= now0)
+        .sort((a, b) => new Date(a.scheduled_start) - new Date(b.scheduled_start))[0];
       return {
         student: { id: s.id, name: `${s.first_name} ${s.last_name}`, grade: s.grade, subjects: [], next: nx ? new Date(nx.scheduled_start).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : '', mode: nx && nx.mode === 'in_person' ? 'In person' : 'Online' },
         progress: (pr.data || []).map(p => [p.subjects?.name || 'Subject', p.percent]),
@@ -302,12 +309,15 @@ export async function SupabaseDriver() {
     },
     async studentSessions() {
       const { data: s } = await sb.from('students').select('id,first_name').limit(1).single();
-      const { data } = await sb.from('sessions').select('id,mode,status,meeting_url,scheduled_start,subjects(name)').eq('student_id', s.id).order('scheduled_start', { ascending: true });
+      if (!s) return { next: null, upcoming: [], past: [] };
+      const { data: sp } = await sb.from('session_participants').select('sessions(id,mode,status,meeting_url,scheduled_start,session_type,subjects(name))').eq('student_id', s.id);
+      const rows = (sp || []).map(r => r.sessions).filter(Boolean).sort((a, b) => new Date(a.scheduled_start) - new Date(b.scheduled_start));
+      const TYPE = { individual: '1-on-1', group: 'Group session', camp: 'Summer camp', bootcamp: 'STEM bootcamp', math_lab: 'Math Lab' };
       const now = Date.now();
       const fmt = (d) => new Date(d).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-      const upcoming = (data || []).filter(x => new Date(x.scheduled_start).getTime() >= now && x.status !== 'canceled')
-        .map(x => ({ sessionId: x.id, subject: x.subjects?.name || 'Session', when: fmt(x.scheduled_start), mode: x.mode === 'in_person' ? 'In person' : 'Online', meetingUrl: x.meeting_url }));
-      const past = (data || []).filter(x => x.status === 'completed').map(x => [x.subjects?.name || 'Session', '', new Date(x.scheduled_start).toLocaleDateString()]);
+      const upcoming = rows.filter(x => new Date(x.scheduled_start).getTime() >= now && x.status !== 'canceled')
+        .map(x => ({ sessionId: x.id, subject: x.subjects?.name || TYPE[x.session_type] || 'Session', type: TYPE[x.session_type] || '1-on-1', when: fmt(x.scheduled_start), mode: x.mode === 'in_person' ? 'In person' : 'Online', meetingUrl: x.meeting_url }));
+      const past = rows.filter(x => x.status === 'completed').map(x => [x.subjects?.name || TYPE[x.session_type] || 'Session', '', new Date(x.scheduled_start).toLocaleDateString()]);
       return { next: upcoming[0] || null, upcoming, past };
     },
     async toggleHomework() {},
