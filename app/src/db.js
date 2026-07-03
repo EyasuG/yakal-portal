@@ -85,13 +85,18 @@ export function LocalDriver() {
     },
     async studentHome() {
       const s = studentOfUser();
+      const now = Date.now();
+      const deadlines = ((S.collegeSchools || {})[s.id] || []).filter(x => x.deadline && new Date(x.deadline).getTime() >= now)
+        .sort((a, b) => new Date(a.deadline) - new Date(b.deadline)).slice(0, 4)
+        .map(x => ({ school: x.school_name, type: x.deadline_type, date: x.deadline }));
       return {
         student: s,
         progress: S.progress[s.id] || [],
         homework: S.homework[s.id] || [],
         application: S.applications[s.id],
         tutorName: name(s.tutor),
-        nextSession: { sessionId: 'demo-' + s.id, meetingUrl: s.meetingUrl || null }
+        nextSession: { sessionId: 'demo-' + s.id, meetingUrl: s.meetingUrl || null },
+        deadlines
       };
     },
     async ensureMeeting(sessionId) { return 'https://zoom.us/j/' + encodeURIComponent(sessionId); },
@@ -322,7 +327,7 @@ export async function SupabaseDriver() {
     },
     async studentHome() {
       const { data: s } = await sb.from('students').select('*').limit(1).single();
-      if (!s) return { student: { id: null, name: '', grade: '', subjects: [], next: '', mode: 'Online' }, progress: [], homework: [], application: null, tutorName: '', nextSession: null };
+      if (!s) return { student: { id: null, name: '', grade: '', subjects: [], next: '', mode: 'Online' }, progress: [], homework: [], application: null, tutorName: '', nextSession: null, deadlines: [] };
       const [pr, hw, ap, ns] = await Promise.all([
         sb.from('progress_snapshots').select('percent,subjects(name)').eq('student_id', s.id),
         sb.from('homework').select('*').eq('student_id', s.id),
@@ -332,13 +337,21 @@ export async function SupabaseDriver() {
       const now0 = Date.now();
       const nx = (ns.data || []).map(r => r.sessions).filter(x => x && x.status !== 'canceled' && new Date(x.scheduled_start).getTime() >= now0)
         .sort((a, b) => new Date(a.scheduled_start) - new Date(b.scheduled_start))[0];
+      let deadlines = [];
+      if (ap.data) {
+        const { data: ds } = await sb.from('application_schools').select('school_name,deadline,deadline_type').eq('application_id', ap.data.id).not('deadline', 'is', null);
+        deadlines = (ds || []).filter(x => new Date(x.deadline).getTime() >= now0)
+          .sort((a, b) => new Date(a.deadline) - new Date(b.deadline)).slice(0, 4)
+          .map(x => ({ school: x.school_name, type: x.deadline_type, date: x.deadline }));
+      }
       return {
         student: { id: s.id, name: `${s.first_name} ${s.last_name}`, grade: s.grade, subjects: [], next: nx ? new Date(nx.scheduled_start).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : '', mode: nx && nx.mode === 'in_person' ? 'In person' : 'Online' },
         progress: (pr.data || []).map(p => [p.subjects?.name || 'Subject', p.percent]),
         homework: (hw.data || []).map(h => ({ t: h.title, c: '', d: h.due_date || '', done: h.status === 'graded' })),
         application: ap.data,
         tutorName: '',
-        nextSession: nx ? { sessionId: nx.id, meetingUrl: nx.meeting_url } : null
+        nextSession: nx ? { sessionId: nx.id, meetingUrl: nx.meeting_url } : null,
+        deadlines
       };
     },
     async ensureMeeting(sessionId) {

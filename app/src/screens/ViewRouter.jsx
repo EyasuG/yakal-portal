@@ -254,6 +254,26 @@ function StudentHomeView({ db }) {
       <Section title="Assignments due">
         <div className="rounded-3xl border border-slate-200 bg-white p-4">{data.homework.length ? data.homework.map((item, index) => <ChecklistItem key={index} item={item} onToggle={() => { db.toggleHomework(index); setData((prev) => ({ ...prev, homework: prev.homework.map((h, idx) => idx === index ? { ...h, done: !h.done } : h) })); }} />) : <div className="text-slate-500">No assignments</div>}</div>
       </Section>
+      {(data.deadlines && data.deadlines.length) ? (
+        <Section title="Upcoming application deadlines" actionLabel="College list" action={() => window.go('clist')}>
+          <div className="space-y-2">
+            {data.deadlines.map((d, i) => {
+              const days = Math.ceil((new Date(d.date) - Date.now()) / 86400000);
+              const soon = days <= 30;
+              return (
+                <div key={i} className="flex items-center gap-3 rounded-3xl border border-slate-200 bg-white p-4">
+                  <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-2xl ${soon ? 'bg-brand-pink/10 text-brand-pink' : 'bg-brand-teal/10 text-brand-teal'}`}>📅</div>
+                  <div className="grow">
+                    <div className="font-semibold text-slate-900">{d.school}</div>
+                    <div className="text-sm text-slate-500">{[d.type, new Date(d.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })].filter(Boolean).join(' · ')}</div>
+                  </div>
+                  <div className={`shrink-0 text-sm font-semibold ${soon ? 'text-brand-pink' : 'text-slate-500'}`}>{days <= 0 ? 'Due' : `${days}d left`}</div>
+                </div>
+              );
+            })}
+          </div>
+        </Section>
+      ) : null}
       {data.application ? (
         <button className="flex w-full items-center justify-between rounded-3xl bg-pink-50 p-5 text-left transition hover:bg-pink-100" onClick={() => window.go('sadm')}>
           <div>
