@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { cap, initials } from '../lib/utils.js';
 
-function Sheet({ data, onClose, onSend, onPreview, onExitPreview, onBook, role }) {
+function Sheet({ data, onClose, onSend, onPreview, onExitPreview, onBook, onSaveSchool, role }) {
   const [draft, setDraft] = useState('');
 
   useEffect(() => {
@@ -91,6 +91,8 @@ function Sheet({ data, onClose, onSend, onPreview, onExitPreview, onBook, role }
             </div>
           ) : data.type === 'book' ? (
             <BookForm data={data} onBook={onBook} onClose={onClose} />
+          ) : data.type === 'school' ? (
+            <SchoolForm data={data} onSave={onSaveSchool} onClose={onClose} />
           ) : null}
         </div>
       </div>
@@ -197,6 +199,68 @@ function BookForm({ data, onBook, onClose }) {
       ) : (
         <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">No students on your roster yet.</div>
       )}
+    </div>
+  );
+}
+
+const FLD = 'mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none';
+const FLbl = ({ label, children }) => (
+  <label className="block"><span className="text-sm font-medium text-slate-600">{label}</span>{children}</label>
+);
+
+function SchoolForm({ data, onSave, onClose }) {
+  const s = data.school || {};
+  const [f, setF] = useState({
+    school_name: s.school_name || '', kind: s.kind || 'match', deadline_type: s.deadline_type || 'RD',
+    deadline: s.deadline || '', status: s.status || 'todo', admissions_email: s.admissions_email || '',
+    supplement_essays: s.supplement_essays ?? '', class_ratio: s.class_ratio || '', major_offered: s.major_offered || '',
+    program_rank: s.program_rank || '', tours: s.tours || '', sticker_price: s.sticker_price ?? '',
+    financial_aid: s.financial_aid || '', eval_sites: s.eval_sites || '', avg_gpa_sat: s.avg_gpa_sat || '', notes: s.notes || ''
+  });
+  const set = (k) => (e) => setF((p) => ({ ...p, [k]: e.target.value }));
+  const submit = () => {
+    if (!f.school_name.trim()) return;
+    onSave({
+      ...(s.id ? { id: s.id } : {}),
+      school_name: f.school_name.trim(), kind: f.kind, deadline_type: f.deadline_type || null,
+      deadline: f.deadline || null, status: f.status, admissions_email: f.admissions_email || null,
+      supplement_essays: f.supplement_essays === '' ? null : Number(f.supplement_essays),
+      class_ratio: f.class_ratio || null, major_offered: f.major_offered || null, program_rank: f.program_rank || null,
+      tours: f.tours || null, sticker_price: f.sticker_price === '' ? null : Number(f.sticker_price),
+      financial_aid: f.financial_aid || null, eval_sites: f.eval_sites || null, avg_gpa_sat: f.avg_gpa_sat || null, notes: f.notes || null
+    }, data.studentId);
+  };
+  return (
+    <div>
+      <div className="mb-4 flex items-center justify-between border-b border-slate-200 pb-4">
+        <div className="text-lg font-semibold text-slate-900">{s.id ? 'Edit school' : 'Add a school'}</div>
+        <button className="text-xl text-slate-400" onClick={onClose}>&times;</button>
+      </div>
+      <div className="max-h-[62vh] space-y-3 overflow-y-auto pr-1">
+        <FLbl label="School name"><input value={f.school_name} onChange={set('school_name')} placeholder="e.g. Johns Hopkins University" className={FLD} /></FLbl>
+        <div className="grid grid-cols-2 gap-3">
+          <FLbl label="Category"><select value={f.kind} onChange={set('kind')} className={FLD}><option value="reach">Dream / Reach</option><option value="match">Target / Match</option><option value="safety">Safety</option></select></FLbl>
+          <FLbl label="Status"><select value={f.status} onChange={set('status')} className={FLD}><option value="todo">To research</option><option value="in_progress">In progress</option><option value="done">Applied</option></select></FLbl>
+          <FLbl label="Deadline type"><select value={f.deadline_type} onChange={set('deadline_type')} className={FLD}><option value="ED">Early Decision (ED)</option><option value="EA">Early Action (EA)</option><option value="RD">Regular Decision (RD)</option><option value="Rolling">Rolling</option></select></FLbl>
+          <FLbl label="Deadline date"><input type="date" value={f.deadline} onChange={set('deadline')} className={FLD} /></FLbl>
+        </div>
+        <FLbl label="Admissions contact email"><input type="email" value={f.admissions_email} onChange={set('admissions_email')} placeholder="admissions@…" className={FLD} /></FLbl>
+        <div className="grid grid-cols-2 gap-3">
+          <FLbl label="Supplemental essays (#)"><input type="number" min="0" value={f.supplement_essays} onChange={set('supplement_essays')} className={FLD} /></FLbl>
+          <FLbl label="Sticker price / yr ($)"><input type="number" min="0" value={f.sticker_price} onChange={set('sticker_price')} className={FLD} /></FLbl>
+          <FLbl label="Avg GPA / SAT admitted"><input value={f.avg_gpa_sat} onChange={set('avg_gpa_sat')} placeholder="3.9 GPA / 1530" className={FLD} /></FLbl>
+          <FLbl label="Class size / ratio"><input value={f.class_ratio} onChange={set('class_ratio')} placeholder="6:1" className={FLD} /></FLbl>
+        </div>
+        <FLbl label="Is your major offered? Program to apply to"><input value={f.major_offered} onChange={set('major_offered')} className={FLD} /></FLbl>
+        <FLbl label="Program ranking"><input value={f.program_rank} onChange={set('program_rank')} placeholder="#3 Biomedical Engineering" className={FLD} /></FLbl>
+        <div className="grid grid-cols-2 gap-3">
+          <FLbl label="Tours / virtual tour"><input value={f.tours} onChange={set('tours')} className={FLD} /></FLbl>
+          <FLbl label="% on aid / merit aid"><input value={f.financial_aid} onChange={set('financial_aid')} className={FLD} /></FLbl>
+        </div>
+        <FLbl label="Evaluative sites (Niche, College Navigator…)"><input value={f.eval_sites} onChange={set('eval_sites')} className={FLD} /></FLbl>
+        <FLbl label="Notes"><textarea value={f.notes} onChange={set('notes')} rows={2} className={FLD} /></FLbl>
+      </div>
+      <button className="mt-4 w-full rounded-full bg-teal-600 px-5 py-3 text-sm font-semibold text-white" onClick={submit}>{s.id ? 'Save changes' : 'Add to list'}</button>
     </div>
   );
 }

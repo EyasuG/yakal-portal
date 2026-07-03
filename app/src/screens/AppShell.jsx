@@ -50,13 +50,13 @@ function AppShell({ visible, user, role, previewing, activeView, navItems, onNav
 
 const NAV = {
   admin: [['overview', 'Home'], ['students', 'Students'], ['tutors', 'Tutors'], ['msg', 'Messages'], ['trust', 'Trust']],
-  student: [['shome', 'Home'], ['ssessions', 'Sessions'], ['college', 'College'], ['sadm', 'My App'], ['msg', 'Messages']],
+  student: [['shome', 'Home'], ['ssessions', 'Sessions'], ['college', 'College'], ['clist', 'My List'], ['sadm', 'My App'], ['msg', 'Messages']],
   parent: [['phome', 'Home'], ['pkids', 'Children'], ['college', 'College'], ['msg', 'Messages'], ['pbill', 'Billing']],
   tutor: [['thome', 'Today'], ['tstudents', 'Students'], ['tearn', 'Earnings'], ['msg', 'Messages']],
   super_admin: [['overview', 'Home'], ['students', 'Students'], ['tutors', 'Tutors'], ['msg', 'Messages'], ['trust', 'Trust']],
   tutoring_admin: [['overview', 'Home'], ['students', 'Students'], ['tutors', 'Tutors'], ['msg', 'Messages']],
-  admissions_admin: [['overview', 'Home'], ['students', 'Students'], ['college', 'College'], ['msg', 'Messages']],
-  counselor: [['overview', 'Home'], ['students', 'Students'], ['college', 'College'], ['msg', 'Messages']]
+  admissions_admin: [['overview', 'Home'], ['students', 'Students'], ['clist', 'College Lists'], ['college', 'College'], ['msg', 'Messages']],
+  counselor: [['overview', 'Home'], ['students', 'Students'], ['clist', 'College Lists'], ['college', 'College'], ['msg', 'Messages']]
 };
 
 const ROLE_HI = {

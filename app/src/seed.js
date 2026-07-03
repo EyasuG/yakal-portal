@@ -62,6 +62,13 @@ export function seed() {
       's-amen': [['Essay structure', 'u-hana', 'Oct 24'], ['SAT timing drills', 'u-beth', 'Oct 19'], ['Personal statement review', 'u-hana', 'Oct 12']],
       's-liya': [['Geometry proofs', 'u-beth', 'Oct 22'], ['SAT math section', 'u-beth', 'Oct 15']]
     },
+    collegeSchools: {
+      's-amen': [
+        { id: 'sch-1', school_name: 'Johns Hopkins University', kind: 'reach', deadline_type: 'ED', deadline: '2026-11-01', status: 'in_progress', admissions_email: 'gotojhu@jhu.edu', supplement_essays: 1, class_ratio: '6:1', major_offered: 'Biomedical Engineering — apply directly to the Whiting School', program_rank: '#3 Biomedical Engineering in the U.S.', tours: 'Virtual tour available', sticker_price: 60480, financial_aid: '~50% on aid · need-based only', eval_sites: 'Niche A+ · College Navigator', avg_gpa_sat: '3.9 GPA / 1530 SAT', notes: 'Reach — essays must be excellent.' },
+        { id: 'sch-2', school_name: 'University of Maryland, College Park', kind: 'match', deadline_type: 'EA', deadline: '2026-11-01', status: 'todo', admissions_email: 'ApplyMaryland@umd.edu', supplement_essays: 3, class_ratio: '17:1', major_offered: 'Computer Science (competitive LEP)', program_rank: '#16 CS among publics', tours: 'In-person & virtual', sticker_price: 11505, financial_aid: '~40% on aid · merit yes', eval_sites: 'Niche A+ · Princeton Review', avg_gpa_sat: '4.3 W GPA / 1400 SAT', notes: 'Strong target.' },
+        { id: 'sch-3', school_name: 'Towson University', kind: 'safety', deadline_type: 'Rolling', deadline: null, status: 'todo', admissions_email: 'admissions@towson.edu', supplement_essays: 0, class_ratio: '17:1', major_offered: 'Yes — direct admit', program_rank: 'Strong regional', tours: 'Virtual tours', sticker_price: 10078, financial_aid: 'Merit scholarships available', eval_sites: 'Niche B+', avg_gpa_sat: '3.5 GPA / 1150 SAT', notes: 'Safety.' }
+      ]
+    },
     conversations: [
       {
         id: 'c1', subject: 'Essay & SAT help', student: 's-amen', parts: ['u-beth', 'u-amen'], msgs: [

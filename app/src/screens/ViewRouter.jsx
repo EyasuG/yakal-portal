@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Section from '../components/Section.jsx';
 import CollegeAdmissionsView from './CollegeAdmissionsView.jsx';
+import CollegeListView from './CollegeListView.jsx';
 import { initials } from '../lib/utils.js';
 
 function ViewRouter({ activeView, db, viewVersion, onRefresh }) {
@@ -21,6 +22,8 @@ function ViewRouter({ activeView, db, viewVersion, onRefresh }) {
       return <StudentAdmissionsView db={db} key={viewVersion} />;
     case 'college':
       return <CollegeAdmissionsView key={viewVersion} />;
+    case 'clist':
+      return <CollegeListView db={db} key={viewVersion} />;
     case 'phome':
       return <ParentHomeView db={db} key={viewVersion} />;
     case 'pkids':

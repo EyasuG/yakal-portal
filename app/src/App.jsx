@@ -18,7 +18,7 @@ const DEMO_ACCOUNTS = [
 
 const NAV = {
   admin: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['tutors', 'Tutors', 'tutor'], ['msg', 'Messages', 'chat'], ['trust', 'Trust', 'shield']],
-  student: [['shome', 'Home', 'grid'], ['ssessions', 'Sessions', 'cal'], ['college', 'College', 'cap'], ['sadm', 'My App', 'cap'], ['msg', 'Messages', 'chat']],
+  student: [['shome', 'Home', 'grid'], ['ssessions', 'Sessions', 'cal'], ['college', 'College', 'cap'], ['clist', 'My List', 'cap'], ['sadm', 'My App', 'cap'], ['msg', 'Messages', 'chat']],
   parent: [['phome', 'Home', 'grid'], ['pkids', 'Children', 'student'], ['college', 'College', 'cap'], ['msg', 'Messages', 'chat'], ['pbill', 'Billing', 'wallet']],
   tutor: [['thome', 'Today', 'grid'], ['tstudents', 'Students', 'student'], ['tearn', 'Earnings', 'wallet'], ['msg', 'Messages', 'chat']],
   // Program-scoped staff. Views are reused; Row-Level Security limits each
@@ -26,8 +26,8 @@ const NAV = {
   // applications, and vice-versa).
   super_admin: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['tutors', 'Tutors', 'tutor'], ['msg', 'Messages', 'chat'], ['trust', 'Trust', 'shield']],
   tutoring_admin: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['tutors', 'Tutors', 'tutor'], ['msg', 'Messages', 'chat']],
-  admissions_admin: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['college', 'College', 'cap'], ['msg', 'Messages', 'chat']],
-  counselor: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['college', 'College', 'cap'], ['msg', 'Messages', 'chat']]
+  admissions_admin: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['clist', 'College Lists', 'cap'], ['college', 'College', 'cap'], ['msg', 'Messages', 'chat']],
+  counselor: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['clist', 'College Lists', 'cap'], ['college', 'College', 'cap'], ['msg', 'Messages', 'chat']]
 };
 
 function App() {
@@ -82,6 +82,8 @@ function App() {
     window.openTutorStudent = openTutorStudent;
     window.openSheet = openSheet;
     window.openBookSheet = openBookSheet;
+    window.openSchoolSheet = openSchoolSheet;
+    window.removeSchool = removeSchool;
     window.preview = preview;
     window.exitPreview = exitPreview;
     window.openAuth = openAuth;
@@ -317,6 +319,23 @@ function App() {
     }
   }
 
+  function openSchoolSheet(school) {
+    const ctx = window.__collegeCtx || {};
+    setSheetData({ type: 'school', school: school || null, studentId: ctx.studentId || null });
+  }
+  async function saveSchoolFields(fields, studentId) {
+    try {
+      await db.saveSchool(studentId, fields);
+      setSheetData(null);
+      toast('School saved');
+      if (window.__collegeCtx?.reload) window.__collegeCtx.reload(); else setViewVersion((v) => v + 1);
+    } catch (e) { toast(e.message || 'Could not save the school.'); }
+  }
+  async function removeSchool(id) {
+    try { await db.deleteSchool(id); toast('Removed from list'); if (window.__collegeCtx?.reload) window.__collegeCtx.reload(); else setViewVersion((v) => v + 1); }
+    catch (e) { toast(e.message || 'Could not remove.'); }
+  }
+
   function scrollToId(id) {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   }
@@ -363,6 +382,7 @@ function App() {
         onPreview={preview}
         onExitPreview={exitPreview}
         onBook={doBook}
+        onSaveSchool={saveSchoolFields}
         role={role}
       />
       <Toast message={toastMessage} />
