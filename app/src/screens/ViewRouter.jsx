@@ -321,39 +321,115 @@ function StudentSessionsView({ db }) {
   );
 }
 
+// Per-school application requirements — the checklist best-in-class trackers
+// (Scoir/Naviance-style) keep for every school on the list.
+const REQS = [
+  ['app_submitted', 'Application'], ['essays_done', 'Essays'], ['recs_requested', 'Recs requested'],
+  ['recs_received', 'Recs received'], ['transcript_sent', 'Transcript'], ['scores_sent', 'Test scores'],
+  ['fafsa_submitted', 'FAFSA'], ['css_submitted', 'CSS Profile']
+];
+const DECISIONS = [['', '— Decision —'], ['accepted', 'Accepted 🎉'], ['waitlisted', 'Waitlisted'], ['denied', 'Denied'], ['enrolled', 'Enrolled ✅']];
+const DECISION_CHIP = { accepted: 'bg-emerald-100 text-emerald-700', enrolled: 'bg-emerald-600 text-white', waitlisted: 'bg-amber-100 text-amber-700', denied: 'bg-slate-200 text-slate-600' };
+
 function StudentAdmissionsView({ db }) {
+  const me = (db && db.me && db.me()) || {};
+  const isStaff = ['counselor', 'admissions_admin', 'super_admin', 'admin'].includes(me.role);
+  const canEdit = isStaff || me.role === 'student';
+  const [students, setStudents] = useState([]);
+  const [studentId, setStudentId] = useState(null);
   const [data, setData] = useState(null);
 
-  useEffect(() => {
-    db?.studentHome().then(setData).catch(() => setData(null));
-  }, [db]);
+  useEffect(() => { if (isStaff) db.bookableStudents().then((l) => { setStudents(l); setStudentId((p) => p || l[0]?.id || null); }); }, []);
+  const targetId = isStaff ? studentId : null;
+  const reload = () => db.applicationDetail(targetId).then(setData).catch(() => setData({ schools: [], essays: [], tasks: [] }));
+  useEffect(() => { if (isStaff && !studentId) return; reload(); }, [studentId]);
 
   if (!data) return <LoadingCard />;
-  if (!data.application) return <EmptyCard title="No application yet" subtitle="Your counselor will set this up." />;
+  const { schools, essays, tasks } = data;
+  const reqDone = (s) => REQS.filter(([k]) => (s.requirements || {})[k]).length;
+  const submitted = schools.filter((s) => (s.requirements || {}).app_submitted).length;
+  const accepted = schools.filter((s) => s.decision === 'accepted' || s.decision === 'enrolled').length;
 
-  const application = data.application;
-  const essays = application.essays || [];
-  const tasks = application.tasks || [];
-  const topName = application.top || application.target_school || 'Your application';
-  const deadline = application.deadline || application.next_deadline || 'TBD';
+  const toggleReq = async (school, key) => {
+    if (!canEdit) return;
+    const requirements = { ...(school.requirements || {}), [key]: !(school.requirements || {})[key] };
+    setData((p) => ({ ...p, schools: p.schools.map((x) => x.id === school.id ? { ...x, requirements } : x) }));
+    try { await db.setSchoolTracking(school.id, { requirements }); } catch (e) { window.toast(e.message); reload(); }
+  };
+  const setDecision = async (school, decision) => {
+    setData((p) => ({ ...p, schools: p.schools.map((x) => x.id === school.id ? { ...x, decision: decision || null } : x) }));
+    try { await db.setSchoolTracking(school.id, { decision: decision || null }); } catch (e) { window.toast(e.message); reload(); }
+  };
+  const toggleItem = async (kind, item) => {
+    if (!canEdit) return;
+    const status = item.status === 'done' ? 'todo' : 'done';
+    setData((p) => ({ ...p, [kind === 'essay' ? 'essays' : 'tasks']: p[kind === 'essay' ? 'essays' : 'tasks'].map((x) => x.id === item.id ? { ...x, status } : x) }));
+    try { await db.setItemStatus(kind, item.id, status); } catch (e) { window.toast(e.message); reload(); }
+  };
+
   return (
     <div className="space-y-6">
-      <div className="rounded-3xl border border-pink-100 bg-pink-50 p-6">
-        <div className="text-xs font-semibold uppercase tracking-[0.24em] text-pink-600">Your application</div>
-        <div className="mt-3 text-2xl font-semibold text-slate-900">{topName}</div>
-        <div className="mt-2 text-sm text-slate-600">{application.n ? `${application.n} colleges · ` : ''}next deadline {deadline}</div>
+      <div className="rounded-[28px] bg-gradient-to-r from-brand-pink to-brand-pinkdark p-7 text-white shadow-xl">
+        <div className="text-sm uppercase tracking-[0.2em] text-pink-100">Application Tracker</div>
+        <div className="mt-2 text-2xl font-semibold">Every school, every requirement</div>
+        <div className="mt-4 grid grid-cols-3 gap-3">
+          <div className="rounded-2xl bg-white/10 p-3 text-center"><div className="text-xl font-bold">{schools.length}</div><div className="text-xs text-pink-100">Schools</div></div>
+          <div className="rounded-2xl bg-white/10 p-3 text-center"><div className="text-xl font-bold">{submitted}</div><div className="text-xs text-pink-100">Submitted</div></div>
+          <div className="rounded-2xl bg-white/10 p-3 text-center"><div className="text-xl font-bold">{accepted}</div><div className="text-xs text-pink-100">Accepted</div></div>
+        </div>
       </div>
-      <div className="grid gap-4 md:grid-cols-3">
-        <StatBox label="To deadline" value={application.days != null ? `${application.days}d` : '—'} />
-        <StatBox label="Essays" value={`${essays.filter((a) => a[1]).length}/${essays.length}`} />
-        <StatBox label="Tasks" value={`${tasks.filter((t) => t[1]).length}/${tasks.length}`} />
+
+      {isStaff ? (
+        <div className="flex flex-wrap items-center gap-3 rounded-3xl border border-slate-200 bg-white p-4">
+          <span className="text-sm font-medium text-slate-600">Student</span>
+          <select value={studentId || ''} onChange={(e) => setStudentId(e.target.value)} className="grow rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none">
+            {students.length ? students.map((s) => <option key={s.id} value={s.id}>{s.name}</option>) : <option value="">No students</option>}
+          </select>
+        </div>
+      ) : null}
+
+      {schools.length === 0 ? (
+        <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
+          <div className="text-lg font-semibold text-slate-900">No schools on the list yet</div>
+          <div className="mt-1 text-sm text-slate-500">Build the college list first — the tracker follows it.</div>
+          <button className="mt-4 rounded-full bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white" onClick={() => window.go('clist')}>Open the College List</button>
+        </div>
+      ) : (
+        <Section title="Per-school requirements">
+          <div className="space-y-3">
+            {schools.map((s) => (
+              <div key={s.id} className="rounded-3xl border border-slate-200 bg-white p-5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-semibold text-slate-900">{s.school_name}</span>
+                  {s.deadline ? <span className="text-xs text-slate-500">{[s.deadline_type, s.deadline].filter(Boolean).join(' · ')}</span> : null}
+                  <span className="ml-auto text-xs font-semibold text-slate-500">{reqDone(s)}/{REQS.length}</span>
+                  {canEdit ? (
+                    <select value={s.decision || ''} onChange={(e) => setDecision(s, e.target.value)} className="rounded-full border border-slate-200 bg-white px-2 py-1 text-xs font-semibold outline-none">
+                      {DECISIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                    </select>
+                  ) : (s.decision ? <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${DECISION_CHIP[s.decision] || ''}`}>{s.decision}</span> : null)}
+                </div>
+                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-brand-teal transition-all" style={{ width: `${(reqDone(s) / REQS.length) * 100}%` }} /></div>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {REQS.map(([k, label]) => {
+                    const on = !!(s.requirements || {})[k];
+                    return <button key={k} disabled={!canEdit} onClick={() => toggleReq(s, k)} className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${on ? 'bg-brand-teal text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>{on ? '✓ ' : ''}{label}</button>;
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Section title={`Essays · ${essays.filter((e) => e.status === 'done').length}/${essays.length}`}>
+          <div className="space-y-2 rounded-3xl border border-slate-200 bg-white p-4">{essays.length ? essays.map((e) => <ToggleRow key={e.id} label={e.title + (e.due_date ? ` · due ${e.due_date}` : '')} done={e.status === 'done'} onToggle={() => toggleItem('essay', e)} />) : <div className="text-sm text-slate-500">No essays yet</div>}</div>
+        </Section>
+        <Section title={`To-do · ${tasks.filter((t) => t.status === 'done').length}/${tasks.length}`}>
+          <div className="space-y-2 rounded-3xl border border-slate-200 bg-white p-4">{tasks.length ? tasks.map((t) => <ToggleRow key={t.id} label={t.title + (t.due_date ? ` · due ${t.due_date}` : '')} done={t.status === 'done'} onToggle={() => toggleItem('task', t)} />) : <div className="text-sm text-slate-500">No tasks yet</div>}</div>
+        </Section>
       </div>
-      <Section title="Essays">
-        <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-3">{essays.length ? essays.map((item, index) => <ToggleRow key={index} label={item[0]} done={item[1]} onToggle={() => { db.toggleAppItem('e', index); setData((prev) => ({ ...prev, application: { ...prev.application, essays: (prev.application.essays || []).map((it, idx) => idx === index ? [it[0], !it[1]] : it) } })); }} />) : <div className="text-slate-500">No essays yet</div>}</div>
-      </Section>
-      <Section title="To-do">
-        <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-3">{tasks.length ? tasks.map((item, index) => <ToggleRow key={index} label={item[0]} done={item[1]} onToggle={() => { db.toggleAppItem('t', index); setData((prev) => ({ ...prev, application: { ...prev.application, tasks: (prev.application.tasks || []).map((it, idx) => idx === index ? [it[0], !it[1]] : it) } })); }} />) : <div className="text-slate-500">No tasks yet</div>}</div>
-      </Section>
     </div>
   );
 }

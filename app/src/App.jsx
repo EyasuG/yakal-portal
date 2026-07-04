@@ -26,8 +26,8 @@ const NAV = {
   // applications, and vice-versa).
   super_admin: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['tutors', 'Tutors', 'tutor'], ['msg', 'Messages', 'chat'], ['trust', 'Trust', 'shield']],
   tutoring_admin: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['tutors', 'Tutors', 'tutor'], ['msg', 'Messages', 'chat']],
-  admissions_admin: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['clist', 'College Lists', 'cap'], ['college', 'College', 'cap'], ['msg', 'Messages', 'chat']],
-  counselor: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['clist', 'College Lists', 'cap'], ['college', 'College', 'cap'], ['msg', 'Messages', 'chat']]
+  admissions_admin: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['clist', 'College Lists', 'cap'], ['sadm', 'Tracker', 'cap'], ['college', 'College', 'cap'], ['msg', 'Messages', 'chat']],
+  counselor: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['clist', 'College Lists', 'cap'], ['sadm', 'Tracker', 'cap'], ['college', 'College', 'cap'], ['msg', 'Messages', 'chat']]
 };
 
 function App() {

@@ -67,6 +67,20 @@ export function LocalDriver() {
       const id = 'sch-' + Math.random().toString(36).slice(2, 8); list.push({ ...payload, id }); save(); return id;
     },
     async deleteSchool(id) { for (const k in (S.collegeSchools || {})) { const i = S.collegeSchools[k].findIndex(x => x.id === id); if (i >= 0) { S.collegeSchools[k].splice(i, 1); break; } } save(); },
+    async applicationDetail(studentId) {
+      const sid = studentId || (studentOfUser() || {}).id || null;
+      const a = S.applications[sid] || S.applications['s-amen'];
+      const mk = (arr, pfx) => (arr || []).map((x, i) => ({ id: pfx + i, title: x[0], status: x[1] ? 'done' : 'todo', due_date: null }));
+      return { studentId: sid, schools: ((S.collegeSchools || {})[sid] || []).map(x => ({ ...x })), essays: mk(a && a.essays, 'e'), tasks: mk(a && a.tasks, 't') };
+    },
+    async setItemStatus(kind, id, status) {
+      const s = studentOfUser(); const a = S.applications[(s || {}).id] || S.applications['s-amen'];
+      const arr = kind === 'essay' ? a.essays : a.tasks; const i = Number(String(id).slice(1));
+      if (arr && arr[i]) { arr[i][1] = status === 'done'; save(); }
+    },
+    async setSchoolTracking(id, patch) {
+      for (const k in (S.collegeSchools || {})) { const row = S.collegeSchools[k].find(x => x.id === id); if (row) { Object.assign(row, patch); break; } } save();
+    },
     async listTutors() {
       return Object.entries(S.tutors).map(([id, t]) => ({ id, name: name(id), ...t, students: S.students.filter(s => s.tutor === id).length }));
     },
@@ -309,6 +323,28 @@ export async function SupabaseDriver() {
       return data.id;
     },
     async deleteSchool(id) { const { error } = await sb.from('application_schools').delete().eq('id', id); if (error) throw new Error(error.message); },
+    // Full application detail for the tracker: schools + essays + tasks.
+    async applicationDetail(studentId) {
+      const sid = studentId || await this.myStudentId();
+      if (!sid) return { studentId: null, schools: [], essays: [], tasks: [] };
+      const { data: app } = await sb.from('applications').select('id').eq('student_id', sid).limit(1).maybeSingle();
+      if (!app) return { studentId: sid, schools: [], essays: [], tasks: [] };
+      const [sc, es, tk] = await Promise.all([
+        sb.from('application_schools').select('*').eq('application_id', app.id).order('kind').order('school_name'),
+        sb.from('application_essays').select('*').eq('application_id', app.id).order('due_date'),
+        sb.from('application_tasks').select('*').eq('application_id', app.id).order('due_date')
+      ]);
+      return { studentId: sid, schools: sc.data || [], essays: es.data || [], tasks: tk.data || [] };
+    },
+    async setItemStatus(kind, id, status) {
+      const table = kind === 'essay' ? 'application_essays' : 'application_tasks';
+      const { error } = await sb.from(table).update({ status }).eq('id', id);
+      if (error) throw new Error(error.message);
+    },
+    async setSchoolTracking(id, patch) {
+      const { error } = await sb.from('application_schools').update(patch).eq('id', id);
+      if (error) throw new Error(error.message);
+    },
     async listTutors() {
       const { data } = await sb.from('tutor_profiles').select('profile_id,rating,hourly_rate,accepting,profiles(full_name)');
       return (data || []).map(t => ({ id: t.profile_id, name: t.profiles?.full_name, rating: t.rating, rate: t.hourly_rate, payout: 0, accepting: t.accepting, subjects: [], students: 0 }));

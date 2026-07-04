@@ -55,8 +55,8 @@ const NAV = {
   tutor: [['thome', 'Today'], ['tstudents', 'Students'], ['tearn', 'Earnings'], ['msg', 'Messages']],
   super_admin: [['overview', 'Home'], ['students', 'Students'], ['tutors', 'Tutors'], ['msg', 'Messages'], ['trust', 'Trust']],
   tutoring_admin: [['overview', 'Home'], ['students', 'Students'], ['tutors', 'Tutors'], ['msg', 'Messages']],
-  admissions_admin: [['overview', 'Home'], ['students', 'Students'], ['clist', 'College Lists'], ['college', 'College'], ['msg', 'Messages']],
-  counselor: [['overview', 'Home'], ['students', 'Students'], ['clist', 'College Lists'], ['college', 'College'], ['msg', 'Messages']]
+  admissions_admin: [['overview', 'Home'], ['students', 'Students'], ['clist', 'College Lists'], ['sadm', 'Tracker'], ['college', 'College'], ['msg', 'Messages']],
+  counselor: [['overview', 'Home'], ['students', 'Students'], ['clist', 'College Lists'], ['sadm', 'Tracker'], ['college', 'College'], ['msg', 'Messages']]
 };
 
 const ROLE_HI = {

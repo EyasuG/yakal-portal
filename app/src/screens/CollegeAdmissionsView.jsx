@@ -110,6 +110,8 @@ const RESOURCES = [
   { t: 'The ACT', d: 'Register and prep for the ACT', url: 'https://www.act.org', accent: 'pink', icon: 'clock' },
   { t: 'Khan Academy', d: 'Free SAT prep and academic help', url: 'https://www.khanacademy.org', accent: 'teal', icon: 'play' },
   { t: 'NACAC fee waivers', d: 'Application fee-waiver information', url: 'https://www.nacacnet.org', accent: 'amber', icon: 'info' },
+  { t: 'Common App — recommenders', d: 'How counselor & teacher recommendations work', url: 'https://www.commonapp.org/counselors-and-recommenders/', accent: 'teal', icon: 'doc' },
+  { t: 'How to file the FAFSA', d: 'College Essay Guy · step-by-step walkthrough', url: 'https://www.collegeessayguy.com/paying-for-college/fafsa/how-to', accent: 'amber', icon: 'aid' },
 ];
 
 function Badge({ kind }) {
@@ -121,6 +123,19 @@ function Badge({ kind }) {
 
 function dotColor(kind) {
   return kind === 'deadline' ? 'bg-pink-500' : kind === 'money' ? 'bg-amber-500' : kind === 'test' ? 'bg-teal-500' : 'bg-slate-300';
+}
+
+// Highlight the season the student is in RIGHT NOW so the timeline reads as a
+// living plan, not a static article.
+function isCurrentSeason(season) {
+  const m = new Date().getMonth() + 1; // 1-12
+  const s = season.toLowerCase();
+  if (m >= 8 && m <= 10) return s.includes('fall');
+  if (m === 11) return s.includes('november') || s.includes('fall');
+  if (m === 12 || m === 1) return s.includes('winter') || s.includes('dec');
+  if (m >= 2 && m <= 4) return s.includes('spring') || s.includes('feb');
+  if (m === 5) return s === 'may' || s.includes('spring');
+  return s.includes('summer'); // 6-7
 }
 
 function KeyStat({ label, value, tone = 'teal' }) {
@@ -162,7 +177,10 @@ export default function CollegeAdmissionsView() {
         <div className="space-y-5">
           {phases.map((ph) => (
             <div key={ph.season} className="space-y-3">
-              <div className="text-sm font-semibold uppercase tracking-wide text-teal-700">{ph.season}</div>
+              <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-teal-700">
+                {ph.season}
+                {isCurrentSeason(ph.season) ? <span className="rounded-full bg-brand-pink px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Now</span> : null}
+              </div>
               <div className="divide-y divide-slate-100 rounded-3xl border border-slate-200 bg-white">
                 {ph.items.map((it, i) => (
                   <div key={i} className="flex gap-4 p-4">
