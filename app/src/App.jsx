@@ -19,7 +19,7 @@ const DEMO_ACCOUNTS = [
 const NAV = {
   admin: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['tutors', 'Tutors', 'tutor'], ['msg', 'Messages', 'chat'], ['trust', 'Trust', 'shield']],
   student: [['shome', 'Home', 'grid'], ['ssessions', 'Sessions', 'cal'], ['college', 'College', 'cap'], ['clist', 'My List', 'cap'], ['sadm', 'My App', 'cap'], ['msg', 'Messages', 'chat']],
-  parent: [['phome', 'Home', 'grid'], ['pkids', 'Children', 'student'], ['college', 'College', 'cap'], ['msg', 'Messages', 'chat'], ['pbill', 'Billing', 'wallet']],
+  parent: [['phome', 'Home', 'grid'], ['pkids', 'Children', 'student'], ['college', 'College', 'cap'], ['sadm', 'Tracker', 'cap'], ['msg', 'Messages', 'chat'], ['pbill', 'Billing', 'wallet']],
   tutor: [['thome', 'Today', 'grid'], ['tstudents', 'Students', 'student'], ['tearn', 'Earnings', 'wallet'], ['msg', 'Messages', 'chat']],
   // Program-scoped staff. Views are reused; Row-Level Security limits each
   // role to its own program's data (a tutoring admin never sees admissions
@@ -84,6 +84,7 @@ function App() {
     window.openBookSheet = openBookSheet;
     window.openSchoolSheet = openSchoolSheet;
     window.removeSchool = removeSchool;
+    window.openNotifications = openNotifications;
     window.preview = preview;
     window.exitPreview = exitPreview;
     window.openAuth = openAuth;
@@ -334,6 +335,14 @@ function App() {
   async function removeSchool(id) {
     try { await db.deleteSchool(id); toast('Removed from list'); if (window.__collegeCtx?.reload) window.__collegeCtx.reload(); else setViewVersion((v) => v + 1); }
     catch (e) { toast(e.message || 'Could not remove.'); }
+  }
+  async function openNotifications() {
+    if (!db || !db.notifications) return;
+    try {
+      const r = await db.notifications();
+      setSheetData({ type: 'notifications', items: r.items });
+      if (db.markNotificationsRead) db.markNotificationsRead().catch(() => {});
+    } catch (e) { setSheetData({ type: 'notifications', items: [] }); }
   }
 
   function scrollToId(id) {

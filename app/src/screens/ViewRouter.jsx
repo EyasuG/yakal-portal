@@ -334,15 +334,17 @@ const DECISION_CHIP = { accepted: 'bg-emerald-100 text-emerald-700', enrolled: '
 function StudentAdmissionsView({ db }) {
   const me = (db && db.me && db.me()) || {};
   const isStaff = ['counselor', 'admissions_admin', 'super_admin', 'admin'].includes(me.role);
+  const isParent = me.role === 'parent';
+  const needsPicker = isStaff || isParent;
   const canEdit = isStaff || me.role === 'student';
   const [students, setStudents] = useState([]);
   const [studentId, setStudentId] = useState(null);
   const [data, setData] = useState(null);
 
-  useEffect(() => { if (isStaff) db.bookableStudents().then((l) => { setStudents(l); setStudentId((p) => p || l[0]?.id || null); }); }, []);
-  const targetId = isStaff ? studentId : null;
+  useEffect(() => { if (needsPicker) (isParent ? db.parentChildren() : db.bookableStudents()).then((l) => { setStudents(l); setStudentId((p) => p || l[0]?.id || null); }); }, []);
+  const targetId = needsPicker ? studentId : null;
   const reload = () => db.applicationDetail(targetId).then(setData).catch(() => setData({ schools: [], essays: [], tasks: [] }));
-  useEffect(() => { if (isStaff && !studentId) return; reload(); }, [studentId]);
+  useEffect(() => { if (needsPicker && !studentId) return; reload(); }, [studentId]);
 
   if (!data) return <LoadingCard />;
   const { schools, essays, tasks } = data;
@@ -379,20 +381,21 @@ function StudentAdmissionsView({ db }) {
         </div>
       </div>
 
-      {isStaff ? (
+      {needsPicker ? (
         <div className="flex flex-wrap items-center gap-3 rounded-3xl border border-slate-200 bg-white p-4">
-          <span className="text-sm font-medium text-slate-600">Student</span>
+          <span className="text-sm font-medium text-slate-600">{isParent ? 'Child' : 'Student'}</span>
           <select value={studentId || ''} onChange={(e) => setStudentId(e.target.value)} className="grow rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none">
-            {students.length ? students.map((s) => <option key={s.id} value={s.id}>{s.name}</option>) : <option value="">No students</option>}
+            {students.length ? students.map((s) => <option key={s.id} value={s.id}>{s.name}</option>) : <option value="">{isParent ? 'No children' : 'No students'}</option>}
           </select>
+          {isParent ? <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">View only</span> : null}
         </div>
       ) : null}
 
       {schools.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
           <div className="text-lg font-semibold text-slate-900">No schools on the list yet</div>
-          <div className="mt-1 text-sm text-slate-500">Build the college list first — the tracker follows it.</div>
-          <button className="mt-4 rounded-full bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white" onClick={() => window.go('clist')}>Open the College List</button>
+          <div className="mt-1 text-sm text-slate-500">{canEdit ? 'Build the college list first — the tracker follows it.' : 'The college list is empty.'}</div>
+          {canEdit ? <button className="mt-4 rounded-full bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white" onClick={() => window.go('clist')}>Open the College List</button> : null}
         </div>
       ) : (
         <Section title="Per-school requirements">

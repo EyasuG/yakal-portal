@@ -93,6 +93,29 @@ function Sheet({ data, onClose, onSend, onPreview, onExitPreview, onBook, onSave
             <BookForm data={data} onBook={onBook} onClose={onClose} />
           ) : data.type === 'school' ? (
             <SchoolForm data={data} onSave={onSaveSchool} onClose={onClose} />
+          ) : data.type === 'notifications' ? (
+            <div>
+              <div className="mb-4 flex items-center justify-between border-b border-slate-200 pb-4">
+                <div className="text-lg font-semibold text-slate-900">Notifications</div>
+                <button className="text-xl text-slate-400" onClick={onClose}>&times;</button>
+              </div>
+              {data.items && data.items.length ? (
+                <div className="max-h-[70vh] space-y-2 overflow-y-auto">
+                  {data.items.map((n) => (
+                    <div key={n.id} className={`rounded-2xl border p-4 ${n.read ? 'border-slate-200 bg-white' : 'border-brand-pink/30 bg-brand-pink/5'}`}>
+                      <div className="flex items-start gap-2">
+                        <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${n.read ? 'bg-transparent' : 'bg-brand-pink'}`} />
+                        <div className="grow">
+                          <div className="text-sm font-semibold text-slate-900">{n.title}</div>
+                          {n.body ? <div className="mt-0.5 text-sm text-slate-500">{n.body}</div> : null}
+                          <div className="mt-1 text-xs text-slate-400">{n.when}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : <div className="rounded-2xl bg-slate-50 p-8 text-center text-sm text-slate-500">You're all caught up.</div>}
+            </div>
           ) : null}
         </div>
       </div>

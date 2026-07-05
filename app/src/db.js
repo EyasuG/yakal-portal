@@ -81,6 +81,14 @@ export function LocalDriver() {
     async setSchoolTracking(id, patch) {
       for (const k in (S.collegeSchools || {})) { const row = S.collegeSchools[k].find(x => x.id === id); if (row) { Object.assign(row, patch); break; } } save();
     },
+    async notifications() {
+      const s = studentOfUser(); const now = Date.now();
+      const items = ((S.collegeSchools || {})[(s || {}).id] || []).filter(x => x.deadline && new Date(x.deadline).getTime() >= now)
+        .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
+        .map((x, i) => { const d = Math.ceil((new Date(x.deadline) - now) / 86400000); return { id: 'n' + i, kind: 'deadline', title: `${x.school_name} — application due in ${d} day${d === 1 ? '' : 's'}`, body: `Deadline ${x.deadline}. Check your Tracker.`, read: !!(S.readNotes || {})['n' + i], when: 'today' }; });
+      return { items, unread: items.filter(i => !i.read).length };
+    },
+    async markNotificationsRead() { S.readNotes = S.readNotes || {}; const s = studentOfUser(); ((S.collegeSchools || {})[(s || {}).id] || []).forEach((_, i) => { S.readNotes['n' + i] = true; }); save(); },
     async listTutors() {
       return Object.entries(S.tutors).map(([id, t]) => ({ id, name: name(id), ...t, students: S.students.filter(s => s.tutor === id).length }));
     },
@@ -345,6 +353,12 @@ export async function SupabaseDriver() {
       const { error } = await sb.from('application_schools').update(patch).eq('id', id);
       if (error) throw new Error(error.message);
     },
+    async notifications() {
+      const { data } = await sb.from('notifications').select('id,kind,title,body,read_at,created_at').order('created_at', { ascending: false }).limit(25);
+      const items = (data || []).map(n => ({ id: n.id, kind: n.kind, title: n.title, body: n.body, read: !!n.read_at, when: new Date(n.created_at).toLocaleDateString() }));
+      return { items, unread: items.filter(i => !i.read).length };
+    },
+    async markNotificationsRead() { await sb.from('notifications').update({ read_at: new Date().toISOString() }).is('read_at', null); },
     async listTutors() {
       const { data } = await sb.from('tutor_profiles').select('profile_id,rating,hourly_rate,accepting,profiles(full_name)');
       return (data || []).map(t => ({ id: t.profile_id, name: t.profiles?.full_name, rating: t.rating, rate: t.hourly_rate, payout: 0, accepting: t.accepting, subjects: [], students: 0 }));

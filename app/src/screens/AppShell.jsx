@@ -1,8 +1,11 @@
+import { useEffect, useState } from 'react';
 import ViewRouter from './ViewRouter.jsx';
 import { initials, svgIc, greetMessage, cap } from '../lib/utils.js';
 
 function AppShell({ visible, user, role, previewing, activeView, navItems, onNavigate, onLogout, onOpenSwitch, mainKey, viewVersion, onRefresh, db }) {
   const currentNav = navItems || NAV[role] || NAV.admin;
+  const [unread, setUnread] = useState(0);
+  useEffect(() => { let on = true; if (db && db.notifications) db.notifications().then((r) => { if (on) setUnread(r.unread); }).catch(() => {}); return () => { on = false; }; }, [activeView, viewVersion, db]);
   const activeItem = currentNav.find((item) => item[0] === activeView) || currentNav[0];
   const greetText = activeView === currentNav[0][0] ? greetMessage() : ROLE_HI[role];
   const greetName = activeView === currentNav[0][0] ? user?.full_name || '—' : currentNav.find((item) => item[0] === activeView)?.[1] || '';
@@ -18,6 +21,10 @@ function AppShell({ visible, user, role, previewing, activeView, navItems, onNav
             <div className="text-xs uppercase tracking-[0.16em] text-slate-500">{greetText}</div>
             <div className="text-lg font-semibold text-slate-900">{greetName}</div>
           </div>
+          <button className="relative grid h-10 w-10 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50" title="Notifications" onClick={() => { if (window.openNotifications) window.openNotifications(); setUnread(0); }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" /></svg>
+            {unread > 0 ? <span className="absolute -right-1 -top-1 grid h-5 min-w-[20px] place-items-center rounded-full bg-brand-pink px-1 text-[10px] font-bold text-white">{unread}</span> : null}
+          </button>
           <button className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700" onClick={onLogout}>Sign out</button>
         </div>
       </header>
@@ -51,7 +58,7 @@ function AppShell({ visible, user, role, previewing, activeView, navItems, onNav
 const NAV = {
   admin: [['overview', 'Home'], ['students', 'Students'], ['tutors', 'Tutors'], ['msg', 'Messages'], ['trust', 'Trust']],
   student: [['shome', 'Home'], ['ssessions', 'Sessions'], ['college', 'College'], ['clist', 'My List'], ['sadm', 'My App'], ['msg', 'Messages']],
-  parent: [['phome', 'Home'], ['pkids', 'Children'], ['college', 'College'], ['msg', 'Messages'], ['pbill', 'Billing']],
+  parent: [['phome', 'Home'], ['pkids', 'Children'], ['college', 'College'], ['sadm', 'Tracker'], ['msg', 'Messages'], ['pbill', 'Billing']],
   tutor: [['thome', 'Today'], ['tstudents', 'Students'], ['tearn', 'Earnings'], ['msg', 'Messages']],
   super_admin: [['overview', 'Home'], ['students', 'Students'], ['tutors', 'Tutors'], ['msg', 'Messages'], ['trust', 'Trust']],
   tutoring_admin: [['overview', 'Home'], ['students', 'Students'], ['tutors', 'Tutors'], ['msg', 'Messages']],
