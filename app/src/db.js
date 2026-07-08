@@ -159,6 +159,21 @@ export function LocalDriver() {
         past: (S.sessionsPast[sid] || []).map(p => [p[0], name(p[1]), p[2]])
       };
     },
+    async childOverview(sid) {
+      if (!canSee(sid)) throw new Error('Not authorized');
+      const s = S.students.find(x => x.id === sid); if (!s) return null;
+      const programs = s.programs || ['tutoring'];
+      const schoolsList = (S.collegeSchools || {})[sid] || [];
+      const now = Date.now();
+      const dl = schoolsList.filter(x => x.deadline && new Date(x.deadline).getTime() >= now).sort((a, b) => new Date(a.deadline) - new Date(b.deadline))[0];
+      const admissions = programs.includes('admissions') ? { schools: schoolsList.length, submitted: schoolsList.filter(x => (x.requirements || {}).app_submitted).length, nextDeadline: dl ? { school: dl.school_name, date: dl.deadline, type: dl.deadline_type } : null } : null;
+      return {
+        id: s.id, name: s.name, grade: s.grade, programs, progress: S.progress[sid] || [],
+        upcoming: programs.includes('tutoring') ? { subject: (s.subjects || [])[0] || 'Session', when: s.next, mode: s.mode } : null,
+        pastSessions: (S.sessionsPast[sid] || []).map(p => ({ subject: p[0], when: p[2] })),
+        admissions, conversations: S.conversations.filter(c => c.student === sid && convVisible(c)).map(c => ({ id: c.id, subject: c.subject }))
+      };
+    },
     async parentBilling() {
       const inv = S.invoices.find(i => i.parent === me.id);
       return { invoice: inv, history: S.payments[me.id] || [], kids: myKids().length };
@@ -433,6 +448,37 @@ export async function SupabaseDriver() {
       const { data: s } = await sb.from('students').select('*').eq('id', sid).single();
       const { data: pr } = await sb.from('progress_snapshots').select('percent,subjects(name)').eq('student_id', sid);
       return { id: s.id, name: `${s.first_name} ${s.last_name}`, grade: s.grade, status: 'ok', progress: (pr || []).map(p => [p.subjects?.name || 'Subject', p.percent]), subjects: [], next: '', mode: '', tutorName: '', past: [] };
+    },
+    // Everything a parent (or staff) needs about one child, scoped by RLS.
+    async childOverview(sid) {
+      const { data: s } = await sb.from('students').select('*').eq('id', sid).single();
+      if (!s) return null;
+      const TYPE = { group: 'Group session', camp: 'Summer camp', bootcamp: 'STEM bootcamp', math_lab: 'Math Lab' };
+      const [enr, pr, sess, appRow, convos] = await Promise.all([
+        sb.from('enrollments').select('program').eq('student_id', sid),
+        sb.from('progress_snapshots').select('percent,subjects(name),recorded_at').eq('student_id', sid).order('recorded_at', { ascending: false }),
+        sb.from('sessions').select('id,mode,scheduled_start,status,session_type,subjects(name)').eq('student_id', sid).order('scheduled_start', { ascending: false }),
+        sb.from('applications').select('id').eq('student_id', sid).limit(1).maybeSingle(),
+        sb.from('conversations').select('id,subject').eq('student_id', sid)
+      ]);
+      const programs = (enr.data || []).map(e => e.program);
+      const seen = {}; const progress = [];
+      for (const p of pr.data || []) { const k = p.subjects?.name || 'Subject'; if (!(k in seen)) { seen[k] = 1; progress.push([k, p.percent]); } }
+      const now = Date.now();
+      const up = (sess.data || []).filter(x => new Date(x.scheduled_start).getTime() >= now && x.status !== 'canceled').sort((a, b) => new Date(a.scheduled_start) - new Date(b.scheduled_start))[0];
+      const pastSessions = (sess.data || []).filter(x => x.status === 'completed').slice(0, 5).map(x => ({ subject: x.subjects?.name || TYPE[x.session_type] || 'Session', when: new Date(x.scheduled_start).toLocaleDateString() }));
+      let admissions = null;
+      if (appRow.data) {
+        const { data: schools } = await sb.from('application_schools').select('school_name,kind,deadline,deadline_type,requirements').eq('application_id', appRow.data.id);
+        const submitted = (schools || []).filter(x => (x.requirements || {}).app_submitted).length;
+        const dl = (schools || []).filter(x => x.deadline && new Date(x.deadline).getTime() >= now).sort((a, b) => new Date(a.deadline) - new Date(b.deadline))[0];
+        admissions = { schools: (schools || []).length, submitted, nextDeadline: dl ? { school: dl.school_name, date: dl.deadline, type: dl.deadline_type } : null };
+      }
+      return {
+        id: s.id, name: `${s.first_name} ${s.last_name}`, grade: s.grade, programs, progress,
+        upcoming: up ? { subject: up.subjects?.name || TYPE[up.session_type] || 'Session', when: new Date(up.scheduled_start).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }), mode: up.mode === 'in_person' ? 'In person' : 'Online' } : null,
+        pastSessions, admissions, conversations: (convos.data || []).map(c => ({ id: c.id, subject: c.subject || 'Conversation' }))
+      };
     },
     async parentBilling() {
       const { data } = await sb.from('invoices').select('*').order('created_at', { ascending: false });

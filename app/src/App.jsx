@@ -242,21 +242,15 @@ function App() {
     setSheetData(data);
   }
 
-  async function openChild(id) {
+  function openChild(id) {
     if (!db) return;
-    const profile = await db.childDetail(id).catch(() => null);
-    if (profile) {
-      setSheetData({ type: 'profile', profile });
-    }
+    window.__childId = id;
+    setSheetData(null);
+    setActiveView('child');
+    setViewVersion((v) => v + 1);
   }
 
-  async function openTutorStudent(id) {
-    if (!db) return;
-    const profile = await db.childDetail(id).catch(() => null);
-    if (profile) {
-      setSheetData({ type: 'profile', profile });
-    }
-  }
+  function openTutorStudent(id) { openChild(id); }
 
   async function preview(r) {
     setPreviewing(true);
