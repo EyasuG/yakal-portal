@@ -457,7 +457,7 @@ function ParentHomeView({ db }) {
         <StatBox label="Deadline soon" value="1" tone="pink" />
       </div>
       <Section title="Your children" actionLabel="All" action={() => window.go('pkids')}>
-        <div className="space-y-3">{kids.map((child) => <button key={child.id} className="w-full rounded-3xl border border-slate-200 bg-white p-5 text-left transition hover:bg-slate-50" onClick={() => window.openChild(child.id)}><div className="flex items-center gap-4"><div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">{initials(child.name)}</div><div className="grow"><div className="font-semibold text-slate-900">{child.name}</div><div className="text-sm text-slate-500">{child.grade} · {child.tutorName}</div></div><div className="text-sm text-slate-500">{child.progress}%</div></div></button>)}</div>
+        <div className="space-y-3">{kids.map((child) => <button key={child.id} className="w-full rounded-3xl border border-slate-200 bg-white p-5 text-left transition hover:bg-slate-50" onClick={() => window.openChild(child.id)}><div className="flex items-center gap-4"><div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">{initials(child.name)}</div><div className="grow"><div className="font-semibold text-slate-900">{child.name}</div><div className="text-sm text-slate-500">{child.grade}</div></div>{child.unread ? <span className="grid h-6 min-w-[24px] place-items-center rounded-full bg-brand-pink px-1.5 text-xs font-bold text-white" title="Unread messages">{child.unread}</span> : null}<span className="text-slate-300">›</span></div></button>)}</div>
       </Section>
       <Section title="Recent updates">
         <div className="space-y-3">
@@ -482,7 +482,7 @@ function ParentKidsView({ db }) {
   return (
     <div className="space-y-6">
       <Section title="Your children">
-        <div className="space-y-3">{kids.map((child) => <button key={child.id} className="w-full rounded-3xl border border-slate-200 bg-white p-5 text-left transition hover:bg-slate-50" onClick={() => window.openChild(child.id)}><div className="flex items-center gap-4"><div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">{initials(child.name)}</div><div className="grow"><div className="font-semibold text-slate-900">{child.name}</div><div className="text-sm text-slate-500">{child.grade} · {child.tutorName}</div></div><div className="text-sm text-slate-500">{child.progress}%</div></div></button>)}</div>
+        <div className="space-y-3">{kids.map((child) => <button key={child.id} className="w-full rounded-3xl border border-slate-200 bg-white p-5 text-left transition hover:bg-slate-50" onClick={() => window.openChild(child.id)}><div className="flex items-center gap-4"><div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">{initials(child.name)}</div><div className="grow"><div className="font-semibold text-slate-900">{child.name}</div><div className="text-sm text-slate-500">{child.grade}</div></div>{child.unread ? <span className="grid h-6 min-w-[24px] place-items-center rounded-full bg-brand-pink px-1.5 text-xs font-bold text-white" title="Unread messages">{child.unread}</span> : null}<span className="text-slate-300">›</span></div></button>)}</div>
       </Section>
     </div>
   );

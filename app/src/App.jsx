@@ -209,6 +209,7 @@ function App() {
   async function openConvo(cid) {
     const conversation = await db.messages(cid);
     setSheetData({ type: 'conversation', conversation, cid });
+    if (db.markConversationRead) db.markConversationRead(cid).then(() => setViewVersion((v) => v + 1)).catch(() => {});
   }
 
   async function sendMsg(cid, body) {

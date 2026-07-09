@@ -147,8 +147,14 @@ export function LocalDriver() {
       save();
     },
     async parentChildren() {
-      return myKids().map(s => ({ ...s, tutorName: name(s.tutor) }));
+      const readMap = S.readConvos || {};
+      return myKids().map(s => {
+        let unread = 0;
+        S.conversations.filter(c => c.student === s.id && convVisible(c)).forEach(c => { if (!readMap[c.id]) unread += c.msgs.filter(m => m.from !== me.id).length; });
+        return { ...s, tutorName: name(s.tutor), unread };
+      });
     },
+    async markConversationRead(convId) { S.readConvos = S.readConvos || {}; S.readConvos[convId] = true; save(); },
     async childDetail(sid) {
       if (!canSee(sid)) throw new Error('Not authorized');
       const s = S.students.find(x => x.id === sid);
@@ -442,7 +448,29 @@ export async function SupabaseDriver() {
     async toggleAppItem() {},
     async parentChildren() {
       const { data } = await sb.from('students').select('*');
-      return (data || []).map(s => ({ id: s.id, name: `${s.first_name} ${s.last_name}`, grade: s.grade, status: 'ok', progress: 0, subjects: [], next: '', mode: '', tutorName: '' }));
+      const kids = (data || []).map(s => ({ id: s.id, name: `${s.first_name} ${s.last_name}`, grade: s.grade, status: 'ok', progress: 0, subjects: [], next: '', mode: '', tutorName: '', unread: 0 }));
+      const { data: convos } = await sb.from('conversations').select('id,student_id');
+      const cids = (convos || []).map(c => c.id);
+      if (cids.length) {
+        const [{ data: reads }, { data: msgs }] = await Promise.all([
+          sb.from('conversation_reads').select('conversation_id,last_read_at'),
+          sb.from('messages').select('conversation_id,created_at,sender_id').in('conversation_id', cids)
+        ]);
+        const lastRead = {}; (reads || []).forEach(r => { lastRead[r.conversation_id] = new Date(r.last_read_at).getTime(); });
+        const convStudent = {}; (convos || []).forEach(c => { convStudent[c.id] = c.student_id; });
+        const byStudent = {};
+        for (const m of msgs || []) {
+          if (m.sender_id === prof.id) continue;
+          if (new Date(m.created_at).getTime() > (lastRead[m.conversation_id] || 0)) {
+            const sid = convStudent[m.conversation_id]; if (sid) byStudent[sid] = (byStudent[sid] || 0) + 1;
+          }
+        }
+        kids.forEach(k => { k.unread = byStudent[k.id] || 0; });
+      }
+      return kids;
+    },
+    async markConversationRead(convId) {
+      await sb.from('conversation_reads').upsert({ conversation_id: convId, profile_id: prof.id, last_read_at: new Date().toISOString() }, { onConflict: 'conversation_id,profile_id' });
     },
     async childDetail(sid) {
       const { data: s } = await sb.from('students').select('*').eq('id', sid).single();
