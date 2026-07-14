@@ -404,8 +404,16 @@ export async function SupabaseDriver() {
       return (data || []).map(p => ({ ...p, kids: [] }));
     },
     async adminFlags() {
-      const { data } = await sb.from('message_flags').select('kind,excerpt,created_at,profiles(full_name)').order('created_at', { ascending: false });
-      return (data || []).map(f => ({ who: f.profiles?.full_name, reasons: [f.kind], excerpt: f.excerpt, time: new Date(f.created_at).toLocaleDateString() }));
+      // message_flags has two FKs to profiles (sender_id, reviewed_by), so the
+      // sender embed must be disambiguated with a hint or PostgREST returns null.
+      const { data, error } = await sb.from('message_flags')
+        .select('kind,excerpt,created_at,sender:profiles!sender_id(full_name),messages(conversations(students(first_name,last_name)))')
+        .order('created_at', { ascending: false });
+      if (error) throw new Error(error.message);
+      return (data || []).map(f => {
+        const st = f.messages?.conversations?.students;
+        return { who: f.sender?.full_name, student: st ? `${st.first_name} ${st.last_name}` : null, reasons: [f.kind], excerpt: f.excerpt, time: new Date(f.created_at).toLocaleDateString() };
+      });
     },
     async tutorRisk() {
       const { data } = await sb.from('admin_tutor_risk').select('*').gt('open_flags', 0);

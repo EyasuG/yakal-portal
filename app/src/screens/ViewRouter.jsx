@@ -132,7 +132,7 @@ function StudentsView({ db }) {
       </div>
       <div className="space-y-3">
         {students.map((student) => (
-          <button key={student.id} className="w-full rounded-3xl border border-slate-200 bg-white p-5 text-left transition hover:bg-slate-50" onClick={() => window.openSheet({ type: 'profile', profile: student })}>
+          <button key={student.id} className="w-full rounded-3xl border border-slate-200 bg-white p-5 text-left transition hover:bg-slate-50" onClick={() => window.openChild(student.id)}>
             <div className="flex items-center gap-4">
               <div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">{initials(student.name)}</div>
               <div className="grow">
