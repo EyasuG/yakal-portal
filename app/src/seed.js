@@ -68,6 +68,14 @@ export function seed() {
         { id: 'es-4', school_id: 'sch-2', title: 'UMD — short answers', prompt: 'Maryland application short-answer questions.', status: 'todo', due_date: '2026-11-01', doc_url: '' }
       ]
     },
+    // Recommendation letters — recommender + status + Drive link to the letter.
+    appRecs: {
+      's-amen': [
+        { id: 'rec-1', recommender_name: 'Mr. Daniel Tesfaye', recommender_role: 'AP Biology teacher', status: 'done', due_date: '2026-10-20', doc_url: 'https://drive.google.com/file/d/EXAMPLE-rec-bio/view' },
+        { id: 'rec-2', recommender_name: 'Ms. Rahel Kebede', recommender_role: 'AP Calculus teacher', status: 'in_progress', due_date: '2026-10-25', doc_url: '' },
+        { id: 'rec-3', recommender_name: 'Mr. Solomon Girma', recommender_role: 'School counselor', status: 'todo', due_date: '2026-11-01', doc_url: '' }
+      ]
+    },
     // 1:1 academic profile — the numbers colleges compare against + Drive links.
     academics: {
       's-amen': {

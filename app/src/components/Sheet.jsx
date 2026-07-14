@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { cap, initials } from '../lib/utils.js';
 
-function Sheet({ data, onClose, onSend, onPreview, onExitPreview, onBook, onSaveSchool, onSaveEssay, onRemoveEssay, onSaveAcademics, role }) {
+function Sheet({ data, onClose, onSend, onPreview, onExitPreview, onBook, onSaveSchool, onSaveEssay, onRemoveEssay, onSaveAcademics, onSaveRec, onRemoveRec, role }) {
   const [draft, setDraft] = useState('');
 
   useEffect(() => {
@@ -97,6 +97,8 @@ function Sheet({ data, onClose, onSend, onPreview, onExitPreview, onBook, onSave
             <EssayForm data={data} onSave={onSaveEssay} onRemove={onRemoveEssay} onClose={onClose} />
           ) : data.type === 'academics' ? (
             <AcademicsForm data={data} onSave={onSaveAcademics} onClose={onClose} />
+          ) : data.type === 'rec' ? (
+            <RecForm data={data} onSave={onSaveRec} onRemove={onRemoveRec} onClose={onClose} />
           ) : data.type === 'notifications' ? (
             <div>
               <div className="mb-4 flex items-center justify-between border-b border-slate-200 pb-4">
@@ -389,6 +391,51 @@ function AcademicsForm({ data, onSave, onClose }) {
         <p className="text-xs text-slate-400">Share a Google Drive folder (or a direct transcript link) with view access so your counselor can review it. Documents stay in your Drive — Yakal only keeps the link.</p>
       </div>
       <button className="mt-4 w-full rounded-full bg-teal-600 px-5 py-3 text-sm font-semibold text-white" onClick={submit}>Save</button>
+    </div>
+  );
+}
+
+function RecForm({ data, onSave, onRemove, onClose }) {
+  const r = data.rec || {};
+  const [f, setF] = useState({
+    recommender_name: r.recommender_name || '', recommender_role: r.recommender_role || '',
+    status: r.status || 'todo', due_date: r.due_date || '', doc_url: r.doc_url || ''
+  });
+  const set = (k) => (ev) => setF((p) => ({ ...p, [k]: ev.target.value }));
+  const submit = () => {
+    if (!f.recommender_name.trim()) return;
+    onSave({
+      ...(r.id ? { id: r.id } : {}),
+      recommender_name: f.recommender_name.trim(), recommender_role: f.recommender_role.trim() || null,
+      status: f.status, due_date: f.due_date || null, doc_url: f.doc_url.trim() || null
+    }, data.studentId);
+  };
+  return (
+    <div>
+      <div className="mb-4 flex items-center justify-between border-b border-slate-200 pb-4">
+        <div className="text-lg font-semibold text-slate-900">{r.id ? 'Edit recommendation' : 'Add a recommendation'}</div>
+        <button className="text-xl text-slate-400" onClick={onClose}>&times;</button>
+      </div>
+      <div className="max-h-[62vh] space-y-3 overflow-y-auto pr-1">
+        <FLbl label="Recommender name"><input value={f.recommender_name} onChange={set('recommender_name')} placeholder="e.g. Mr. Daniel Tesfaye" className={FLD} /></FLbl>
+        <FLbl label="Role / relationship"><input value={f.recommender_role} onChange={set('recommender_role')} placeholder="AP Biology teacher · School counselor" className={FLD} /></FLbl>
+        <div className="grid grid-cols-2 gap-3">
+          <FLbl label="Status">
+            <select value={f.status} onChange={set('status')} className={FLD}>
+              <option value="todo">Not requested</option>
+              <option value="in_progress">Requested</option>
+              <option value="done">Received</option>
+            </select>
+          </FLbl>
+          <FLbl label="Due date"><input type="date" value={f.due_date} onChange={set('due_date')} className={FLD} /></FLbl>
+        </div>
+        <FLbl label="Letter link (Google Drive)"><input type="url" value={f.doc_url} onChange={set('doc_url')} placeholder="https://drive.google.com/file/…" className={FLD} /></FLbl>
+        <p className="text-xs text-slate-400">Keep the signed letter in the student’s Drive folder and paste its link so it stays private and nothing is stored in Yakal.</p>
+      </div>
+      <div className="mt-4 flex gap-2">
+        <button className="grow rounded-full bg-teal-600 px-5 py-3 text-sm font-semibold text-white" onClick={submit}>{r.id ? 'Save changes' : 'Add recommendation'}</button>
+        {r.id && onRemove ? <button className="rounded-full border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-600 hover:border-pink-300 hover:text-pink-600" onClick={() => { if (confirm('Remove this recommendation?')) { onRemove(r.id); onClose(); } }}>Remove</button> : null}
+      </div>
     </div>
   );
 }

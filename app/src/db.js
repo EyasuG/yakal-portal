@@ -71,7 +71,7 @@ export function LocalDriver() {
       const sid = studentId || (studentOfUser() || {}).id || null;
       const a = S.applications[sid] || S.applications['s-amen'];
       const mk = (arr, pfx) => (arr || []).map((x, i) => ({ id: pfx + i, title: x[0], status: x[1] ? 'done' : 'todo', due_date: null }));
-      return { studentId: sid, schools: ((S.collegeSchools || {})[sid] || []).map(x => ({ ...x })), essays: ((S.appEssays || {})[sid] || []).map(x => ({ ...x })), tasks: mk(a && a.tasks, 't') };
+      return { studentId: sid, schools: ((S.collegeSchools || {})[sid] || []).map(x => ({ ...x })), essays: ((S.appEssays || {})[sid] || []).map(x => ({ ...x })), tasks: mk(a && a.tasks, 't'), recs: ((S.appRecs || {})[sid] || []).map(x => ({ ...x })) };
     },
     async saveEssay(studentId, payload) {
       const sid = studentId || (studentOfUser() || {}).id; if (!sid) throw new Error('No student selected.');
@@ -80,8 +80,16 @@ export function LocalDriver() {
       const id = 'es-' + Math.random().toString(36).slice(2, 8); list.push({ status: 'todo', school_id: null, ...payload, id }); save(); return id;
     },
     async deleteEssay(id) { for (const k in (S.appEssays || {})) { const i = S.appEssays[k].findIndex(x => x.id === id); if (i >= 0) { S.appEssays[k].splice(i, 1); break; } } save(); },
+    async saveRec(studentId, payload) {
+      const sid = studentId || (studentOfUser() || {}).id; if (!sid) throw new Error('No student selected.');
+      S.appRecs = S.appRecs || {}; const list = (S.appRecs[sid] = S.appRecs[sid] || []);
+      if (payload.id) { const i = list.findIndex(x => x.id === payload.id); if (i >= 0) list[i] = { ...list[i], ...payload }; save(); return payload.id; }
+      const id = 'rec-' + Math.random().toString(36).slice(2, 8); list.push({ status: 'todo', ...payload, id }); save(); return id;
+    },
+    async deleteRec(id) { for (const k in (S.appRecs || {})) { const i = S.appRecs[k].findIndex(x => x.id === id); if (i >= 0) { S.appRecs[k].splice(i, 1); break; } } save(); },
     async setItemStatus(kind, id, status) {
       if (kind === 'essay') { for (const k in (S.appEssays || {})) { const row = S.appEssays[k].find(x => x.id === id); if (row) { row.status = status; save(); return; } } return; }
+      if (kind === 'rec') { for (const k in (S.appRecs || {})) { const row = S.appRecs[k].find(x => x.id === id); if (row) { row.status = status; save(); return; } } return; }
       const s = studentOfUser(); const a = S.applications[(s || {}).id] || S.applications['s-amen'];
       const arr = a.tasks; const i = Number(String(id).slice(1));
       if (arr && arr[i]) { arr[i][1] = status === 'done'; save(); }
@@ -389,18 +397,34 @@ export async function SupabaseDriver() {
       if (!sid) return { studentId: null, schools: [], essays: [], tasks: [] };
       const { data: app } = await sb.from('applications').select('id').eq('student_id', sid).limit(1).maybeSingle();
       if (!app) return { studentId: sid, schools: [], essays: [], tasks: [] };
-      const [sc, es, tk] = await Promise.all([
+      const [sc, es, tk, rc] = await Promise.all([
         sb.from('application_schools').select('*').eq('application_id', app.id).order('kind').order('school_name'),
         sb.from('application_essays').select('*').eq('application_id', app.id).order('due_date'),
-        sb.from('application_tasks').select('*').eq('application_id', app.id).order('due_date')
+        sb.from('application_tasks').select('*').eq('application_id', app.id).order('due_date'),
+        sb.from('application_recommendations').select('*').eq('application_id', app.id).order('created_at')
       ]);
-      return { studentId: sid, schools: sc.data || [], essays: es.data || [], tasks: tk.data || [] };
+      return { studentId: sid, schools: sc.data || [], essays: es.data || [], tasks: tk.data || [], recs: (rc.error ? [] : rc.data) || [] };
     },
     async setItemStatus(kind, id, status) {
-      const table = kind === 'essay' ? 'application_essays' : 'application_tasks';
+      const table = kind === 'essay' ? 'application_essays' : kind === 'rec' ? 'application_recommendations' : 'application_tasks';
       const { error } = await sb.from(table).update({ status }).eq('id', id);
       if (error) throw new Error(error.message);
     },
+    async saveRec(studentId, payload) {
+      const sid = studentId || await this.myStudentId();
+      if (!sid) throw new Error('No student selected.');
+      const appId = await this.ensureApplication(sid);
+      const { id, ...fields } = payload;
+      if (id) {
+        const { error } = await sb.from('application_recommendations').update(fields).eq('id', id);
+        if (error) throw new Error(error.message);
+        return id;
+      }
+      const { data, error } = await sb.from('application_recommendations').insert({ ...fields, application_id: appId }).select('id').single();
+      if (error) throw new Error(error.message);
+      return data.id;
+    },
+    async deleteRec(id) { const { error } = await sb.from('application_recommendations').delete().eq('id', id); if (error) throw new Error(error.message); },
     async saveEssay(studentId, payload) {
       const sid = studentId || await this.myStudentId();
       if (!sid) throw new Error('No student selected.');

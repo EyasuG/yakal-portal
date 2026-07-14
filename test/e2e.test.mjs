@@ -116,4 +116,26 @@ await check('a parent can read their child\'s academics (read-only)', async () =
   assert.ok(a && a.gpa_unweighted === '3.9', 'parent sees child academics');
 });
 
+// ---- recommendation letters ----
+await check('recommendations load; add, edit status + Drive link, remove', async () => {
+  const d = driver(); await d.signInDemo('u-amen');
+  let recs = (await d.applicationDetail()).recs;
+  assert.ok(recs.length >= 1, 'seeded recommenders load');
+  assert.ok(recs.some(r => r.status === 'done' && r.doc_url), 'a received letter has a Drive link');
+  const id = await d.saveRec(null, { recommender_name: 'Ms. New Rec', recommender_role: 'Physics teacher' });
+  await d.setItemStatus('rec', id, 'in_progress');
+  await d.saveRec(null, { id, doc_url: 'https://drive.google.com/file/x' });
+  recs = (await d.applicationDetail()).recs;
+  const added = recs.find(r => r.id === id);
+  assert.equal(added.status, 'in_progress', 'status persisted');
+  assert.equal(added.doc_url, 'https://drive.google.com/file/x', 'Drive link persisted');
+  await d.deleteRec(id);
+  assert.ok(!(await d.applicationDetail()).recs.some(r => r.id === id), 'recommendation removed');
+});
+await check('counselor sees the same recommendations for their student', async () => {
+  const d = driver(); await d.signInDemo('u-hana');
+  const recs = (await d.applicationDetail('s-amen')).recs;
+  assert.ok(recs.length >= 1, 'counselor sees the student recommenders');
+});
+
 console.log(`\nAll ${pass} checks passed.`);

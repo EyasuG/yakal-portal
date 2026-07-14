@@ -87,6 +87,7 @@ function App() {
     window.openEssaySheet = openEssaySheet;
     window.removeEssay = removeEssay;
     window.openAcademicsSheet = openAcademicsSheet;
+    window.openRecSheet = openRecSheet;
     window.openNotifications = openNotifications;
     window.preview = preview;
     window.exitPreview = exitPreview;
@@ -350,6 +351,22 @@ function App() {
     try { await db.deleteEssay(id); toast('Essay removed'); if (window.__collegeCtx?.reload) window.__collegeCtx.reload(); else setViewVersion((v) => v + 1); }
     catch (e) { toast(e.message || 'Could not remove.'); }
   }
+  function openRecSheet(rec) {
+    const ctx = window.__trackerCtx || {};
+    setSheetData({ type: 'rec', rec: rec || null, studentId: ctx.studentId || null });
+  }
+  async function saveRecFields(fields, studentId) {
+    try {
+      await db.saveRec(studentId, fields);
+      setSheetData(null);
+      toast('Recommendation saved');
+      if (window.__trackerCtx?.reload) window.__trackerCtx.reload(); else setViewVersion((v) => v + 1);
+    } catch (e) { toast(e.message || 'Could not save.'); }
+  }
+  async function removeRec(id) {
+    try { await db.deleteRec(id); toast('Recommendation removed'); if (window.__trackerCtx?.reload) window.__trackerCtx.reload(); else setViewVersion((v) => v + 1); }
+    catch (e) { toast(e.message || 'Could not remove.'); }
+  }
   function openAcademicsSheet(academics, studentId) {
     setSheetData({ type: 'academics', academics: academics || {}, studentId: studentId ?? (window.__academicsCtx || {}).studentId ?? null });
   }
@@ -420,6 +437,8 @@ function App() {
         onSaveEssay={saveEssayFields}
         onRemoveEssay={removeEssay}
         onSaveAcademics={saveAcademicsFields}
+        onSaveRec={saveRecFields}
+        onRemoveRec={removeRec}
         role={role}
       />
       <Toast message={toastMessage} />

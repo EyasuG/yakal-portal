@@ -352,6 +352,27 @@ function DocLink({ href, label, icon }) {
   );
 }
 
+const REC_STATUS = [['todo', 'Not requested'], ['in_progress', 'Requested'], ['done', 'Received']];
+const REC_CHIP = { todo: 'bg-slate-100 text-slate-600', in_progress: 'bg-brand-teal/10 text-brand-teal', done: 'bg-emerald-100 text-emerald-700' };
+
+function RecRow({ rec, canEdit, onStatus }) {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3">
+      <div className="min-w-0 grow">
+        <div className="text-sm font-semibold text-slate-900">{rec.recommender_name}</div>
+        <div className="text-xs text-slate-500">{[rec.recommender_role, rec.due_date ? `due ${rec.due_date}` : null].filter(Boolean).join(' · ') || 'Recommender'}</div>
+      </div>
+      {rec.doc_url ? <a href={rec.doc_url} target="_blank" rel="noopener noreferrer" className="shrink-0 rounded-full bg-brand-teal/10 px-3 py-1 text-xs font-semibold text-brand-teal transition hover:bg-brand-teal/20">Open ↗</a> : null}
+      {canEdit ? (
+        <select value={rec.status} onChange={(e) => onStatus(rec, e.target.value)} className="shrink-0 rounded-full border border-slate-200 bg-white px-2 py-1 text-xs font-semibold outline-none">
+          {REC_STATUS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+        </select>
+      ) : <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${REC_CHIP[rec.status] || REC_CHIP.todo}`}>{(REC_STATUS.find(([v]) => v === rec.status) || REC_STATUS[0])[1]}</span>}
+      {canEdit ? <button onClick={() => window.openRecSheet(rec)} className="shrink-0 rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50">Edit</button> : null}
+    </div>
+  );
+}
+
 function AcademicsCard({ acad, canEdit, studentId }) {
   if (acad === null) return null; // still loading
   const a = acad || {};
@@ -414,12 +435,17 @@ function StudentAdmissionsView({ db }) {
     if (needsPicker && !studentId) return;
     reload();
     reloadAcad();
+    const both = () => { reload(); reloadAcad(); };
     window.__academicsCtx = { studentId: targetId, reload: reloadAcad };
-    return () => { if (window.__academicsCtx && window.__academicsCtx.reload === reloadAcad) window.__academicsCtx = null; };
+    window.__trackerCtx = { studentId: targetId, reload: both };
+    return () => {
+      if (window.__academicsCtx && window.__academicsCtx.reload === reloadAcad) window.__academicsCtx = null;
+      if (window.__trackerCtx && window.__trackerCtx.reload === both) window.__trackerCtx = null;
+    };
   }, [studentId]);
 
   if (!data) return <LoadingCard />;
-  const { schools, essays, tasks } = data;
+  const { schools, essays, tasks, recs = [] } = data;
   const reqDone = (s) => REQS.filter(([k]) => (s.requirements || {})[k]).length;
   const submitted = schools.filter((s) => (s.requirements || {}).app_submitted).length;
   const accepted = schools.filter((s) => s.decision === 'accepted' || s.decision === 'enrolled').length;
@@ -439,6 +465,11 @@ function StudentAdmissionsView({ db }) {
     const status = item.status === 'done' ? 'todo' : 'done';
     setData((p) => ({ ...p, [kind === 'essay' ? 'essays' : 'tasks']: p[kind === 'essay' ? 'essays' : 'tasks'].map((x) => x.id === item.id ? { ...x, status } : x) }));
     try { await db.setItemStatus(kind, item.id, status); } catch (e) { window.toast(e.message); reload(); }
+  };
+  const setRecStatus = async (rec, status) => {
+    if (!canEdit) return;
+    setData((p) => ({ ...p, recs: (p.recs || []).map((x) => x.id === rec.id ? { ...x, status } : x) }));
+    try { await db.setItemStatus('rec', rec.id, status); } catch (e) { window.toast(e.message); reload(); }
   };
 
   return (
@@ -506,6 +537,21 @@ function StudentAdmissionsView({ db }) {
         <Section title={`To-do · ${tasks.filter((t) => t.status === 'done').length}/${tasks.length}`}>
           <div className="space-y-2 rounded-3xl border border-slate-200 bg-white p-4">{tasks.length ? tasks.map((t) => <ToggleRow key={t.id} label={t.title + (t.due_date ? ` · due ${t.due_date}` : '')} done={t.status === 'done'} onToggle={() => toggleItem('task', t)} />) : <div className="text-sm text-slate-500">No tasks yet</div>}</div>
         </Section>
+      </div>
+
+      <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="mb-1 flex items-center justify-between">
+          <div>
+            <h3 className="text-base font-semibold text-slate-900">Recommendation letters</h3>
+            <p className="text-xs text-slate-400">Recommenders and where each letter lives in Google Drive</p>
+          </div>
+          {canEdit ? <button onClick={() => window.openRecSheet(null)} className="rounded-full bg-teal-600 px-4 py-2 text-sm font-semibold text-white">+ Add</button> : null}
+        </div>
+        {recs.length ? (
+          <div className="mt-3 space-y-2">{recs.map((r) => <RecRow key={r.id} rec={r} canEdit={canEdit} onStatus={setRecStatus} />)}</div>
+        ) : (
+          <div className="mt-2 rounded-2xl bg-slate-50 p-4 text-sm text-slate-500">{canEdit ? 'Add each teacher or counselor writing a letter, then drop the signed letter in the student’s Drive folder and paste its link.' : 'No recommendation letters tracked yet.'}</div>
+        )}
       </div>
     </div>
   );
