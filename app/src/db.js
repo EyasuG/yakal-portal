@@ -59,7 +59,7 @@ export function LocalDriver() {
     },
     async bookableStudents() { return this.listStudents(); },
     async bookSession({ student_id, student_ids }) { const ids = (student_ids && student_ids.length ? student_ids : [student_id]).filter(Boolean); return 'demo-' + (ids[0] || 'x'); },
-    async collegeList(studentId) { const sid = studentId || (studentOfUser() || {}).id || null; return { studentId: sid, schools: ((S.collegeSchools || {})[sid] || []).map(x => ({ ...x })) }; },
+    async collegeList(studentId) { const sid = studentId || (studentOfUser() || {}).id || null; return { studentId: sid, schools: ((S.collegeSchools || {})[sid] || []).map(x => ({ ...x })), essays: ((S.appEssays || {})[sid] || []).map(x => ({ ...x })) }; },
     async saveSchool(studentId, payload) {
       const sid = studentId || (studentOfUser() || {}).id; if (!sid) throw new Error('No student selected.');
       S.collegeSchools = S.collegeSchools || {}; const list = (S.collegeSchools[sid] = S.collegeSchools[sid] || []);
@@ -71,15 +71,28 @@ export function LocalDriver() {
       const sid = studentId || (studentOfUser() || {}).id || null;
       const a = S.applications[sid] || S.applications['s-amen'];
       const mk = (arr, pfx) => (arr || []).map((x, i) => ({ id: pfx + i, title: x[0], status: x[1] ? 'done' : 'todo', due_date: null }));
-      return { studentId: sid, schools: ((S.collegeSchools || {})[sid] || []).map(x => ({ ...x })), essays: mk(a && a.essays, 'e'), tasks: mk(a && a.tasks, 't') };
+      return { studentId: sid, schools: ((S.collegeSchools || {})[sid] || []).map(x => ({ ...x })), essays: ((S.appEssays || {})[sid] || []).map(x => ({ ...x })), tasks: mk(a && a.tasks, 't') };
     },
+    async saveEssay(studentId, payload) {
+      const sid = studentId || (studentOfUser() || {}).id; if (!sid) throw new Error('No student selected.');
+      S.appEssays = S.appEssays || {}; const list = (S.appEssays[sid] = S.appEssays[sid] || []);
+      if (payload.id) { const i = list.findIndex(x => x.id === payload.id); if (i >= 0) list[i] = { ...list[i], ...payload }; save(); return payload.id; }
+      const id = 'es-' + Math.random().toString(36).slice(2, 8); list.push({ status: 'todo', school_id: null, ...payload, id }); save(); return id;
+    },
+    async deleteEssay(id) { for (const k in (S.appEssays || {})) { const i = S.appEssays[k].findIndex(x => x.id === id); if (i >= 0) { S.appEssays[k].splice(i, 1); break; } } save(); },
     async setItemStatus(kind, id, status) {
+      if (kind === 'essay') { for (const k in (S.appEssays || {})) { const row = S.appEssays[k].find(x => x.id === id); if (row) { row.status = status; save(); return; } } return; }
       const s = studentOfUser(); const a = S.applications[(s || {}).id] || S.applications['s-amen'];
-      const arr = kind === 'essay' ? a.essays : a.tasks; const i = Number(String(id).slice(1));
+      const arr = a.tasks; const i = Number(String(id).slice(1));
       if (arr && arr[i]) { arr[i][1] = status === 'done'; save(); }
     },
     async setSchoolTracking(id, patch) {
       for (const k in (S.collegeSchools || {})) { const row = S.collegeSchools[k].find(x => x.id === id); if (row) { Object.assign(row, patch); break; } } save();
+    },
+    async academics(studentId) { const sid = studentId || (studentOfUser() || {}).id || null; if (!sid) return null; return { student_id: sid, ...((S.academics || {})[sid] || {}) }; },
+    async saveAcademics(studentId, patch) {
+      const sid = studentId || (studentOfUser() || {}).id; if (!sid) throw new Error('No student selected.');
+      S.academics = S.academics || {}; S.academics[sid] = { ...(S.academics[sid] || {}), ...patch }; save(); return sid;
     },
     async notifications() {
       const s = studentOfUser(); const now = Date.now();
@@ -348,9 +361,12 @@ export async function SupabaseDriver() {
       const sid = studentId || await this.myStudentId();
       if (!sid) return { studentId: null, schools: [] };
       const { data: app } = await sb.from('applications').select('id').eq('student_id', sid).limit(1).maybeSingle();
-      if (!app) return { studentId: sid, schools: [] };
-      const { data } = await sb.from('application_schools').select('*').eq('application_id', app.id).order('kind', { ascending: true }).order('school_name', { ascending: true });
-      return { studentId: sid, schools: data || [] };
+      if (!app) return { studentId: sid, schools: [], essays: [] };
+      const [{ data: schools }, { data: essays }] = await Promise.all([
+        sb.from('application_schools').select('*').eq('application_id', app.id).order('kind', { ascending: true }).order('school_name', { ascending: true }),
+        sb.from('application_essays').select('*').eq('application_id', app.id).order('due_date', { ascending: true })
+      ]);
+      return { studentId: sid, schools: schools || [], essays: essays || [] };
     },
     async saveSchool(studentId, payload) {
       const sid = studentId || await this.myStudentId();
@@ -385,9 +401,41 @@ export async function SupabaseDriver() {
       const { error } = await sb.from(table).update({ status }).eq('id', id);
       if (error) throw new Error(error.message);
     },
+    async saveEssay(studentId, payload) {
+      const sid = studentId || await this.myStudentId();
+      if (!sid) throw new Error('No student selected.');
+      const appId = await this.ensureApplication(sid);
+      const { id, ...fields } = payload;
+      if (id) {
+        const { error } = await sb.from('application_essays').update(fields).eq('id', id);
+        if (error) throw new Error(error.message);
+        return id;
+      }
+      const { data, error } = await sb.from('application_essays').insert({ ...fields, application_id: appId }).select('id').single();
+      if (error) throw new Error(error.message);
+      return data.id;
+    },
+    async deleteEssay(id) { const { error } = await sb.from('application_essays').delete().eq('id', id); if (error) throw new Error(error.message); },
     async setSchoolTracking(id, patch) {
       const { error } = await sb.from('application_schools').update(patch).eq('id', id);
       if (error) throw new Error(error.message);
+    },
+    // 1:1 academic profile (transcript / scores / Drive links). Defensive: if
+    // the student_academics table isn't migrated yet, return an empty profile
+    // rather than throwing so the rest of the admissions UI keeps working.
+    async academics(studentId) {
+      const sid = studentId || await this.myStudentId();
+      if (!sid) return null;
+      const { data, error } = await sb.from('student_academics').select('*').eq('student_id', sid).maybeSingle();
+      if (error) return { student_id: sid };
+      return data || { student_id: sid };
+    },
+    async saveAcademics(studentId, patch) {
+      const sid = studentId || await this.myStudentId();
+      if (!sid) throw new Error('No student selected.');
+      const { error } = await sb.from('student_academics').upsert({ student_id: sid, ...patch }, { onConflict: 'student_id' });
+      if (error) throw new Error(error.message);
+      return sid;
     },
     async notifications() {
       const { data } = await sb.from('notifications').select('id,kind,title,body,read_at,created_at').order('created_at', { ascending: false }).limit(25);

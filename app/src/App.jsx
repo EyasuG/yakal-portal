@@ -84,6 +84,9 @@ function App() {
     window.openBookSheet = openBookSheet;
     window.openSchoolSheet = openSchoolSheet;
     window.removeSchool = removeSchool;
+    window.openEssaySheet = openEssaySheet;
+    window.removeEssay = removeEssay;
+    window.openAcademicsSheet = openAcademicsSheet;
     window.openNotifications = openNotifications;
     window.preview = preview;
     window.exitPreview = exitPreview;
@@ -331,6 +334,33 @@ function App() {
     try { await db.deleteSchool(id); toast('Removed from list'); if (window.__collegeCtx?.reload) window.__collegeCtx.reload(); else setViewVersion((v) => v + 1); }
     catch (e) { toast(e.message || 'Could not remove.'); }
   }
+  function openEssaySheet(essay, opts) {
+    const ctx = window.__collegeCtx || {};
+    setSheetData({ type: 'essay', essay: essay || null, schools: (opts && opts.schools) || [], schoolId: (opts && opts.schoolId) ?? (essay && essay.school_id) ?? null, studentId: ctx.studentId || null });
+  }
+  async function saveEssayFields(fields, studentId) {
+    try {
+      await db.saveEssay(studentId, fields);
+      setSheetData(null);
+      toast('Essay saved');
+      if (window.__collegeCtx?.reload) window.__collegeCtx.reload(); else setViewVersion((v) => v + 1);
+    } catch (e) { toast(e.message || 'Could not save the essay.'); }
+  }
+  async function removeEssay(id) {
+    try { await db.deleteEssay(id); toast('Essay removed'); if (window.__collegeCtx?.reload) window.__collegeCtx.reload(); else setViewVersion((v) => v + 1); }
+    catch (e) { toast(e.message || 'Could not remove.'); }
+  }
+  function openAcademicsSheet(academics, studentId) {
+    setSheetData({ type: 'academics', academics: academics || {}, studentId: studentId ?? (window.__academicsCtx || {}).studentId ?? null });
+  }
+  async function saveAcademicsFields(patch, studentId) {
+    try {
+      await db.saveAcademics(studentId, patch);
+      setSheetData(null);
+      toast('Academics saved');
+      if (window.__academicsCtx?.reload) window.__academicsCtx.reload(); else setViewVersion((v) => v + 1);
+    } catch (e) { toast(e.message || 'Could not save.'); }
+  }
   async function openNotifications() {
     if (!db || !db.notifications) return;
     try {
@@ -387,6 +417,9 @@ function App() {
         onExitPreview={exitPreview}
         onBook={doBook}
         onSaveSchool={saveSchoolFields}
+        onSaveEssay={saveEssayFields}
+        onRemoveEssay={removeEssay}
+        onSaveAcademics={saveAcademicsFields}
         role={role}
       />
       <Toast message={toastMessage} />

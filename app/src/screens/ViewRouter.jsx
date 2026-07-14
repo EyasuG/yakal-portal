@@ -334,6 +334,67 @@ const REQS = [
 const DECISIONS = [['', '— Decision —'], ['accepted', 'Accepted 🎉'], ['waitlisted', 'Waitlisted'], ['denied', 'Denied'], ['enrolled', 'Enrolled ✅']];
 const DECISION_CHIP = { accepted: 'bg-emerald-100 text-emerald-700', enrolled: 'bg-emerald-600 text-white', waitlisted: 'bg-amber-100 text-amber-700', denied: 'bg-slate-200 text-slate-600' };
 
+function ScorePill({ label, value }) {
+  return (
+    <div className="rounded-2xl bg-slate-50 px-3 py-2 text-center">
+      <div className="text-lg font-bold text-slate-900">{value || '—'}</div>
+      <div className="text-[11px] uppercase tracking-wide text-slate-400">{label}</div>
+    </div>
+  );
+}
+
+function DocLink({ href, label, icon }) {
+  if (!href) return null;
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full bg-brand-teal/10 px-4 py-2 text-sm font-semibold text-brand-teal transition hover:bg-brand-teal/20">
+      <span>{icon}</span>{label} ↗
+    </a>
+  );
+}
+
+function AcademicsCard({ acad, canEdit, studentId }) {
+  if (acad === null) return null; // still loading
+  const a = acad || {};
+  const sat = a.sat_total ? `${a.sat_total}` : '';
+  const satParts = [a.sat_ebrw ? `EBRW ${a.sat_ebrw}` : null, a.sat_math ? `Math ${a.sat_math}` : null].filter(Boolean).join(' · ');
+  const hasScores = a.gpa_unweighted || a.gpa_weighted || a.sat_total || a.act_composite || a.test_notes;
+  const hasDocs = a.transcript_url || a.drive_folder_url;
+  const hasAny = hasScores || hasDocs;
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="mb-3 flex items-center justify-between">
+        <div>
+          <h3 className="text-base font-semibold text-slate-900">Academics & documents</h3>
+          <p className="text-xs text-slate-400">Test scores and transcript colleges will see</p>
+        </div>
+        {canEdit ? <button onClick={() => window.openAcademicsSheet(a, studentId)} className="rounded-full bg-teal-600 px-4 py-2 text-sm font-semibold text-white">{hasAny ? 'Edit' : 'Add'}</button> : null}
+      </div>
+      {hasAny ? (
+        <>
+          {hasScores ? (
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <ScorePill label="GPA (UW)" value={a.gpa_unweighted} />
+              <ScorePill label="GPA (W)" value={a.gpa_weighted} />
+              <ScorePill label="SAT" value={sat} />
+              <ScorePill label="ACT" value={a.act_composite ? String(a.act_composite) : ''} />
+            </div>
+          ) : null}
+          {satParts ? <div className="mt-2 text-xs text-slate-500">SAT breakdown: {satParts}{a.class_rank ? ` · Class rank ${a.class_rank}` : ''}</div> : (a.class_rank ? <div className="mt-2 text-xs text-slate-500">Class rank {a.class_rank}</div> : null)}
+          {a.test_notes ? <div className="mt-2 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600"><span className="font-semibold text-slate-700">Other tests: </span>{a.test_notes}</div> : null}
+          {hasDocs ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              <DocLink href={a.transcript_url} label="Transcript" icon="📄" />
+              <DocLink href={a.drive_folder_url} label="Drive folder" icon="📁" />
+            </div>
+          ) : (canEdit ? <div className="mt-3 text-xs text-slate-400">No transcript link yet — add a Google Drive link so counselors can review it.</div> : null)}
+        </>
+      ) : (
+        <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500">{canEdit ? 'Add your GPA, test scores and a link to your transcript (Google Drive) so your counselor and colleges have them in one place.' : 'No scores or documents on file yet.'}</div>
+      )}
+    </div>
+  );
+}
+
 function StudentAdmissionsView({ db }) {
   const me = (db && db.me && db.me()) || {};
   const isStaff = ['counselor', 'admissions_admin', 'super_admin', 'admin'].includes(me.role);
@@ -344,10 +405,18 @@ function StudentAdmissionsView({ db }) {
   const [studentId, setStudentId] = useState(null);
   const [data, setData] = useState(null);
 
+  const [acad, setAcad] = useState(null);
   useEffect(() => { if (needsPicker) (isParent ? db.parentChildren() : db.bookableStudents()).then((l) => { setStudents(l); setStudentId((p) => p || l[0]?.id || null); }); }, []);
   const targetId = needsPicker ? studentId : null;
   const reload = () => db.applicationDetail(targetId).then(setData).catch(() => setData({ schools: [], essays: [], tasks: [] }));
-  useEffect(() => { if (needsPicker && !studentId) return; reload(); }, [studentId]);
+  const reloadAcad = () => db.academics(targetId).then(setAcad).catch(() => setAcad({}));
+  useEffect(() => {
+    if (needsPicker && !studentId) return;
+    reload();
+    reloadAcad();
+    window.__academicsCtx = { studentId: targetId, reload: reloadAcad };
+    return () => { if (window.__academicsCtx && window.__academicsCtx.reload === reloadAcad) window.__academicsCtx = null; };
+  }, [studentId]);
 
   if (!data) return <LoadingCard />;
   const { schools, essays, tasks } = data;
@@ -393,6 +462,8 @@ function StudentAdmissionsView({ db }) {
           {isParent ? <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">View only</span> : null}
         </div>
       ) : null}
+
+      <AcademicsCard acad={acad} canEdit={canEdit} studentId={targetId} />
 
       {schools.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">

@@ -68,4 +68,52 @@ await check('flagged message is redacted inside the conversation', async () => {
   assert.ok(!rendered.includes('301-555-9999'), 'phone number leaked in the rendered thread');
 });
 
-console.log(`\nAll ${pass} access-control checks passed.`);
+// ---- college essays: core vs per-school, edit, and doc links ----
+await check('college list returns essays; core vs supplement split by school_id', async () => {
+  const d = driver(); await d.signInDemo('u-amen');
+  const { schools, essays } = await d.collegeList();
+  assert.ok(schools.length >= 1, 'schools should load');
+  assert.ok(essays.length >= 1, 'essays should load');
+  const core = essays.filter(e => !e.school_id);
+  const supp = essays.filter(e => e.school_id);
+  assert.ok(core.length >= 1, 'should have at least one core essay');
+  assert.ok(supp.length >= 1, 'should have at least one supplemental essay attached to a school');
+  assert.ok(supp.every(e => schools.some(s => s.id === e.school_id)), 'each supplement points at a real school');
+  assert.ok(essays.some(e => e.doc_url), 'at least one essay carries a document link');
+});
+await check('saveEssay adds a supplement to a school, then edits its status + doc link', async () => {
+  const d = driver(); await d.signInDemo('u-amen');
+  const { schools } = await d.collegeList();
+  const target = schools[0];
+  const id = await d.saveEssay(null, { title: 'New supplement', school_id: target.id, status: 'todo' });
+  let essays = (await d.collegeList()).essays;
+  const added = essays.find(e => e.id === id);
+  assert.ok(added && added.school_id === target.id, 'new essay attached to the school');
+  await d.saveEssay(null, { id, status: 'in_progress', doc_url: 'https://docs.google.com/x' });
+  essays = (await d.applicationDetail()).essays;
+  const edited = essays.find(e => e.id === id);
+  assert.equal(edited.status, 'in_progress', 'status persisted');
+  assert.equal(edited.doc_url, 'https://docs.google.com/x', 'doc link persisted');
+  await d.deleteEssay(id);
+  assert.ok(!(await d.collegeList()).essays.some(e => e.id === id), 'essay removed');
+});
+
+// ---- academics: transcript + test scores ----
+await check('academics returns seeded scores; saveAcademics updates them', async () => {
+  const d = driver(); await d.signInDemo('u-amen');
+  const a = await d.academics();
+  assert.equal(a.gpa_unweighted, '3.9', 'seeded GPA present');
+  assert.ok(a.transcript_url, 'seeded transcript link present');
+  await d.saveAcademics(null, { sat_total: 1550, act_composite: 35 });
+  const b = await d.academics();
+  assert.equal(b.sat_total, 1550, 'SAT updated');
+  assert.equal(b.act_composite, 35, 'ACT updated');
+  assert.equal(b.gpa_unweighted, '3.9', 'unrelated field preserved on partial update');
+});
+await check('a parent can read their child\'s academics (read-only)', async () => {
+  const d = driver(); await d.signInDemo('u-tigist');
+  const a = await d.academics('s-amen');
+  assert.ok(a && a.gpa_unweighted === '3.9', 'parent sees child academics');
+});
+
+console.log(`\nAll ${pass} checks passed.`);

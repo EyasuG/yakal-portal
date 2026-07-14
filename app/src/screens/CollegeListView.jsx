@@ -56,7 +56,33 @@ function Metric({ label, value }) {
   return <div><div className="text-xs text-slate-400">{label}</div><div className="mt-0.5 text-sm font-semibold text-slate-800">{value || '—'}</div></div>;
 }
 
-function SchoolCard({ school, open, onToggle, canEdit }) {
+const ESSAY_STATUS = {
+  todo: { t: 'Not started', c: 'bg-slate-100 text-slate-600' },
+  in_progress: { t: 'In progress', c: 'bg-brand-teal/10 text-brand-teal' },
+  done: { t: 'Done', c: 'bg-emerald-100 text-emerald-700' }
+};
+
+function EssayRow({ essay, canEdit, allSchools }) {
+  const st = ESSAY_STATUS[essay.status] || ESSAY_STATUS.todo;
+  return (
+    <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-3">
+      <div className="min-w-0 grow">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm font-semibold text-slate-900">{essay.title}</span>
+          <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${st.c}`}>{st.t}</span>
+          {essay.due_date ? <span className="text-[11px] text-slate-400">due {essay.due_date}</span> : null}
+        </div>
+        {essay.prompt ? <div className="mt-1 truncate text-xs text-slate-500" title={essay.prompt}>{essay.prompt}</div> : null}
+      </div>
+      <div className="flex shrink-0 items-center gap-2">
+        {essay.doc_url ? <a href={essay.doc_url} target="_blank" rel="noopener noreferrer" className="rounded-full bg-brand-teal/10 px-3 py-1 text-xs font-semibold text-brand-teal transition hover:bg-brand-teal/20">Open doc ↗</a> : null}
+        {canEdit ? <button onClick={() => window.openEssaySheet(essay, { schools: allSchools })} className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50">Edit</button> : null}
+      </div>
+    </div>
+  );
+}
+
+function SchoolCard({ school, open, onToggle, canEdit, essays = [], allSchools = [] }) {
   const cat = CAT_BY[school.kind] || CATS[1];
   const st = STATUS[school.status] || STATUS.todo;
   return (
@@ -90,6 +116,17 @@ function SchoolCard({ school, open, onToggle, canEdit }) {
             <Metric label="Evaluative sites" value={school.eval_sites} />
           </div>
           {school.notes ? <div className="rounded-2xl bg-slate-50 p-3 text-sm text-slate-600"><span className="font-semibold text-slate-700">Notes: </span>{school.notes}</div> : null}
+          <div className="rounded-2xl bg-slate-50/60 p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Supplemental essays{essays.length ? ` · ${essays.length}` : ''}</div>
+              {canEdit ? <button onClick={() => window.openEssaySheet(null, { schools: allSchools, schoolId: school.id })} className="text-xs font-semibold text-brand-teal">+ Add essay</button> : null}
+            </div>
+            {essays.length ? (
+              <div className="space-y-2">{essays.map((e) => <EssayRow key={e.id} essay={e} canEdit={canEdit} allSchools={allSchools} />)}</div>
+            ) : (
+              <div className="text-xs text-slate-500">No supplemental essays tracked yet{school.supplement_essays ? ` — this school lists ${school.supplement_essays}.` : '.'}</div>
+            )}
+          </div>
           {canEdit ? (
             <div className="flex gap-2 pt-1">
               <button className="rounded-full bg-teal-600 px-4 py-2 text-sm font-semibold text-white" onClick={() => window.openSchoolSheet(school)}>Edit</button>
@@ -109,6 +146,7 @@ export default function CollegeListView({ db }) {
   const [students, setStudents] = useState([]);
   const [studentId, setStudentId] = useState(null);
   const [schools, setSchools] = useState(null);
+  const [essays, setEssays] = useState([]);
   const [openId, setOpenId] = useState(null);
   const [compareOpen, setCompareOpen] = useState(false);
   const [compareIds, setCompareIds] = useState([]);
@@ -121,7 +159,7 @@ export default function CollegeListView({ db }) {
   }, []);
 
   const targetId = isStaff ? studentId : null;
-  const reload = () => db.collegeList(targetId).then((r) => setSchools(r.schools)).catch(() => setSchools([]));
+  const reload = () => db.collegeList(targetId).then((r) => { setSchools(r.schools); setEssays(r.essays || []); }).catch(() => { setSchools([]); setEssays([]); });
   useEffect(() => {
     if (isStaff && !studentId) { setSchools([]); return; }
     reload();
@@ -132,6 +170,9 @@ export default function CollegeListView({ db }) {
   if (schools === null && !(isStaff && !studentId)) return <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center text-slate-500">Loading…</div>;
 
   const counts = CATS.map((c) => (schools || []).filter((s) => s.kind === c.key).length);
+  const coreEssays = (essays || []).filter((e) => !e.school_id);
+  const essaysBySchool = (essays || []).reduce((m, e) => { if (e.school_id) (m[e.school_id] = m[e.school_id] || []).push(e); return m; }, {});
+  const canAdd = canEdit && (!isStaff || studentId);
 
   return (
     <div className="space-y-6">
@@ -212,11 +253,26 @@ export default function CollegeListView({ db }) {
           return (
             <div key={c.key} className="space-y-3">
               <div className="flex items-center gap-2"><span className={`h-2.5 w-2.5 rounded-full ${c.dot}`} /><h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">{c.label} · {group.length}</h3></div>
-              {group.map((s) => <SchoolCard key={s.id} school={s} open={openId === s.id} onToggle={() => setOpenId(openId === s.id ? null : s.id)} canEdit={canEdit} />)}
+              {group.map((s) => <SchoolCard key={s.id} school={s} open={openId === s.id} onToggle={() => setOpenId(openId === s.id ? null : s.id)} canEdit={canEdit} essays={essaysBySchool[s.id] || []} allSchools={schools || []} />)}
             </div>
           );
         })
       )}
+
+      {(!isStaff || studentId) ? (
+        <div className="rounded-3xl border border-slate-200 bg-white p-5">
+          <div className="mb-1 flex items-center justify-between">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Core / personal essays</h3>
+            {canAdd ? <button onClick={() => window.openEssaySheet(null, { schools: schools || [], schoolId: null })} className="text-sm font-semibold text-brand-teal">+ Add</button> : null}
+          </div>
+          <p className="mb-3 text-xs text-slate-400">Your Common App personal statement, activities list and any essay reused across schools.</p>
+          {coreEssays.length ? (
+            <div className="space-y-2">{coreEssays.map((e) => <EssayRow key={e.id} essay={e} canEdit={canEdit} allSchools={schools || []} />)}</div>
+          ) : (
+            <div className="text-sm text-slate-500">No core essays yet.{canAdd ? ' Add your personal statement to start tracking it.' : ''}</div>
+          )}
+        </div>
+      ) : null}
 
       <Section title="Research resources">
         <div className="grid gap-3 sm:grid-cols-2">

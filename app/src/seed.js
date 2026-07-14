@@ -58,6 +58,26 @@ export function seed() {
         counselor: 'u-hana'
       }
     },
+    // Normalized essays: school_id === null → a core / Common-App essay;
+    // otherwise it's a supplement attached to that school on the college list.
+    appEssays: {
+      's-amen': [
+        { id: 'es-1', school_id: null, title: 'Common App personal statement', prompt: 'Common App prompt #1 — background/identity', status: 'done', due_date: '2026-10-15', doc_url: 'https://docs.google.com/document/d/EXAMPLE-personal-statement/edit' },
+        { id: 'es-2', school_id: null, title: 'Activities descriptions', prompt: 'Common App activities list (150 chars each)', status: 'done', due_date: null, doc_url: '' },
+        { id: 'es-3', school_id: 'sch-1', title: 'JHU — "Why Hopkins?"', prompt: 'Tell us what excites you about Johns Hopkins and how you’ll use its resources (300–400 words).', status: 'in_progress', due_date: '2026-11-01', doc_url: 'https://docs.google.com/document/d/EXAMPLE-jhu-supplement/edit' },
+        { id: 'es-4', school_id: 'sch-2', title: 'UMD — short answers', prompt: 'Maryland application short-answer questions.', status: 'todo', due_date: '2026-11-01', doc_url: '' }
+      ]
+    },
+    // 1:1 academic profile — the numbers colleges compare against + Drive links.
+    academics: {
+      's-amen': {
+        gpa_unweighted: '3.9', gpa_weighted: '4.3', class_rank: 'Top 5%',
+        sat_total: 1520, sat_ebrw: 740, sat_math: 780, act_composite: 34,
+        test_notes: 'AP: Calculus BC 5 · Biology 5 · English Lang 4 · TOEFL n/a',
+        transcript_url: 'https://drive.google.com/file/d/EXAMPLE-transcript/view',
+        drive_folder_url: 'https://drive.google.com/drive/folders/EXAMPLE-amen-worku'
+      }
+    },
     sessionsPast: {
       's-amen': [['Essay structure', 'u-hana', 'Oct 24'], ['SAT timing drills', 'u-beth', 'Oct 19'], ['Personal statement review', 'u-hana', 'Oct 12']],
       's-liya': [['Geometry proofs', 'u-beth', 'Oct 22'], ['SAT math section', 'u-beth', 'Oct 15']]

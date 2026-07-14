@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { cap, initials } from '../lib/utils.js';
 
-function Sheet({ data, onClose, onSend, onPreview, onExitPreview, onBook, onSaveSchool, role }) {
+function Sheet({ data, onClose, onSend, onPreview, onExitPreview, onBook, onSaveSchool, onSaveEssay, onRemoveEssay, onSaveAcademics, role }) {
   const [draft, setDraft] = useState('');
 
   useEffect(() => {
@@ -93,6 +93,10 @@ function Sheet({ data, onClose, onSend, onPreview, onExitPreview, onBook, onSave
             <BookForm data={data} onBook={onBook} onClose={onClose} />
           ) : data.type === 'school' ? (
             <SchoolForm data={data} onSave={onSaveSchool} onClose={onClose} />
+          ) : data.type === 'essay' ? (
+            <EssayForm data={data} onSave={onSaveEssay} onRemove={onRemoveEssay} onClose={onClose} />
+          ) : data.type === 'academics' ? (
+            <AcademicsForm data={data} onSave={onSaveAcademics} onClose={onClose} />
           ) : data.type === 'notifications' ? (
             <div>
               <div className="mb-4 flex items-center justify-between border-b border-slate-200 pb-4">
@@ -284,6 +288,107 @@ function SchoolForm({ data, onSave, onClose }) {
         <FLbl label="Notes"><textarea value={f.notes} onChange={set('notes')} rows={2} className={FLD} /></FLbl>
       </div>
       <button className="mt-4 w-full rounded-full bg-teal-600 px-5 py-3 text-sm font-semibold text-white" onClick={submit}>{s.id ? 'Save changes' : 'Add to list'}</button>
+    </div>
+  );
+}
+
+function EssayForm({ data, onSave, onRemove, onClose }) {
+  const e = data.essay || {};
+  const schools = data.schools || [];
+  const [f, setF] = useState({
+    title: e.title || '', prompt: e.prompt || '', status: e.status || 'todo',
+    due_date: e.due_date || '', doc_url: e.doc_url || '',
+    school_id: (e.school_id ?? data.schoolId ?? '') || ''
+  });
+  const set = (k) => (ev) => setF((p) => ({ ...p, [k]: ev.target.value }));
+  const submit = () => {
+    if (!f.title.trim()) return;
+    onSave({
+      ...(e.id ? { id: e.id } : {}),
+      title: f.title.trim(), prompt: f.prompt.trim() || null, status: f.status,
+      due_date: f.due_date || null, doc_url: f.doc_url.trim() || null,
+      school_id: f.school_id || null
+    }, data.studentId);
+  };
+  return (
+    <div>
+      <div className="mb-4 flex items-center justify-between border-b border-slate-200 pb-4">
+        <div className="text-lg font-semibold text-slate-900">{e.id ? 'Edit essay' : 'Add an essay'}</div>
+        <button className="text-xl text-slate-400" onClick={onClose}>&times;</button>
+      </div>
+      <div className="max-h-[62vh] space-y-3 overflow-y-auto pr-1">
+        <FLbl label="Essay title"><input value={f.title} onChange={set('title')} placeholder='e.g. "Why Hopkins?" supplement' className={FLD} /></FLbl>
+        <FLbl label="Attach to">
+          <select value={f.school_id} onChange={set('school_id')} className={FLD}>
+            <option value="">Core / personal statement (all schools)</option>
+            {schools.map((s) => <option key={s.id} value={s.id}>{s.school_name}</option>)}
+          </select>
+        </FLbl>
+        <FLbl label="Prompt / question"><textarea value={f.prompt} onChange={set('prompt')} rows={3} placeholder="Paste the essay prompt here…" className={FLD} /></FLbl>
+        <div className="grid grid-cols-2 gap-3">
+          <FLbl label="Status">
+            <select value={f.status} onChange={set('status')} className={FLD}>
+              <option value="todo">Not started</option>
+              <option value="in_progress">In progress</option>
+              <option value="done">Done</option>
+            </select>
+          </FLbl>
+          <FLbl label="Due date"><input type="date" value={f.due_date} onChange={set('due_date')} className={FLD} /></FLbl>
+        </div>
+        <FLbl label="Document link (Google Doc, etc.)"><input type="url" value={f.doc_url} onChange={set('doc_url')} placeholder="https://docs.google.com/…" className={FLD} /></FLbl>
+        <p className="text-xs text-slate-400">Paste a link to where you write the essay so you and your counselor can open and review the same draft. We never store the essay text.</p>
+      </div>
+      <div className="mt-4 flex gap-2">
+        <button className="grow rounded-full bg-teal-600 px-5 py-3 text-sm font-semibold text-white" onClick={submit}>{e.id ? 'Save changes' : 'Add essay'}</button>
+        {e.id && onRemove ? <button className="rounded-full border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-600 hover:border-pink-300 hover:text-pink-600" onClick={() => { if (confirm('Remove this essay?')) { onRemove(e.id); onClose(); } }}>Remove</button> : null}
+      </div>
+    </div>
+  );
+}
+
+function AcademicsForm({ data, onSave, onClose }) {
+  const a = data.academics || {};
+  const [f, setF] = useState({
+    gpa_unweighted: a.gpa_unweighted || '', gpa_weighted: a.gpa_weighted || '', class_rank: a.class_rank || '',
+    sat_total: a.sat_total ?? '', sat_ebrw: a.sat_ebrw ?? '', sat_math: a.sat_math ?? '', act_composite: a.act_composite ?? '',
+    test_notes: a.test_notes || '', transcript_url: a.transcript_url || '', drive_folder_url: a.drive_folder_url || ''
+  });
+  const set = (k) => (ev) => setF((p) => ({ ...p, [k]: ev.target.value }));
+  const num = (v) => (v === '' || v == null ? null : Number(v));
+  const submit = () => {
+    onSave({
+      gpa_unweighted: f.gpa_unweighted.trim() || null, gpa_weighted: f.gpa_weighted.trim() || null, class_rank: f.class_rank.trim() || null,
+      sat_total: num(f.sat_total), sat_ebrw: num(f.sat_ebrw), sat_math: num(f.sat_math), act_composite: num(f.act_composite),
+      test_notes: f.test_notes.trim() || null, transcript_url: f.transcript_url.trim() || null, drive_folder_url: f.drive_folder_url.trim() || null
+    }, data.studentId);
+  };
+  return (
+    <div>
+      <div className="mb-4 flex items-center justify-between border-b border-slate-200 pb-4">
+        <div className="text-lg font-semibold text-slate-900">Academics & documents</div>
+        <button className="text-xl text-slate-400" onClick={onClose}>&times;</button>
+      </div>
+      <div className="max-h-[62vh] space-y-3 overflow-y-auto pr-1">
+        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">GPA</div>
+        <div className="grid grid-cols-3 gap-3">
+          <FLbl label="Unweighted"><input value={f.gpa_unweighted} onChange={set('gpa_unweighted')} placeholder="3.9" className={FLD} /></FLbl>
+          <FLbl label="Weighted"><input value={f.gpa_weighted} onChange={set('gpa_weighted')} placeholder="4.3" className={FLD} /></FLbl>
+          <FLbl label="Class rank"><input value={f.class_rank} onChange={set('class_rank')} placeholder="Top 5%" className={FLD} /></FLbl>
+        </div>
+        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">SAT</div>
+        <div className="grid grid-cols-3 gap-3">
+          <FLbl label="Total"><input type="number" min="400" max="1600" value={f.sat_total} onChange={set('sat_total')} className={FLD} /></FLbl>
+          <FLbl label="EBRW"><input type="number" min="200" max="800" value={f.sat_ebrw} onChange={set('sat_ebrw')} className={FLD} /></FLbl>
+          <FLbl label="Math"><input type="number" min="200" max="800" value={f.sat_math} onChange={set('sat_math')} className={FLD} /></FLbl>
+        </div>
+        <FLbl label="ACT composite"><input type="number" min="1" max="36" value={f.act_composite} onChange={set('act_composite')} className={FLD} /></FLbl>
+        <FLbl label="Other tests (AP / IB / TOEFL…)"><textarea value={f.test_notes} onChange={set('test_notes')} rows={2} placeholder="AP Calc BC 5 · AP Bio 5 · TOEFL 110" className={FLD} /></FLbl>
+        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Documents (Google Drive)</div>
+        <FLbl label="Transcript link"><input type="url" value={f.transcript_url} onChange={set('transcript_url')} placeholder="https://drive.google.com/file/…" className={FLD} /></FLbl>
+        <FLbl label="Drive folder link"><input type="url" value={f.drive_folder_url} onChange={set('drive_folder_url')} placeholder="https://drive.google.com/drive/folders/…" className={FLD} /></FLbl>
+        <p className="text-xs text-slate-400">Share a Google Drive folder (or a direct transcript link) with view access so your counselor can review it. Documents stay in your Drive — Yakal only keeps the link.</p>
+      </div>
+      <button className="mt-4 w-full rounded-full bg-teal-600 px-5 py-3 text-sm font-semibold text-white" onClick={submit}>Save</button>
     </div>
   );
 }
