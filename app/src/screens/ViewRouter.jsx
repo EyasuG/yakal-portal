@@ -440,32 +440,69 @@ function StudentAdmissionsView({ db }) {
   );
 }
 
+function ChildProgramBadges({ programs }) {
+  if (!programs || !programs.length) return null;
+  return (
+    <span className="flex flex-wrap gap-1.5">
+      {programs.map((p) => (
+        <span key={p} className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${p === 'admissions' ? 'bg-brand-pink/10 text-brand-pink' : 'bg-brand-teal/10 text-brand-teal'}`}>{p === 'admissions' ? 'Admissions' : 'Tutoring'}</span>
+      ))}
+    </span>
+  );
+}
+
+function ChildCard({ child }) {
+  const dl = child.nextDeadline;
+  const dlDays = dl ? Math.ceil((new Date(dl.date) - Date.now()) / 86400000) : null;
+  return (
+    <button className="w-full rounded-3xl border border-slate-200 bg-white p-5 text-left transition hover:border-brand-teal/40 hover:bg-slate-50" onClick={() => window.openChild(child.id)}>
+      <div className="flex items-center gap-4">
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-teal-50 font-semibold text-teal-700">{initials(child.name)}</div>
+        <div className="grow">
+          <div className="flex items-center gap-2"><span className="font-semibold text-slate-900">{child.name}</span>{child.grade ? <span className="text-sm text-slate-400">· {child.grade}</span> : null}</div>
+          <div className="mt-1.5"><ChildProgramBadges programs={child.programs} /></div>
+        </div>
+        {child.unread ? <span className="grid h-6 min-w-[24px] place-items-center rounded-full bg-brand-pink px-1.5 text-xs font-bold text-white" title="Unread messages">{child.unread}</span> : null}
+        <span className="text-slate-300">›</span>
+      </div>
+      {(child.nextSession || dl) ? (
+        <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-3 text-xs">
+          {child.nextSession ? <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-1 font-medium text-teal-700">📅 {child.nextSession.subject} · {child.nextSession.when}</span> : null}
+          {dl ? <span className="inline-flex items-center gap-1 rounded-full bg-pink-50 px-2.5 py-1 font-medium text-pink-700">🎯 {dl.school}{dlDays != null ? ` · ${dlDays}d` : ''}</span> : null}
+        </div>
+      ) : null}
+    </button>
+  );
+}
+
 function ParentHomeView({ db }) {
-  const [kids, setKids] = useState(null);
+  const [data, setData] = useState(null);
 
   useEffect(() => {
-    db?.parentChildren().then(setKids).catch(() => setKids([]));
+    db?.parentOverview().then(setData).catch(() => setData({ children: [], stats: { children: 0, upcomingSessions: 0, upcomingDeadlines: 0, unread: 0 }, updates: [] }));
   }, [db]);
 
-  if (!kids) return <LoadingCard />;
+  if (!data) return <LoadingCard />;
+  const { children, stats, updates } = data;
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-3">
-        <StatBox label="Children" value={kids.length} />
-        <StatBox label="Sessions / week" value="3" />
-        <StatBox label="Deadline soon" value="1" tone="pink" />
+      <div className="grid gap-4 md:grid-cols-4">
+        <StatBox label="Children" value={stats.children} />
+        <StatBox label="Sessions this week" value={stats.upcomingSessions} />
+        <StatBox label="Deadlines soon" value={stats.upcomingDeadlines} tone={stats.upcomingDeadlines ? 'pink' : undefined} />
+        <StatBox label="Unread messages" value={stats.unread} tone={stats.unread ? 'pink' : undefined} />
       </div>
-      <Section title="Your children" actionLabel="All" action={() => window.go('pkids')}>
-        <div className="space-y-3">{kids.map((child) => <button key={child.id} className="w-full rounded-3xl border border-slate-200 bg-white p-5 text-left transition hover:bg-slate-50" onClick={() => window.openChild(child.id)}><div className="flex items-center gap-4"><div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">{initials(child.name)}</div><div className="grow"><div className="font-semibold text-slate-900">{child.name}</div><div className="text-sm text-slate-500">{child.grade}</div></div>{child.unread ? <span className="grid h-6 min-w-[24px] place-items-center rounded-full bg-brand-pink px-1.5 text-xs font-bold text-white" title="Unread messages">{child.unread}</span> : null}<span className="text-slate-300">›</span></div></button>)}</div>
+      <Section title="Your children" actionLabel={children.length > 1 ? 'All' : undefined} action={children.length > 1 ? () => window.go('pkids') : undefined}>
+        {children.length ? (
+          <div className="space-y-3">{children.map((child) => <ChildCard key={child.id} child={child} />)}</div>
+        ) : <div className="rounded-3xl border border-slate-200 bg-white p-6 text-sm text-slate-500">No children linked to your account yet.</div>}
       </Section>
-      <Section title="Recent updates">
-        <div className="space-y-3">
-          <UpdateCard title="Saron scored 90% on the algebra quiz" subtitle="Today · from Josh" accent="emerald" />
-          <UpdateCard title="Amen's JHU supplement reviewed" subtitle="Yesterday · from Hana" accent="teal" />
-          <UpdateCard title="JHU deadline in 9 days" subtitle="Heads up" accent="amber" />
-        </div>
-      </Section>
+      {updates.length ? (
+        <Section title="Recent updates">
+          <div className="space-y-3">{updates.map((u, i) => <UpdateCard key={i} title={u.title} subtitle={u.subtitle} accent={u.accent} />)}</div>
+        </Section>
+      ) : null}
     </div>
   );
 }
@@ -474,7 +511,7 @@ function ParentKidsView({ db }) {
   const [kids, setKids] = useState(null);
 
   useEffect(() => {
-    db?.parentChildren().then(setKids).catch(() => setKids([]));
+    db?.parentOverview().then((d) => setKids(d.children)).catch(() => setKids([]));
   }, [db]);
 
   if (!kids) return <LoadingCard />;
@@ -482,7 +519,9 @@ function ParentKidsView({ db }) {
   return (
     <div className="space-y-6">
       <Section title="Your children">
-        <div className="space-y-3">{kids.map((child) => <button key={child.id} className="w-full rounded-3xl border border-slate-200 bg-white p-5 text-left transition hover:bg-slate-50" onClick={() => window.openChild(child.id)}><div className="flex items-center gap-4"><div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">{initials(child.name)}</div><div className="grow"><div className="font-semibold text-slate-900">{child.name}</div><div className="text-sm text-slate-500">{child.grade}</div></div>{child.unread ? <span className="grid h-6 min-w-[24px] place-items-center rounded-full bg-brand-pink px-1.5 text-xs font-bold text-white" title="Unread messages">{child.unread}</span> : null}<span className="text-slate-300">›</span></div></button>)}</div>
+        {kids.length ? (
+          <div className="space-y-3">{kids.map((child) => <ChildCard key={child.id} child={child} />)}</div>
+        ) : <div className="rounded-3xl border border-slate-200 bg-white p-6 text-sm text-slate-500">No children linked to your account yet.</div>}
       </Section>
     </div>
   );
@@ -727,7 +766,7 @@ function ToggleRow({ label, done, onToggle }) {
 }
 
 function UpdateCard({ title, subtitle, accent }) {
-  const bg = accent === 'emerald' ? 'bg-emerald-100 text-emerald-700' : accent === 'teal' ? 'bg-teal-100 text-teal-700' : 'bg-amber-100 text-amber-700';
+  const bg = accent === 'emerald' ? 'bg-emerald-100 text-emerald-700' : accent === 'teal' ? 'bg-teal-100 text-teal-700' : accent === 'pink' ? 'bg-pink-100 text-pink-700' : 'bg-amber-100 text-amber-700';
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className={`mb-3 inline-flex rounded-full px-3 py-1 text-sm font-semibold ${bg}`}>Update</div>

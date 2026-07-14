@@ -155,6 +155,21 @@ export function LocalDriver() {
       });
     },
     async markConversationRead(convId) { S.readConvos = S.readConvos || {}; S.readConvos[convId] = true; save(); },
+    async parentOverview() {
+      const readMap = S.readConvos || {}; const now = Date.now();
+      const children = myKids().map(s => {
+        let unread = 0;
+        S.conversations.filter(c => c.student === s.id && convVisible(c)).forEach(c => { if (!readMap[c.id]) unread += c.msgs.filter(m => m.from !== me.id).length; });
+        const dl = ((S.collegeSchools || {})[s.id] || []).filter(x => x.deadline && new Date(x.deadline).getTime() >= now).sort((a, b) => new Date(a.deadline) - new Date(b.deadline))[0];
+        return { id: s.id, name: s.name, grade: s.grade, programs: s.programs || ['tutoring'], unread,
+          nextSession: (s.programs || ['tutoring']).includes('tutoring') && s.next ? { subject: (s.subjects || [])[0] || 'Session', when: s.next } : null,
+          nextDeadline: dl ? { school: dl.school_name, date: dl.deadline, type: dl.deadline_type } : null };
+      });
+      const updates = [];
+      children.forEach(k => { if (k.nextDeadline) updates.push({ title: `${k.nextDeadline.school} — ${k.name.split(' ')[0]}`, subtitle: `Application due ${new Date(k.nextDeadline.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`, accent: 'pink' }); });
+      children.forEach(k => { if (k.nextSession) updates.push({ title: `${k.name.split(' ')[0]} · ${k.nextSession.subject}`, subtitle: `Next session · ${k.nextSession.when}`, accent: 'teal' }); });
+      return { children, stats: { children: children.length, upcomingSessions: children.filter(k => k.nextSession).length, upcomingDeadlines: children.filter(k => k.nextDeadline).length, unread: children.reduce((a, k) => a + k.unread, 0) }, updates: updates.slice(0, 5) };
+    },
     async childDetail(sid) {
       if (!canSee(sid)) throw new Error('Not authorized');
       const s = S.students.find(x => x.id === sid);
@@ -471,6 +486,58 @@ export async function SupabaseDriver() {
     },
     async markConversationRead(convId) {
       await sb.from('conversation_reads').upsert({ conversation_id: convId, profile_id: prof.id, last_read_at: new Date().toISOString() }, { onConflict: 'conversation_id,profile_id' });
+    },
+    // Aggregated family dashboard for the parent home.
+    async parentOverview() {
+      const { data: raw } = await sb.from('students').select('id,first_name,last_name,grade');
+      const kids = (raw || []).map(s => ({ id: s.id, name: `${s.first_name} ${s.last_name}`, grade: s.grade, programs: [], unread: 0, nextSession: null, nextDeadline: null }));
+      const ids = kids.map(k => k.id);
+      if (!ids.length) return { children: [], stats: { children: 0, upcomingSessions: 0, upcomingDeadlines: 0, unread: 0 }, updates: [] };
+      const now = Date.now(); const nowIso = new Date().toISOString(); const weekEnd = now + 7 * 86400000;
+      const [enr, sess, apps, convos] = await Promise.all([
+        sb.from('enrollments').select('student_id,program').in('student_id', ids),
+        sb.from('sessions').select('id,student_id,scheduled_start,status,session_type,mode,subjects(name)').in('student_id', ids).gte('scheduled_start', nowIso).order('scheduled_start', { ascending: true }),
+        sb.from('applications').select('id,student_id').in('student_id', ids),
+        sb.from('conversations').select('id,student_id').in('student_id', ids)
+      ]);
+      const TYPE = { group: 'Group session', camp: 'Summer camp', bootcamp: 'STEM bootcamp', math_lab: 'Math Lab' };
+      const programsBy = {}; (enr.data || []).forEach(e => { (programsBy[e.student_id] = programsBy[e.student_id] || []).push(e.program); });
+      const nextSessBy = {}; (sess.data || []).forEach(s => { if (s.status !== 'canceled' && !nextSessBy[s.student_id]) nextSessBy[s.student_id] = s; });
+      const appToStudent = {}; (apps.data || []).forEach(a => { appToStudent[a.id] = a.student_id; });
+      const appIds = (apps.data || []).map(a => a.id);
+      const deadlineBy = {};
+      if (appIds.length) {
+        const { data: schools } = await sb.from('application_schools').select('application_id,school_name,deadline,deadline_type').in('application_id', appIds).not('deadline', 'is', null);
+        (schools || []).filter(x => new Date(x.deadline).getTime() >= now).sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
+          .forEach(x => { const sid = appToStudent[x.application_id]; if (sid && !deadlineBy[sid]) deadlineBy[sid] = { school: x.school_name, date: x.deadline, type: x.deadline_type }; });
+      }
+      const cids = (convos.data || []).map(c => c.id); const convStudent = {}; (convos.data || []).forEach(c => { convStudent[c.id] = c.student_id; });
+      const unreadBy = {};
+      if (cids.length) {
+        const [{ data: reads }, { data: msgs }] = await Promise.all([
+          sb.from('conversation_reads').select('conversation_id,last_read_at'),
+          sb.from('messages').select('conversation_id,created_at,sender_id').in('conversation_id', cids)
+        ]);
+        const lastRead = {}; (reads || []).forEach(r => { lastRead[r.conversation_id] = new Date(r.last_read_at).getTime(); });
+        for (const m of msgs || []) { if (m.sender_id === prof.id) continue; if (new Date(m.created_at).getTime() > (lastRead[m.conversation_id] || 0)) { const sid = convStudent[m.conversation_id]; if (sid) unreadBy[sid] = (unreadBy[sid] || 0) + 1; } }
+      }
+      kids.forEach(k => {
+        k.programs = programsBy[k.id] || [];
+        k.unread = unreadBy[k.id] || 0;
+        const ns = nextSessBy[k.id];
+        k.nextSession = ns ? { subject: ns.subjects?.name || TYPE[ns.session_type] || 'Session', when: new Date(ns.scheduled_start).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) } : null;
+        k.nextDeadline = deadlineBy[k.id] || null;
+      });
+      const updates = [];
+      kids.forEach(k => { if (k.nextDeadline) { const days = Math.ceil((new Date(k.nextDeadline.date) - now) / 86400000); updates.push({ title: `${k.nextDeadline.school} — ${k.name.split(' ')[0]}`, subtitle: `Application due in ${days} day${days === 1 ? '' : 's'}`, accent: days <= 14 ? 'pink' : 'amber' }); } });
+      kids.forEach(k => { if (k.nextSession) updates.push({ title: `${k.name.split(' ')[0]} · ${k.nextSession.subject}`, subtitle: `Next session · ${k.nextSession.when}`, accent: 'teal' }); });
+      const stats = {
+        children: kids.length,
+        upcomingSessions: (sess.data || []).filter(s => s.status !== 'canceled' && new Date(s.scheduled_start).getTime() <= weekEnd).length,
+        upcomingDeadlines: Object.keys(deadlineBy).length,
+        unread: kids.reduce((a, k) => a + k.unread, 0)
+      };
+      return { children: kids, stats, updates: updates.slice(0, 5) };
     },
     async childDetail(sid) {
       const { data: s } = await sb.from('students').select('*').eq('id', sid).single();
