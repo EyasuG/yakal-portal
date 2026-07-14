@@ -8,3 +8,7 @@ app/dist/
 supabase/.temp/
 .vscode/
 .idea/
+
+# Generated requirements exports (regenerate from docs/REQUIREMENTS.md)
+docs/Yakal-Requirements.pdf
+docs/Yakal-Requirements.docx
