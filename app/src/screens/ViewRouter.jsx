@@ -66,11 +66,25 @@ function ProgramBadges({ programs }) {
   );
 }
 
+function DiagStat({ label, value, tone }) {
+  const color = tone === 'pink' ? 'text-brand-pink' : tone === 'green' ? 'text-emerald-600' : 'text-slate-900';
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 text-center">
+      <div className={`text-2xl font-bold ${color}`}>{value ?? 0}</div>
+      <div className="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-slate-500">{label}</div>
+    </div>
+  );
+}
+
 function OverviewView({ db }) {
   const [overview, setOverview] = useState(null);
+  const [diag, setDiag] = useState(undefined); // undefined = loading, null = unavailable, obj = metrics
 
   useEffect(() => {
     db?.adminOverview().then(setOverview).catch(() => setOverview(null));
+    // Diagnostics funnel metrics. Stays hidden until migration 021 exposes the
+    // diagnostic_metrics RPC; then it appears automatically.
+    db?.diagnosticMetrics?.().then(setDiag).catch(() => setDiag(null));
   }, [db]);
 
   if (!overview) return <LoadingCard />;
@@ -100,6 +114,25 @@ function OverviewView({ db }) {
           <div className="mt-6 rounded-3xl bg-slate-50 p-5 text-slate-600">No current flags. The portal is clean.</div>
         )}
       </div>
+      {diag ? (
+        <div className="rounded-3xl border border-slate-200 bg-white p-6">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <div className="text-xl font-semibold text-slate-900">Diagnostics &amp; funnel</div>
+              <div className="mt-1 text-sm text-slate-500">Leads captured from free diagnostics{diag.total ? ` · ${diag.total} all-time` : ''}</div>
+            </div>
+            <button className="shrink-0 rounded-full bg-teal-600 px-4 py-2 text-sm font-semibold text-white" onClick={() => window.go('tdiag')}>Run a diagnostic</button>
+          </div>
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            <DiagStat label="This week" value={diag.week} />
+            <DiagStat label="All time" value={diag.total} />
+            <DiagStat label="New leads" value={diag.leads_new} tone="pink" />
+            <DiagStat label="Consults" value={diag.consults_booked} />
+            <DiagStat label="Converted" value={diag.converted} tone="green" />
+            <DiagStat label="Adm. leads" value={diag.admissions_leads} />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
