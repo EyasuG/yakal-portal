@@ -126,6 +126,26 @@ export function LocalDriver() {
       S.conversations.forEach(c => c.msgs.forEach(m => { if (m.flag && prof(m.from)?.role === 'tutor') { map[m.from] = (map[m.from] || 0) + 1; } }));
       return Object.entries(map).map(([id, n]) => ({ name: name(id), flags: n }));
     },
+    // ---- diagnostics ----
+    async saveDiagnostic(payload) {
+      S.diagnostics = S.diagnostics || [];
+      const row = { id: 'diag-' + Date.now(), created_at: new Date().toISOString(), tutor_id: me?.id || null, ...payload };
+      S.diagnostics.push(row); save();
+      return row.id;
+    },
+    async listDiagnostics() { return (S.diagnostics || []).slice().reverse(); },
+    async diagnosticMetrics() {
+      const d = S.diagnostics || [];
+      const wk = Date.now() - 7 * 864e5;
+      return {
+        total: d.length,
+        week: d.filter(x => new Date(x.created_at).getTime() >= wk).length,
+        leads_new: d.filter(x => (x.status || 'new') === 'new').length,
+        consults_booked: d.filter(x => x.status === 'consult_booked').length,
+        converted: d.filter(x => x.status === 'converted').length,
+        admissions_leads: d.filter(x => x.admissions_bridge).length
+      };
+    },
     async studentHome() {
       const s = studentOfUser();
       const now = Date.now();
@@ -490,6 +510,24 @@ export async function SupabaseDriver() {
     async tutorRisk() {
       const { data } = await sb.from('admin_tutor_risk').select('*').gt('open_flags', 0);
       return (data || []).map(r => ({ name: r.full_name, flags: r.open_flags }));
+    },
+    // ---- diagnostics ----
+    async saveDiagnostic(payload) {
+      const { data, error } = await sb.from('diagnostics')
+        .insert({ ...payload, org_id: prof?.org_id, tutor_id: prof?.id || null })
+        .select('id').single();
+      if (error) throw new Error(error.message);
+      return data.id;
+    },
+    async listDiagnostics() {
+      const { data, error } = await sb.from('diagnostics').select('*').order('created_at', { ascending: false });
+      if (error) throw new Error(error.message);
+      return data || [];
+    },
+    async diagnosticMetrics() {
+      const { data, error } = await sb.rpc('diagnostic_metrics');
+      if (error) throw new Error(error.message);
+      return data;
     },
     async studentHome() {
       const { data: s } = await sb.from('students').select('*').limit(1).single();

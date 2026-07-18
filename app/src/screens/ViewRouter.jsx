@@ -3,6 +3,7 @@ import Section from '../components/Section.jsx';
 import CollegeAdmissionsView from './CollegeAdmissionsView.jsx';
 import CollegeListView from './CollegeListView.jsx';
 import ChildDetailView from './ChildDetailView.jsx';
+import DiagnosticView from './DiagnosticView.jsx';
 import { initials } from '../lib/utils.js';
 
 function ViewRouter({ activeView, db, viewVersion, onRefresh }) {
@@ -37,6 +38,8 @@ function ViewRouter({ activeView, db, viewVersion, onRefresh }) {
       return <TutorHomeView db={db} key={viewVersion} />;
     case 'tstudents':
       return <TutorStudentsView db={db} key={viewVersion} />;
+    case 'tdiag':
+      return <DiagnosticView db={db} key={viewVersion} />;
     case 'tearn':
       return <TutorEarningsView db={db} key={viewVersion} />;
     case 'msg':
