@@ -62,6 +62,30 @@ const DEMO_ACCOUNTS = [
   { id: 'u-beth', name: 'Bethlehem A.', role: 'Tutor', color: 'bg-amber-600' }
 ];
 
+const TIERS = [
+  {
+    name: 'Essential', featured: false,
+    summary: 'A strong foundation with expert direction, accountability, and feedback — flexible and affordable.',
+    fits: 'Motivated, self-driven students who need expert checkpoints, not hand-holding.',
+    plus: null,
+    features: ['Monthly 1-on-1 advising (60 min)', 'Personalized college-list development', 'Admissions timeline & planning', 'Personal statement + up to 3 edit rounds', 'Review of up to 5 supplemental essays', 'Email support + all group workshops']
+  },
+  {
+    name: 'Premier', featured: true,
+    summary: 'Deeper strategy, more frequent meetings, expanded essay support, and interview prep for a competitive edge.',
+    fits: 'Families wanting ongoing mentorship and a real edge — not just checkpoints.',
+    plus: 'Everything in Essential, plus',
+    features: ['Two advising sessions / month', 'Tailored admissions strategy', 'Unlimited in-season email support', 'Up to 6 personal-statement rounds', 'Review of up to 12 supplemental essays', 'Interview 101 + one mock with feedback', 'Priority scheduling + former-officer Q&A']
+  },
+  {
+    name: 'Elite', featured: false,
+    summary: 'A concierge experience: consistent coaching and full strategy from start to enrollment.',
+    fits: 'Families seeking the highest-touch partnership through enrollment.',
+    plus: 'Everything in Premier, plus',
+    features: ['Weekly 1-on-1 advising in season', 'Unlimited strategy meetings & essay editing', 'Every application reviewed pre-submission', 'Multiple mock interviews', 'Scholarship + financial-aid coaching', 'Waitlist / appeal + post-admission support']
+  }
+];
+
 function HomeScreen({ visible, onOpenAuth, onScroll }) {
   const [openSubject, setOpenSubject] = useState(null);
   return (
@@ -75,6 +99,7 @@ function HomeScreen({ visible, onOpenAuth, onScroll }) {
           <div className="ml-auto hidden items-center gap-6 text-sm text-slate-500 md:flex">
             <button onClick={() => onScroll('services')}>Services</button>
             <button onClick={() => onScroll('subjects')}>Subjects</button>
+            <button onClick={() => onScroll('tiers')}>Admissions tiers</button>
             <button onClick={() => onScroll('portal')}>Portal</button>
             <button className="rounded-full border border-slate-200 bg-white px-4 py-2 text-slate-900 shadow-sm transition hover:border-teal-600 hover:text-teal-600" onClick={() => onOpenAuth('login')}>Log in</button>
           </div>
@@ -159,6 +184,20 @@ function HomeScreen({ visible, onOpenAuth, onScroll }) {
             </div>
           </div>
         </section>
+        <section id="tiers" className="mt-28">
+          <div className="text-center">
+            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-pink">College Admissions</span>
+            <h2 className="mt-2 text-3xl font-semibold text-slate-900 md:text-4xl">Consulting tiers</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">Three tiers scale by access and depth — from expert checkpoints to a concierge partnership through enrollment. Each names the family it fits.</p>
+            <div className="mx-auto mt-5 inline-flex items-center gap-2 rounded-full bg-brand-pink/10 px-4 py-2 text-sm font-semibold text-brand-pink">
+              <span aria-hidden="true">★</span> Founding Family rate — 15% off any tier — closes July 31
+            </div>
+          </div>
+          <div className="mt-10 grid gap-6 lg:grid-cols-3">
+            {TIERS.map((tier) => <TierCard key={tier.name} tier={tier} onStart={() => onOpenAuth('signup', 'parent', 'admissions')} />)}
+          </div>
+          <p className="mx-auto mt-6 max-w-2xl text-center text-sm text-slate-500">Seasonal pricing — <button className="font-semibold text-brand-teal underline underline-offset-2" onClick={() => onOpenAuth('signup', 'parent', 'admissions')}>request a quote</button> and a counselor will match you to the right tier.</p>
+        </section>
         <section id="subjects" className="mt-28 rounded-[28px] bg-white p-10 shadow-sm">
           <div className="text-center">
             <h2 className="text-3xl font-semibold text-slate-900">Subjects we tutor</h2>
@@ -183,6 +222,28 @@ function HomeScreen({ visible, onOpenAuth, onScroll }) {
           </div>
         </section>
       </main>
+    </div>
+  );
+}
+
+function TierCard({ tier, onStart }) {
+  return (
+    <div className={`relative flex flex-col rounded-[24px] bg-white p-7 shadow-sm ${tier.featured ? 'border-2 border-brand-teal shadow-xl' : 'border border-slate-200'}`}>
+      {tier.featured ? <span className="absolute -top-3 left-7 rounded-full bg-brand-teal px-3 py-1 text-xs font-semibold text-white">Most chosen</span> : null}
+      <div className="text-xl font-bold text-slate-900">{tier.name}</div>
+      <p className="mt-2 min-h-[3.75rem] text-sm leading-6 text-slate-600">{tier.summary}</p>
+      <div className="mt-3 inline-flex w-fit items-center gap-1 rounded-lg bg-brand-pink/10 px-2.5 py-1 text-xs font-semibold text-brand-pink">− 15% Founding Family</div>
+      {tier.plus ? <div className="mt-5 text-xs font-semibold uppercase tracking-wide text-slate-400">{tier.plus}</div> : null}
+      <ul className="mt-3 flex-1 space-y-2.5">
+        {tier.features.map((f) => (
+          <li key={f} className="flex gap-2.5 text-sm text-slate-600">
+            <svg viewBox="0 0 20 20" className="mt-0.5 h-4 w-4 shrink-0 text-brand-teal" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 10.5 3 3 7-7" /></svg>
+            <span>{f}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-5 rounded-2xl bg-slate-50 p-3 text-xs leading-5 text-slate-600"><span className="font-semibold text-brand-teal">Fits:</span> {tier.fits}</div>
+      <button className="mt-5 w-full rounded-full bg-teal-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-teal-700" onClick={onStart}>Get started</button>
     </div>
   );
 }
