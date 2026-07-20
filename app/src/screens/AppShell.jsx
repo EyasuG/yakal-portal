@@ -55,14 +55,13 @@ function AppShell({ visible, user, role, previewing, activeView, navItems, onNav
   );
 }
 
+// One consolidated Admin nav (fallback copy; App.jsx is the source of truth).
+const ADMIN_NAV = [['overview', 'Home'], ['students', 'Students'], ['tutors', 'Tutors'], ['tdiag', 'Diagnostic'], ['clist', 'College Lists'], ['sadm', 'Tracker'], ['msg', 'Messages'], ['trust', 'Trust']];
 const NAV = {
-  admin: [['overview', 'Home'], ['students', 'Students'], ['tutors', 'Tutors'], ['tdiag', 'Diagnostic'], ['msg', 'Messages'], ['trust', 'Trust']],
+  admin: ADMIN_NAV, super_admin: ADMIN_NAV, tutoring_admin: ADMIN_NAV, admissions_admin: ADMIN_NAV,
   student: [['shome', 'Home'], ['ssessions', 'Sessions'], ['tdiag', 'Diagnostic'], ['college', 'College'], ['clist', 'My List'], ['sadm', 'My App'], ['msg', 'Messages']],
   parent: [['phome', 'Home'], ['pkids', 'Children'], ['college', 'College'], ['sadm', 'Tracker'], ['msg', 'Messages'], ['pbill', 'Billing']],
   tutor: [['thome', 'Today'], ['tstudents', 'Students'], ['tdiag', 'Diagnostic'], ['tearn', 'Earnings'], ['msg', 'Messages']],
-  super_admin: [['overview', 'Home'], ['students', 'Students'], ['tutors', 'Tutors'], ['tdiag', 'Diagnostic'], ['msg', 'Messages'], ['trust', 'Trust']],
-  tutoring_admin: [['overview', 'Home'], ['students', 'Students'], ['tutors', 'Tutors'], ['tdiag', 'Diagnostic'], ['msg', 'Messages']],
-  admissions_admin: [['overview', 'Home'], ['students', 'Students'], ['clist', 'College Lists'], ['sadm', 'Tracker'], ['college', 'College'], ['msg', 'Messages']],
   counselor: [['overview', 'Home'], ['students', 'Students'], ['clist', 'College Lists'], ['sadm', 'Tracker'], ['college', 'College'], ['msg', 'Messages']]
 };
 

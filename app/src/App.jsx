@@ -11,22 +11,24 @@ const DEMO_ACCOUNTS = [
   { id: 'u-tigist', name: 'Tigist Worku', role: 'Parent', color: 'bg-pink-500' },
   { id: 'u-amen', name: 'Amen Worku', role: 'Student', color: 'bg-teal-600' },
   { id: 'u-beth', name: 'Bethlehem A.', role: 'Tutor', color: 'bg-amber-600' },
-  { id: 'u-mesfin', name: 'Mesfin Tadesse', role: 'Tutoring Admin', color: 'bg-teal-800' },
-  { id: 'u-selam', name: 'Selam Abebe', role: 'Admissions Admin', color: 'bg-pink-700' },
   { id: 'u-hana', name: 'Hana Girma', role: 'Counselor', color: 'bg-amber-700' }
 ];
 
+// One Admin manages everything (tutoring + admissions + oversight). The
+// program-scoped admin roles are consolidated into this single view; every
+// admin-tier role points at it. Full access is already granted by RLS
+// (app.is_admin / is_super_admin) for role 'admin'.
+const ADMIN_NAV = [
+  ['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['tutors', 'Tutors', 'tutor'],
+  ['tdiag', 'Diagnostic', 'grid'], ['clist', 'College Lists', 'cap'], ['sadm', 'Tracker', 'cap'],
+  ['msg', 'Messages', 'chat'], ['trust', 'Trust', 'shield']
+];
 const NAV = {
-  admin: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['tutors', 'Tutors', 'tutor'], ['tdiag', 'Diagnostic', 'grid'], ['msg', 'Messages', 'chat'], ['trust', 'Trust', 'shield']],
+  admin: ADMIN_NAV, super_admin: ADMIN_NAV, tutoring_admin: ADMIN_NAV, admissions_admin: ADMIN_NAV,
   student: [['shome', 'Home', 'grid'], ['ssessions', 'Sessions', 'cal'], ['tdiag', 'Diagnostic', 'grid'], ['college', 'College', 'cap'], ['clist', 'My List', 'cap'], ['sadm', 'My App', 'cap'], ['msg', 'Messages', 'chat']],
   parent: [['phome', 'Home', 'grid'], ['pkids', 'Children', 'student'], ['college', 'College', 'cap'], ['sadm', 'Tracker', 'cap'], ['msg', 'Messages', 'chat'], ['pbill', 'Billing', 'wallet']],
   tutor: [['thome', 'Today', 'grid'], ['tstudents', 'Students', 'student'], ['tdiag', 'Diagnostic', 'grid'], ['tearn', 'Earnings', 'wallet'], ['msg', 'Messages', 'chat']],
-  // Program-scoped staff. Views are reused; Row-Level Security limits each
-  // role to its own program's data (a tutoring admin never sees admissions
-  // applications, and vice-versa).
-  super_admin: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['tutors', 'Tutors', 'tutor'], ['tdiag', 'Diagnostic', 'grid'], ['msg', 'Messages', 'chat'], ['trust', 'Trust', 'shield']],
-  tutoring_admin: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['tutors', 'Tutors', 'tutor'], ['tdiag', 'Diagnostic', 'grid'], ['msg', 'Messages', 'chat']],
-  admissions_admin: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['clist', 'College Lists', 'cap'], ['sadm', 'Tracker', 'cap'], ['college', 'College', 'cap'], ['msg', 'Messages', 'chat']],
+  // Counselor stays a scoped delivery role (only their applicants), not an admin.
   counselor: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['clist', 'College Lists', 'cap'], ['sadm', 'Tracker', 'cap'], ['college', 'College', 'cap'], ['msg', 'Messages', 'chat']]
 };
 
@@ -45,6 +47,7 @@ function App() {
   const [realRole, setRealRole] = useState(initialUser?.role || 'admin');
   const [previewing, setPreviewing] = useState(false);
   const [activeView, setActiveView] = useState('overview');
+  const [studentPrograms, setStudentPrograms] = useState(null); // enrolled programs of the current student
   const [viewVersion, setViewVersion] = useState(0);
   const [sheetData, setSheetData] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
@@ -99,7 +102,17 @@ function App() {
     window.sendMsg = sendMsg;
   });
 
-  const currentNav = NAV[role] || NAV.admin;
+  // A student's enrolled programs gate the subject-mastery diagnostic (tutoring only).
+  useEffect(() => {
+    if (role === 'student' && db && db.myPrograms) db.myPrograms().then(setStudentPrograms).catch(() => setStudentPrograms([]));
+    else setStudentPrograms(null);
+  }, [role, db, user]);
+
+  let currentNav = NAV[role] || NAV.admin;
+  if (role === 'student') {
+    const inTutoring = studentPrograms ? studentPrograms.includes('tutoring') : false;
+    if (!inTutoring) currentNav = currentNav.filter((item) => item[0] !== 'tdiag');
+  }
 
   function openAuth(mode, roleChoice, program) {
     if (roleChoice) {
@@ -191,6 +204,7 @@ function App() {
     if (!db) return;
     try {
       if (!fullName || !email) return setAuthError('Name and email are required.');
+      if (signupRole === 'student' && !signupProgram) return setAuthError('Choose a program: Tutoring, Admissions, or Both.');
       if (USE_SUPABASE && password.length < 6) return setAuthError('Password must be at least 6 characters.');
       await db.signUp({ full_name: fullName, email, password, role: signupRole, program: signupProgram });
       toast('Welcome to Yakal!');
@@ -401,6 +415,7 @@ function App() {
         authMode={authMode}
         signupRole={signupRole}
         signupProgram={signupProgram}
+        onPickProgram={setSignupProgram}
         onSwitchMode={setAuthMode}
         onPickRole={setSignupRole}
         onLogin={doLogin}

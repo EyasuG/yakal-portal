@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Section from '../components/Section.jsx';
 
 // ---------------------------------------------------------------------------
@@ -133,6 +133,12 @@ function DiagnosticView({ db }) {
   const v = subj ? DATA[subj] : null;
   const me = (db && db.me) ? db.me() : null;
   const isStudent = me?.role === 'student';
+  const [programs, setPrograms] = useState(null);
+  useEffect(() => {
+    if (isStudent && db && db.myPrograms) db.myPrograms().then(setPrograms).catch(() => setPrograms([]));
+  }, []);
+  // A student in admissions-only should not run a subject-mastery diagnostic.
+  const blockedStudent = isStudent && programs !== null && !programs.includes('tutoring');
 
   function reset() {
     setStep('subject'); setSubj(null); setBandIdx(null); setQueue([]); setPos(0);
@@ -227,6 +233,16 @@ function DiagnosticView({ db }) {
   }
 
   // -- render ---------------------------------------------------------------
+  if (blockedStudent) {
+    return (
+      <Section title="Subject-mastery diagnostic">
+        <div className="rounded-3xl border border-slate-200 bg-slate-50 p-8 text-center">
+          <div className="text-lg font-semibold text-slate-900">Available with tutoring</div>
+          <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">The subject-mastery diagnostic is part of the tutoring program. You&rsquo;re enrolled in college admissions — explore the College section, or ask an admin to add tutoring.</p>
+        </div>
+      </Section>
+    );
+  }
   if (step === 'subject') {
     return (
       <Section title="New diagnostic">

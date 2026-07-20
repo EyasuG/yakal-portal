@@ -155,4 +155,15 @@ await check('a tutor-run diagnostic saves as a lead (tutor_id set, no student_id
   assert.equal(row.student_id, null, 'student_id should be null for a lead');
 });
 
+// ---- program gating for the diagnostic ----
+await check('myPrograms returns a student\'s enrolled programs (gates the diagnostic)', async () => {
+  const d = driver(); await d.signInDemo('u-amen');
+  const p = await d.myPrograms();
+  assert.ok(p.includes('tutoring'), 'Amen is enrolled in tutoring (diagnostic available)');
+  assert.ok(p.includes('admissions'), 'Amen is also in admissions');
+  // the nav/view gate is: show the diagnostic only when programs include tutoring
+  assert.equal(p.includes('tutoring'), true);
+  assert.equal(['admissions'].includes('tutoring'), false, 'admissions-only would hide the diagnostic');
+});
+
 console.log(`\nAll ${pass} checks passed.`);

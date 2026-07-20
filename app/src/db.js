@@ -148,6 +148,7 @@ export function LocalDriver() {
         admissions_leads: d.filter(x => x.admissions_bridge).length
       };
     },
+    async myPrograms() { const s = studentOfUser(); return s ? (s.programs || []) : []; },
     async studentHome() {
       const s = studentOfUser();
       const now = Date.now();
@@ -380,6 +381,12 @@ export async function SupabaseDriver() {
     },
     // ---- College List (school-research tracker) ----
     async myStudentId() { const { data } = await sb.from('students').select('id').limit(1).maybeSingle(); return data?.id || null; },
+    async myPrograms() {
+      const sid = await this.myStudentId();
+      if (!sid) return [];
+      const { data } = await sb.from('enrollments').select('program').eq('student_id', sid);
+      return (data || []).map(e => e.program);
+    },
     async ensureApplication(studentId) {
       const { data } = await sb.from('applications').select('id').eq('student_id', studentId).limit(1).maybeSingle();
       if (data) return data.id;

@@ -4,7 +4,7 @@ import { USE_SUPABASE } from '../db.js';
 
 const PROGRAM_LABEL = { tutoring: '1-on-1 Tutoring', admissions: 'College Admissions Consulting' };
 
-function AuthScreen({ visible, authMode, signupRole, signupProgram, onSwitchMode, onPickRole, onLogin, onSignup, onClose, onDemoLogin, demoAccounts, authError, modeNote }) {
+function AuthScreen({ visible, authMode, signupRole, signupProgram, onSwitchMode, onPickRole, onPickProgram, onLogin, onSignup, onClose, onDemoLogin, demoAccounts, authError, modeNote }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -41,17 +41,30 @@ function AuthScreen({ visible, authMode, signupRole, signupProgram, onSwitchMode
               </div>
             ) : (
               <div className="space-y-5">
-                {signupProgram && PROGRAM_LABEL[signupProgram] ? (
+                <div>
+                  <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">I am a</div>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.keys(ROLE_META).map((r) => (
+                      <button key={r} className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${signupRole === r ? 'border-teal-600 bg-teal-50 text-teal-700' : 'border-slate-200 bg-white text-slate-600'}`} onClick={() => onPickRole(r)}>{ROLE_META[r].label}</button>
+                    ))}
+                  </div>
+                </div>
+                {signupRole === 'student' ? (
+                  <div>
+                    <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Which program are you joining?</div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[['tutoring', 'Tutoring'], ['admissions', 'Admissions'], ['both', 'Both']].map(([p, label]) => (
+                        <button key={p} type="button" className={`rounded-2xl border px-3 py-2.5 text-sm font-semibold transition ${signupProgram === p ? 'border-teal-600 bg-teal-50 text-teal-700' : 'border-slate-200 bg-white text-slate-600'}`} onClick={() => onPickProgram(p)}>{label}</button>
+                      ))}
+                    </div>
+                    <p className="mt-1.5 text-xs text-slate-400">Tutoring unlocks the subject-mastery diagnostic. Choose Both for tutoring and college-admissions support.</p>
+                  </div>
+                ) : (signupProgram && PROGRAM_LABEL[signupProgram] ? (
                   <div className={`flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold ${signupProgram === 'admissions' ? 'bg-brand-pink/10 text-brand-pink' : 'bg-brand-teal/10 text-brand-teal'}`}>
                     <span className="text-lg leading-none">✦</span>
                     Getting started with {PROGRAM_LABEL[signupProgram]}
                   </div>
-                ) : null}
-                <div className="flex flex-wrap gap-2">
-                  {Object.keys(ROLE_META).map((r) => (
-                    <button key={r} className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${signupRole === r ? 'border-teal-600 bg-teal-50 text-teal-700' : 'border-slate-200 bg-white text-slate-600'}`} onClick={() => onPickRole(r)}>{ROLE_META[r].label}</button>
-                  ))}
-                </div>
+                ) : null)}
                 <Field label="Full name" value={name} onChange={setName} placeholder="Your name" />
                 <Field label="Email" value={email} onChange={setEmail} type="email" placeholder="you@email.com" />
                 {USE_SUPABASE ? <Field label="Password" value={password} onChange={setPassword} type="password" placeholder="Choose a password (6+ characters)" /> : null}
