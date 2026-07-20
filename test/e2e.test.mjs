@@ -138,4 +138,21 @@ await check('counselor sees the same recommendations for their student', async (
   assert.ok(recs.length >= 1, 'counselor sees the student recommenders');
 });
 
+// ---- diagnostics: role-aware attribution ----
+await check('a student self-assessment saves against their own record', async () => {
+  const d = driver(); await d.signInDemo('u-amen'); // student
+  const id = await d.saveDiagnostic({ subject: 'Physics', overall_mastery: 33, skill_gaps: ['Energy'], status: 'new' });
+  const row = (await d.listDiagnostics()).find(r => r.id === id);
+  assert.equal(row.student_id, 's-amen', 'student_id should be the student\'s own record');
+  assert.equal(row.tutor_id, null, 'tutor_id should be null for a student self-assessment');
+  assert.equal(row.overall_mastery, 33, 'the analysis is persisted');
+});
+await check('a tutor-run diagnostic saves as a lead (tutor_id set, no student_id)', async () => {
+  const d = driver(); await d.signInDemo('u-beth'); // tutor
+  const id = await d.saveDiagnostic({ subject: 'K-12 Math', overall_mastery: 80, prospect_student: 'Walk-in', status: 'new' });
+  const row = (await d.listDiagnostics()).find(r => r.id === id);
+  assert.equal(row.tutor_id, 'u-beth', 'tutor_id should be the tutor');
+  assert.equal(row.student_id, null, 'student_id should be null for a lead');
+});
+
 console.log(`\nAll ${pass} checks passed.`);

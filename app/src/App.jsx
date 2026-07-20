@@ -18,7 +18,7 @@ const DEMO_ACCOUNTS = [
 
 const NAV = {
   admin: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['tutors', 'Tutors', 'tutor'], ['tdiag', 'Diagnostic', 'grid'], ['msg', 'Messages', 'chat'], ['trust', 'Trust', 'shield']],
-  student: [['shome', 'Home', 'grid'], ['ssessions', 'Sessions', 'cal'], ['college', 'College', 'cap'], ['clist', 'My List', 'cap'], ['sadm', 'My App', 'cap'], ['msg', 'Messages', 'chat']],
+  student: [['shome', 'Home', 'grid'], ['ssessions', 'Sessions', 'cal'], ['tdiag', 'Diagnostic', 'grid'], ['college', 'College', 'cap'], ['clist', 'My List', 'cap'], ['sadm', 'My App', 'cap'], ['msg', 'Messages', 'chat']],
   parent: [['phome', 'Home', 'grid'], ['pkids', 'Children', 'student'], ['college', 'College', 'cap'], ['sadm', 'Tracker', 'cap'], ['msg', 'Messages', 'chat'], ['pbill', 'Billing', 'wallet']],
   tutor: [['thome', 'Today', 'grid'], ['tstudents', 'Students', 'student'], ['tdiag', 'Diagnostic', 'grid'], ['tearn', 'Earnings', 'wallet'], ['msg', 'Messages', 'chat']],
   // Program-scoped staff. Views are reused; Row-Level Security limits each

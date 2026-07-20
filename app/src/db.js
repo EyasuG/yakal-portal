@@ -129,7 +129,9 @@ export function LocalDriver() {
     // ---- diagnostics ----
     async saveDiagnostic(payload) {
       S.diagnostics = S.diagnostics || [];
-      const row = { id: 'diag-' + Date.now(), created_at: new Date().toISOString(), tutor_id: me?.id || null, ...payload };
+      const isStudent = me?.role === 'student';
+      const sid = isStudent ? (studentOfUser() || {}).id || null : null;
+      const row = { ...payload, id: 'diag-' + Date.now(), created_at: new Date().toISOString(), tutor_id: isStudent ? null : (me?.id || null), student_id: isStudent ? sid : (payload.student_id || null) };
       S.diagnostics.push(row); save();
       return row.id;
     },
@@ -513,9 +515,13 @@ export async function SupabaseDriver() {
     },
     // ---- diagnostics ----
     async saveDiagnostic(payload) {
-      const { data, error } = await sb.from('diagnostics')
-        .insert({ ...payload, org_id: prof?.org_id, tutor_id: prof?.id || null })
-        .select('id').single();
+      // A student's submission is a self-assessment tied to their own record;
+      // staff submissions capture a lead / run it for a student.
+      const isStudent = prof?.role === 'student';
+      const row = { ...payload, org_id: prof?.org_id };
+      if (isStudent) { row.student_id = await this.myStudentId(); row.tutor_id = null; }
+      else { row.tutor_id = prof?.id || null; }
+      const { data, error } = await sb.from('diagnostics').insert(row).select('id').single();
       if (error) throw new Error(error.message);
       return data.id;
     },

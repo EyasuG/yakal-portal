@@ -131,6 +131,8 @@ function DiagnosticView({ db }) {
   const [saved, setSaved] = useState(false);
 
   const v = subj ? DATA[subj] : null;
+  const me = (db && db.me) ? db.me() : null;
+  const isStudent = me?.role === 'student';
 
   function reset() {
     setStep('subject'); setSubj(null); setBandIdx(null); setQueue([]); setPos(0);
@@ -194,11 +196,13 @@ function DiagnosticView({ db }) {
   }
 
   async function save() {
-    if (!(lead.student || lead.email || lead.phone)) { window.toast?.('Add a student name or a parent contact first'); return; }
+    // Students save a self-assessment (tied to their own record by the driver);
+    // staff capture a lead and need at least a name or contact.
+    if (!isStudent && !(lead.student || lead.email || lead.phone)) { window.toast?.('Add a student name or a parent contact first'); return; }
     setSaving(true);
     try {
       await db.saveDiagnostic({
-        prospect_student: lead.student || null,
+        prospect_student: isStudent ? (me?.full_name || null) : (lead.student || null),
         prospect_parent: lead.parent || null,
         prospect_email: lead.email || null,
         prospect_phone: lead.phone || null,
@@ -216,7 +220,7 @@ function DiagnosticView({ db }) {
         status: 'new'
       });
       setSaved(true);
-      window.toast?.('Saved — this lead is now in the funnel');
+      window.toast?.(isStudent ? 'Saved — your results are shared with your tutor' : 'Saved — this lead is now in the funnel');
     } catch (e) {
       window.toast?.('Save failed: ' + (e.message || 'unknown error'));
     } finally { setSaving(false); }
@@ -226,7 +230,7 @@ function DiagnosticView({ db }) {
   if (step === 'subject') {
     return (
       <Section title="New diagnostic">
-        <p className="text-sm text-slate-500 -mt-2">Pick the subject the family came in for. Aim for 6–10 items in ~20 minutes, then read the recommendation together.</p>
+        <p className="text-sm text-slate-500 -mt-2">{isStudent ? 'Pick a subject to check your skills. About 6–10 questions, ~20 minutes — you’ll get a personalized plan at the end.' : 'Pick the subject the family came in for. Aim for 6–10 items in ~20 minutes, then read the recommendation together.'}</p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Object.entries(DATA).map(([k, s]) => (
             <button key={k} className={`${card} text-left transition hover:bg-slate-50`} onClick={() => chooseSubject(k)}>
@@ -243,7 +247,7 @@ function DiagnosticView({ db }) {
   if (step === 'band') {
     return (
       <Section title={v.name} actionLabel="← Subjects" action={reset}>
-        <p className="text-sm text-slate-500 -mt-2">Start at the student's current grade level. Ace it and you'll be offered the next level up; struggle and you can step down.</p>
+        <p className="text-sm text-slate-500 -mt-2">{isStudent ? 'Start at your current grade level. Ace it and you’ll be offered the next level up; struggle and you can step down.' : "Start at the student's current grade level. Ace it and you'll be offered the next level up; struggle and you can step down."}</p>
         <div className="space-y-3">
           {v.bands.map((b, i) => (
             <button key={i} className={`w-full rounded-3xl border p-4 text-left transition ${bandIdx === i ? 'border-teal-600 bg-teal-50' : 'border-slate-200 bg-white hover:bg-slate-50'}`} onClick={() => setBandIdx(i)}>
@@ -344,25 +348,40 @@ function DiagnosticView({ db }) {
       {c.admissions_bridge ? (
         <div className="rounded-3xl border-2 border-brand-pink bg-pink-50 p-5">
           <div className="font-semibold text-brand-pink">Admissions readiness</div>
-          <p className="mt-1 text-sm text-slate-600">This student is in the high-school window. Open the college-admissions conversation and point the family to a tier:</p>
-          <div className="mt-2 flex flex-wrap gap-2">{['Essentials · checkpoints', 'Premier · full-process', 'Elite · concierge'].map((t) => <span key={t} className="rounded-full border border-brand-pink bg-white px-3 py-1 text-xs font-semibold text-brand-pink">{t}</span>)}</div>
-          <p className="mt-2 text-xs font-semibold text-brand-pink">Founding Family rate — 15% off any tier — closes July 31.</p>
+          {isStudent ? (
+            <p className="mt-1 text-sm text-slate-600">You&rsquo;re in the high-school window — a good time to start college planning. Explore the College section, or ask your counselor about admissions support.</p>
+          ) : (
+            <>
+              <p className="mt-1 text-sm text-slate-600">This student is in the high-school window. Open the college-admissions conversation and point the family to a tier:</p>
+              <div className="mt-2 flex flex-wrap gap-2">{['Essentials · checkpoints', 'Premier · full-process', 'Elite · concierge'].map((t) => <span key={t} className="rounded-full border border-brand-pink bg-white px-3 py-1 text-xs font-semibold text-brand-pink">{t}</span>)}</div>
+              <p className="mt-2 text-xs font-semibold text-brand-pink">Founding Family rate — 15% off any tier — closes July 31.</p>
+            </>
+          )}
         </div>
       ) : null}
       <div className={card}>
-        <div className="text-sm font-semibold text-slate-900">Family details</div>
-        <div className="text-sm text-slate-500">Capture enough to follow up. Saves this diagnostic to the funnel.</div>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          {[['student', 'Student name'], ['grade', 'Grade'], ['parent', 'Parent / guardian'], ['email', 'Parent email'], ['phone', 'Parent phone']].map(([k, label]) => (
-            <label key={k} className={k === 'phone' ? 'sm:col-span-2' : ''}>
-              <span className="mb-1 block text-xs font-semibold text-slate-600">{label}</span>
-              <input className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={lead[k]} onChange={(e) => setLead({ ...lead, [k]: e.target.value })} />
-            </label>
-          ))}
-        </div>
+        {isStudent ? (
+          <>
+            <div className="text-sm font-semibold text-slate-900">Save your results</div>
+            <div className="text-sm text-slate-500">Saves this diagnostic to your profile and shares it with your tutor so they can plan the right sessions.</div>
+          </>
+        ) : (
+          <>
+            <div className="text-sm font-semibold text-slate-900">Family details</div>
+            <div className="text-sm text-slate-500">Capture enough to follow up. Saves this diagnostic to the funnel.</div>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              {[['student', 'Student name'], ['grade', 'Grade'], ['parent', 'Parent / guardian'], ['email', 'Parent email'], ['phone', 'Parent phone']].map(([k, label]) => (
+                <label key={k} className={k === 'phone' ? 'sm:col-span-2' : ''}>
+                  <span className="mb-1 block text-xs font-semibold text-slate-600">{label}</span>
+                  <input className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" value={lead[k]} onChange={(e) => setLead({ ...lead, [k]: e.target.value })} />
+                </label>
+              ))}
+            </div>
+          </>
+        )}
         <div className="mt-4 flex items-center gap-3">
-          <button className={`${pill} bg-teal-600 text-white disabled:opacity-40`} disabled={saving || saved} onClick={save}>{saved ? 'Saved ✓' : saving ? 'Saving…' : 'Save to funnel'}</button>
-          {saved ? <span className="text-sm font-medium text-green-600">This lead is now in the Sales funnel.</span> : null}
+          <button className={`${pill} bg-teal-600 text-white disabled:opacity-40`} disabled={saving || saved} onClick={save}>{saved ? 'Saved ✓' : saving ? 'Saving…' : (isStudent ? 'Save my results' : 'Save to funnel')}</button>
+          {saved ? <span className="text-sm font-medium text-green-600">{isStudent ? 'Shared with your tutor.' : 'This lead is now in the Sales funnel.'}</span> : null}
         </div>
       </div>
     </Section>
