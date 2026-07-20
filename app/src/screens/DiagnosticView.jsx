@@ -16,24 +16,24 @@ const DATA = {
       { q: 'How many tens are in 60?', a: '6', skill: 'Place value', ch: ['6', '60', '16', '0'] } ] },
     { label: 'Gr 3–5', name: 'Operations & fractions', items: [
       { q: '6 × 7 = ?', a: '42', skill: 'Multiplication facts', ch: ['42', '48', '36', '49'] },
-      { q: 'What is 3/4 + 1/4?', a: '1 (one whole)', skill: 'Fraction addition', ch: ['4/8', '1', '3/8', '1/2'] },
+      { q: 'What is 3/4 + 1/4?', a: '1', skill: 'Fraction addition', ch: ['4/8', '1', '3/8', '1/2'] },
       { q: '56 ÷ 8 = ?', a: '7', skill: 'Division', ch: ['6', '7', '8', '9'] },
       { q: 'Which is larger: 0.5 or 0.35?', a: '0.5', skill: 'Decimal comparison', ch: ['0.5', '0.35', 'equal'] },
-      { q: 'Area of a 4 × 6 rectangle?', a: '24 square units', skill: 'Area', ch: ['10', '20', '24', '46'] },
+      { q: 'Area of a 4 × 6 rectangle?', a: '24', skill: 'Area', ch: ['10', '20', '24', '46'] },
       { q: 'Round 472 to the nearest hundred.', a: '500', skill: 'Rounding', ch: ['400', '470', '500', '480'] } ] },
     { label: 'Gr 6–8', name: 'Pre-algebra', items: [
-      { q: 'Solve for x:  3x + 5 = 20', a: 'x = 5', skill: 'Linear equations', ch: ['x=5', 'x=15', 'x=45', 'x=3'] },
+      { q: 'Solve for x:  3x + 5 = 20', a: 'x=5', skill: 'Linear equations', ch: ['x=5', 'x=15', 'x=45', 'x=3'] },
       { q: 'What is 20% of 150?', a: '30', skill: 'Percent', ch: ['15', '30', '20', '75'] },
       { q: 'Simplify:  −3 + 8 − 5', a: '0', skill: 'Integer operations', ch: ['0', '−6', '6', '10'] },
       { q: 'Ratio 2:3. If 2 corresponds to 8, what does 3 correspond to?', a: '12', skill: 'Proportional reasoning', ch: ['9', '12', '6', '18'] },
       { q: 'Evaluate  2³ + 4', a: '12', skill: 'Exponents', ch: ['10', '12', '14', '64'] },
       { q: 'Slope of the line through (1, 2) and (3, 8)?', a: '3', skill: 'Slope', ch: ['2', '3', '4', '6'] } ] },
     { label: 'Gr 8–10', name: 'Algebra I & Geometry', items: [
-      { q: 'Factor:  x² + 5x + 6', a: '(x + 2)(x + 3)', skill: 'Factoring quadratics', ch: ['(x+2)(x+3)', '(x+1)(x+6)', '(x+5)(x+1)', '(x−2)(x−3)'] },
-      { q: 'Solve:  x² − 9 = 0', a: 'x = 3 or x = −3', skill: 'Solving quadratics', ch: ['x=3 only', 'x=±3', 'x=9', 'x=±9'] },
+      { q: 'Factor:  x² + 5x + 6', a: '(x+2)(x+3)', skill: 'Factoring quadratics', ch: ['(x+2)(x+3)', '(x+1)(x+6)', '(x+5)(x+1)', '(x−2)(x−3)'] },
+      { q: 'Solve:  x² − 9 = 0', a: 'x=±3', skill: 'Solving quadratics', ch: ['x=3 only', 'x=±3', 'x=9', 'x=±9'] },
       { q: 'Right triangle with legs 3 and 4 — length of hypotenuse?', a: '5', skill: 'Pythagorean theorem', ch: ['5', '7', '6', '12'] },
-      { q: 'Line through (0, −1) with slope 2 — slope-intercept form?', a: 'y = 2x − 1', skill: 'Linear graphing', ch: ['y=2x−1', 'y=2x+1', 'y=−x+2', 'y=x−1'] },
-      { q: 'Solve the system:  y = x + 1  and  y = 2x − 3', a: 'x = 4, y = 5', skill: 'Systems of equations', ch: ['(4, 5)', '(2, 3)', '(1, 2)', '(3, 4)'] },
+      { q: 'Line through (0, −1) with slope 2 — slope-intercept form?', a: 'y=2x−1', skill: 'Linear graphing', ch: ['y=2x−1', 'y=2x+1', 'y=−x+2', 'y=x−1'] },
+      { q: 'Solve the system:  y = x + 1  and  y = 2x − 3', a: '(4, 5)', skill: 'Systems of equations', ch: ['(4, 5)', '(2, 3)', '(1, 2)', '(3, 4)'] },
       { q: 'Area of a circle with radius 5 (in terms of π)?', a: '25π', skill: 'Circle geometry', ch: ['10π', '25π', '5π', '50π'] } ] } ] },
   ela: { name: 'K–12 ELA', blurb: 'Phonics → rhetoric & analysis', bands: [
     { label: 'Gr 1–2', name: 'Early reading', items: [
@@ -45,7 +45,7 @@ const DATA = {
     { label: 'Gr 3–5', name: 'Comprehension', items: [
       { q: 'A paragraph describes how bees make honey step by step. Its main idea?', a: 'How bees make honey', skill: 'Main idea', ch: ['Bees are yellow', 'How bees make honey', 'Honey is sweet', 'Flowers bloom'] },
       { q: 'Which is a synonym for “happy”?', a: 'joyful', skill: 'Vocabulary', ch: ['angry', 'joyful', 'tired', 'quiet'] },
-      { q: 'Fix this sentence:  “Me and him went to the store.”', a: '“He and I went to the store.”', skill: 'Grammar: pronouns', ch: ['“Him and me went…”', '“He and I went…”', '“Me and he went…”', 'already correct'] },
+      { q: 'Fix this sentence:  “Me and him went to the store.”', a: '“He and I went…”', skill: 'Grammar: pronouns', ch: ['“Him and me went…”', '“He and I went…”', '“Me and he went…”', 'already correct'] },
       { q: 'In the word “redo,” what does the prefix “re-” mean?', a: 'again', skill: 'Morphology', ch: ['not', 'again', 'before', 'under'] },
       { q: 'A text explaining how to plant a seed is written mainly to…', a: 'inform', skill: "Author's purpose", ch: ['entertain', 'inform', 'persuade', 'frighten'] } ] },
     { label: 'Gr 6–8', name: 'Analysis & mechanics', items: [
@@ -53,17 +53,17 @@ const DATA = {
       { q: 'Which uses a semicolon correctly?', a: '“I was late; the bus never came.”', skill: 'Mechanics: semicolons', ch: ['“I was late; because…”', '“I was late; the bus never came.”', '“I was; late.”', '“I; was late.”'] },
       { q: 'Which word has a more negative connotation: “cheap” or “affordable”?', a: 'cheap', skill: 'Connotation & diction', ch: ['cheap', 'affordable', 'same', 'neither'] },
       { q: 'To support a claim, you should cite…', a: 'specific evidence from the text', skill: 'Textual evidence', ch: ['your opinion', 'a guess', 'specific evidence from the text', 'the title'] },
-      { q: 'Fix the run-on:  “I like to read I go to the library often.”', a: 'Two sentences, or join with a conjunction/semicolon', skill: 'Sentence structure', ch: ["It's fine", 'Add a period or semicolon after “read”', 'Add more commas', 'Remove “I”'] } ] },
+      { q: 'Fix the run-on:  “I like to read I go to the library often.”', a: 'Add a period or semicolon after “read”', skill: 'Sentence structure', ch: ["It's fine", 'Add a period or semicolon after “read”', 'Add more commas', 'Remove “I”'] } ] },
     { label: 'Gr 9–12', name: 'Rhetoric & argument', items: [
       { q: '“The wind whispered through the trees.” — What device is this?', a: 'personification', skill: 'Figurative language', ch: ['simile', 'personification', 'hyperbole', 'alliteration'] },
       { q: 'Which is an arguable thesis?', a: '“Schools should replace letter grades with narrative feedback.”', skill: 'Argumentation', ch: ['“The sky is blue.”', '“Schools should replace letter grades with narrative feedback.”', '“This essay is about school.”', '“Grades exist.”'] },
-      { q: 'A passage uses short, clipped sentences in a chase scene. This creates a tone of…', a: 'tension / urgency', skill: 'Tone & style', ch: ['calm', 'tension/urgency', 'humor', 'boredom'] },
-      { q: 'Fix the comma splice:  “The results were clear, we had to act.”', a: 'Use a semicolon or period: “…clear; we had to act.”', skill: 'Mechanics: comma splice', ch: ["It's correct", '“…clear; we had to act.”', 'Add a comma', 'Remove “clear”'] },
-      { q: 'In an argumentative essay, the second paragraph most likely functions to…', a: 'develop the first supporting reason with evidence', skill: 'Text structure', ch: ['restate the title', 'develop a supporting reason with evidence', 'end the essay', 'list the author'] } ] } ] },
+      { q: 'A passage uses short, clipped sentences in a chase scene. This creates a tone of…', a: 'tension/urgency', skill: 'Tone & style', ch: ['calm', 'tension/urgency', 'humor', 'boredom'] },
+      { q: 'Fix the comma splice:  “The results were clear, we had to act.”', a: '“…clear; we had to act.”', skill: 'Mechanics: comma splice', ch: ["It's correct", '“…clear; we had to act.”', 'Add a comma', 'Remove “clear”'] },
+      { q: 'In an argumentative essay, the second paragraph most likely functions to…', a: 'develop a supporting reason with evidence', skill: 'Text structure', ch: ['restate the title', 'develop a supporting reason with evidence', 'end the essay', 'list the author'] } ] } ] },
   physics: { name: 'Physics', blurb: 'Kinematics → energy & vectors', bands: [
     { label: 'Core', name: 'Mechanics fundamentals', items: [
       { q: 'A car travels 60 m in 3 s. Average speed?', a: '20 m/s', skill: 'Kinematics', ch: ['20 m/s', '180 m/s', '30 m/s', '2 m/s'] },
-      { q: 'What are the SI units of force?', a: 'Newton (kg·m/s²)', skill: 'Units & dimensions', ch: ['Joule', 'Newton', 'Watt', 'Pascal'] },
+      { q: 'What are the SI units of force?', a: 'Newton', skill: 'Units & dimensions', ch: ['Joule', 'Newton', 'Watt', 'Pascal'] },
       { q: 'A net force of 10 N acts on a 2 kg mass. Acceleration?', a: '5 m/s²', skill: "Newton's 2nd law", ch: ['5 m/s²', '20 m/s²', '0.2 m/s²', '12 m/s²'] },
       { q: 'An object is dropped from rest. Speed after 2 s (g ≈ 10 m/s²)?', a: '20 m/s', skill: 'Free fall', ch: ['10 m/s', '20 m/s', '5 m/s', '40 m/s'] },
       { q: 'Kinetic energy of a 2 kg object at 3 m/s?', a: '9 J', skill: 'Energy', ch: ['6 J', '9 J', '18 J', '3 J'] },
@@ -72,17 +72,17 @@ const DATA = {
     { label: 'Core', name: 'Functions & trig', items: [
       { q: 'If f(x) = x² − 1, what is f(3)?', a: '8', skill: 'Function evaluation', ch: ['8', '9', '5', '10'] },
       { q: 'Evaluate  log₂(8).', a: '3', skill: 'Logarithms', ch: ['2', '3', '4', '8'] },
-      { q: 'What is the domain of  f(x) = 1/(x − 2)?', a: 'all real x except x = 2', skill: 'Domain & range', ch: ['all reals', 'x ≠ 2', 'x > 2', 'x ≠ 0'] },
+      { q: 'What is the domain of  f(x) = 1/(x − 2)?', a: 'x ≠ 2', skill: 'Domain & range', ch: ['all reals', 'x ≠ 2', 'x > 2', 'x ≠ 0'] },
       { q: 'sin(30°) = ?', a: '1/2', skill: 'Trigonometry', ch: ['1/2', '√3/2', '1', '0'] },
-      { q: 'Solve:  2ˣ = 16', a: 'x = 4', skill: 'Exponential equations', ch: ['x=3', 'x=4', 'x=8', 'x=2'] },
-      { q: 'Simplify:  (x² − 1)/(x − 1)', a: 'x + 1  (for x ≠ 1)', skill: 'Rational expressions', ch: ['x−1', 'x+1', 'x²', '1'] },
+      { q: 'Solve:  2ˣ = 16', a: 'x=4', skill: 'Exponential equations', ch: ['x=3', 'x=4', 'x=8', 'x=2'] },
+      { q: 'Simplify:  (x² − 1)/(x − 1)', a: 'x+1', skill: 'Rational expressions', ch: ['x−1', 'x+1', 'x²', '1'] },
       { q: 'On the unit circle, cos(π) = ?', a: '−1', skill: 'Radians & unit circle', ch: ['0', '1', '−1', '1/2'] } ] } ] },
   calc: { name: 'Calculus', blurb: 'Limits, derivatives, integrals', bands: [
     { label: 'Core', name: 'Differential & integral', items: [
       { q: 'Find  d/dx [x³].', a: '3x²', skill: 'Power rule', ch: ['3x²', 'x²', '3x', 'x⁴/4'] },
       { q: 'Evaluate  lim(x→0) sin(x)/x.', a: '1', skill: 'Limits', ch: ['0', '1', '∞', 'undefined'] },
       { q: 'What is the derivative of  sin(x)?', a: 'cos(x)', skill: 'Trig derivatives', ch: ['cos(x)', '−cos(x)', '−sin(x)', 'tan(x)'] },
-      { q: 'Evaluate  ∫ 2x dx.', a: 'x² + C', skill: 'Antiderivatives', ch: ['x²+C', '2+C', 'x+C', '2x²+C'] },
+      { q: 'Evaluate  ∫ 2x dx.', a: 'x²+C', skill: 'Antiderivatives', ch: ['x²+C', '2+C', 'x+C', '2x²+C'] },
       { q: 'Find  d/dx [eˣ].', a: 'eˣ', skill: 'Exponential derivatives', ch: ['eˣ', 'x·eˣ⁻¹', '1', 'e'] },
       { q: 'Slope of the tangent to y = x² at x = 2?', a: '4', skill: 'Derivative applications', ch: ['2', '4', '8', '1'] },
       { q: 'Product rule:  d/dx [x·cos(x)].', a: 'cos(x) − x·sin(x)', skill: 'Product rule', ch: ['−sin(x)', 'cos(x) − x·sin(x)', 'cos(x)+x·sin(x)', 'x·sin(x)'] } ] } ] },
@@ -90,9 +90,9 @@ const DATA = {
     { label: 'Core', name: 'Foundations', items: [
       { q: 'What is the chemical symbol for sodium?', a: 'Na', skill: 'Element symbols', ch: ['So', 'Na', 'S', 'Sd'] },
       { q: 'How many protons are in a carbon atom (atomic number 6)?', a: '6', skill: 'Atomic structure', ch: ['6', '12', '4', '8'] },
-      { q: 'Balance:  H₂ + O₂ → H₂O.  Coefficient on H₂O?', a: '2  (2H₂ + O₂ → 2H₂O)', skill: 'Balancing equations', ch: ['1', '2', '3', '4'] },
+      { q: 'Balance:  H₂ + O₂ → H₂O.  Coefficient on H₂O?', a: '2', skill: 'Balancing equations', ch: ['1', '2', '3', '4'] },
       { q: 'A solution with pH 7 is…', a: 'neutral', skill: 'Acids & bases', ch: ['acidic', 'basic', 'neutral', 'unstable'] },
-      { q: 'Molar mass of H₂O (H = 1, O = 16 g/mol)?', a: '18 g/mol', skill: 'Moles & molar mass', ch: ['17', '18', '16', '34'] },
+      { q: 'Molar mass of H₂O (H = 1, O = 16 g/mol)?', a: '18', skill: 'Moles & molar mass', ch: ['17', '18', '16', '34'] },
       { q: 'Two nonmetals sharing electrons form what bond?', a: 'covalent', skill: 'Chemical bonding', ch: ['ionic', 'covalent', 'metallic', 'hydrogen'] },
       { q: 'In NaCl, what is the charge on the sodium ion?', a: '+1', skill: 'Ions', ch: ['+1', '−1', '+2', '0'] } ] } ] }
 };
@@ -123,7 +123,7 @@ function DiagnosticView({ db }) {
   const [queue, setQueue] = useState([]);
   const [pos, setPos] = useState(0);
   const [results, setResults] = useState([]);
-  const [revealed, setRevealed] = useState(false);
+  const [picked, setPicked] = useState(null); // the choice clicked for the current question
   const [extend, setExtend] = useState(null);
   const [computed, setComputed] = useState(null);
   const [lead, setLead] = useState({ student: '', grade: '', parent: '', email: '', phone: '' });
@@ -134,19 +134,26 @@ function DiagnosticView({ db }) {
 
   function reset() {
     setStep('subject'); setSubj(null); setBandIdx(null); setQueue([]); setPos(0);
-    setResults([]); setRevealed(false); setExtend(null); setComputed(null);
+    setResults([]); setPicked(null); setExtend(null); setComputed(null);
     setLead({ student: '', grade: '', parent: '', email: '', phone: '' }); setSaved(false);
   }
   function chooseSubject(k) { setSubj(k); setBandIdx(null); setStep('band'); }
   function bandItems(sk, i) { return DATA[sk].bands[i].items.map((it) => ({ ...it, bandIdx: i })); }
-  function begin() { setQueue(bandItems(subj, bandIdx)); setPos(0); setResults([]); setRevealed(false); setStep('run'); }
+  function begin() { setQueue(bandItems(subj, bandIdx)); setPos(0); setResults([]); setPicked(null); setStep('run'); }
 
+  // The student (or the tutor on their behalf) clicks a choice; it is graded
+  // against the validated correct answer and fed into the mastery result.
+  function choose(c) { if (picked === null) setPicked(c); }
+  function next() {
+    const q = queue[pos];
+    mark(picked === q.a ? 'c' : 'x');
+    setPicked(null);
+  }
   function mark(m) {
     const q = queue[pos];
-    const next = [...results, { ...q, mark: m }];
-    setResults(next);
-    setRevealed(false);
-    if (pos + 1 >= queue.length) maybeExtend(next);
+    const nextRes = [...results, { ...q, mark: m }];
+    setResults(nextRes);
+    if (pos + 1 >= queue.length) maybeExtend(nextRes);
     else setPos(pos + 1);
   }
   function bandScore(res, idx) {
@@ -165,7 +172,7 @@ function DiagnosticView({ db }) {
     if (sc.pct < 50 && hasBelow) { setExtend({ dir: 'down', to: cur - 1, pct: sc.pct }); setStep('extend'); return; }
     finish(res);
   }
-  function stepTo(i) { setBandIdx(i); setQueue(bandItems(subj, i)); setPos(0); setStep('run'); }
+  function stepTo(i) { setBandIdx(i); setQueue(bandItems(subj, i)); setPos(0); setPicked(null); setStep('run'); }
   function finish(res) {
     const pts = res.reduce((s, x) => s + (x.mark === 'c' ? 1 : x.mark === 'p' ? 0.5 : 0), 0);
     const overall = Math.round((pts / res.length) * 100);
@@ -263,17 +270,31 @@ function DiagnosticView({ db }) {
         </div>
         <div className={card}>
           <div className="text-lg font-medium text-slate-900">{q.q}</div>
-          {q.ch ? <div className="mt-3 space-y-2">{q.ch.map((c, i) => <div key={i} className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600">{c}</div>)}</div> : null}
-          {revealed
-            ? <div className="mt-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm"><b className="text-green-700">Answer:</b> {q.a}</div>
-            : <button className={`${pill} mt-3 border border-slate-200 text-slate-600`} onClick={() => setRevealed(true)}>Show answer key</button>}
+          <div className="mt-4 space-y-2">
+            {q.ch.map((c, i) => {
+              const isCorrect = c === q.a;
+              const isPicked = picked === c;
+              let cls = 'flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm transition ';
+              if (picked === null) cls += 'border-slate-200 text-slate-700 hover:border-teal-400 hover:bg-teal-50 cursor-pointer';
+              else if (isCorrect) cls += 'border-green-300 bg-green-50 text-green-800 font-semibold';
+              else if (isPicked) cls += 'border-red-300 bg-red-50 text-red-700';
+              else cls += 'border-slate-200 text-slate-400';
+              return (
+                <button key={i} type="button" disabled={picked !== null} className={cls} onClick={() => choose(c)}>
+                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-slate-100 text-xs font-bold text-slate-500">{String.fromCharCode(65 + i)}</span>
+                  <span className="grow">{c}</span>
+                  {picked !== null && isCorrect ? <span>✓</span> : picked !== null && isPicked ? <span>✕</span> : null}
+                </button>
+              );
+            })}
+          </div>
+          {picked === null
+            ? <p className="mt-3 text-sm text-slate-500">Tap the answer the student chose — it's graded automatically.</p>
+            : <div className={`mt-3 rounded-xl px-4 py-2.5 text-sm ${picked === q.a ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-800'}`}>{picked === q.a ? 'Correct — nice work.' : <>Not quite — the correct answer is <b>{q.a}</b>.</>}</div>}
         </div>
-        <p className="text-center text-sm text-slate-500">How did the student do?</p>
-        <div className="grid grid-cols-3 gap-3">
-          <button className="rounded-xl border-2 border-green-200 bg-green-50 py-3 font-semibold text-green-700" onClick={() => mark('c')}>✓ Correct</button>
-          <button className="rounded-xl border-2 border-amber-200 bg-amber-50 py-3 font-semibold text-amber-700" onClick={() => mark('p')}>~ Partial</button>
-          <button className="rounded-xl border-2 border-red-200 bg-red-50 py-3 font-semibold text-red-700" onClick={() => mark('x')}>✕ Missed</button>
-        </div>
+        {picked !== null
+          ? <button className={`${pill} bg-teal-600 text-white`} onClick={next}>{pos + 1 >= queue.length ? 'See results →' : 'Next question →'}</button>
+          : null}
       </Section>
     );
   }
