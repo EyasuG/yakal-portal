@@ -803,7 +803,7 @@ export async function SupabaseDriver() {
         if (typeof data?.reply === 'string' && data.reply.trim()) return data.reply.trim();
       } catch (error) {
         const text = assistantFallbackReply({ ...payload, role: prof?.role || payload?.role || 'student' });
-        return `${text}\n\nNote: the live AI function is not deployed yet, so you are seeing the built-in portal guide.`;
+        return `${text}\n\nNote: the live assistant provider could not be reached, so you are seeing the built-in portal guide.`;
       }
       throw new Error('The assistant returned an empty response.');
     }

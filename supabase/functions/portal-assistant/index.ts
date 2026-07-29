@@ -41,8 +41,22 @@ const VIEW_HINT: Record<string, string> = {
   child: "child detail"
 };
 
+type ProviderConfig =
+  | { provider: "groq"; apiKey: string; model: string; url: string }
+  | { provider: "openai"; apiKey: string; model: string; url: string };
+
 function asInputText(role: "assistant" | "system" | "user", text: string) {
   return { role, content: [{ type: "input_text", text }] };
+}
+
+function todayLabel() {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "America/New_York",
+  }).format(new Date());
 }
 
 function recentHistory(history: Array<{ role?: string; content?: string }> = []) {
@@ -50,6 +64,16 @@ function recentHistory(history: Array<{ role?: string; content?: string }> = [])
     .filter((item) => item && typeof item.content === "string" && item.content.trim())
     .slice(-8)
     .map((item) => asInputText(item.role === "assistant" ? "assistant" : "user", item.content!.slice(0, 4000)));
+}
+
+function recentChatHistory(history: Array<{ role?: string; content?: string }> = []) {
+  return history
+    .filter((item) => item && typeof item.content === "string" && item.content.trim())
+    .slice(-8)
+    .map((item) => ({
+      role: item.role === "assistant" ? "assistant" : "user",
+      content: item.content!.slice(0, 4000),
+    }));
 }
 
 function extractReply(data: any): string {
@@ -72,8 +96,27 @@ function extractReply(data: any): string {
   return "";
 }
 
+function extractChatReply(data: any): string {
+  const content = data?.choices?.[0]?.message?.content;
+  if (typeof content === "string" && content.trim()) return content.trim();
+
+  if (Array.isArray(content)) {
+    const text = content
+      .map((part: any) => {
+        if (typeof part === "string") return part;
+        if (typeof part?.text === "string") return part.text;
+        return "";
+      })
+      .join("")
+      .trim();
+    if (text) return text;
+  }
+
+  return "";
+}
+
 function buildSystemPrompt(role: string, name: string, activeView: string) {
-  const today = "Wednesday, July 29, 2026";
+  const today = todayLabel();
   const roleName = ROLE_LABEL[role] || "Portal user";
   const page = VIEW_HINT[activeView] || activeView || "portal";
 
@@ -108,6 +151,94 @@ Behavior rules:
 `.trim();
 }
 
+function getProviderConfig(): ProviderConfig | null {
+  const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
+  if (GROQ_API_KEY) {
+    return {
+      provider: "groq",
+      apiKey: GROQ_API_KEY,
+      model: Deno.env.get("GROQ_MODEL") || "llama-3.1-8b-instant",
+      url: "https://api.groq.com/openai/v1/chat/completions",
+    };
+  }
+
+  const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+  if (OPENAI_API_KEY) {
+    return {
+      provider: "openai",
+      apiKey: OPENAI_API_KEY,
+      model: Deno.env.get("OPENAI_MODEL") || "gpt-5.6-terra",
+      url: "https://api.openai.com/v1/responses",
+    };
+  }
+
+  return null;
+}
+
+async function requestGroqReply(provider: Extract<ProviderConfig, { provider: "groq" }>, systemPrompt: string, history: Array<{ role?: string; content?: string }>, message: string, userId: string) {
+  const groqRes = await fetch(provider.url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${provider.apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: provider.model,
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...recentChatHistory(history),
+        { role: "user", content: message },
+      ],
+      temperature: 0.2,
+      max_completion_tokens: 280,
+      user: userId,
+    }),
+  });
+
+  if (!groqRes.ok) {
+    return json(502, { error: "Groq request failed.", detail: await groqRes.text() });
+  }
+
+  const payload = await groqRes.json();
+  const reply = extractChatReply(payload);
+  if (!reply) return json(502, { error: "Assistant returned an empty Groq response." });
+
+  return json(200, { reply, model: provider.model, provider: provider.provider });
+}
+
+async function requestOpenAiReply(provider: Extract<ProviderConfig, { provider: "openai" }>, systemPrompt: string, history: Array<{ role?: string; content?: string }>, message: string) {
+  const input = [
+    asInputText("system", systemPrompt),
+    ...recentHistory(history),
+    asInputText("user", message),
+  ];
+
+  const openAiRes = await fetch(provider.url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${provider.apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: provider.model,
+      store: false,
+      input,
+      reasoning: { effort: "low" },
+      text: { verbosity: "medium" },
+    }),
+  });
+
+  if (!openAiRes.ok) {
+    return json(502, { error: "OpenAI request failed.", detail: await openAiRes.text() });
+  }
+
+  const payload = await openAiRes.json();
+  const reply = extractReply(payload);
+  if (!reply) return json(502, { error: "Assistant returned an empty OpenAI response." });
+
+  return json(200, { reply, model: provider.model, provider: provider.provider });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json(405, { error: "Use POST." });
@@ -116,11 +247,14 @@ Deno.serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
     const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
-    const OPENAI_MODEL = Deno.env.get("OPENAI_MODEL") || "gpt-5.6-terra";
     const authHeader = req.headers.get("Authorization") ?? "";
+    const provider = getProviderConfig();
 
-    if (!OPENAI_API_KEY) return json(500, { error: "OPENAI_API_KEY is not configured for portal-assistant." });
+    if (!provider) {
+      return json(500, {
+        error: "No assistant provider is configured. Add GROQ_API_KEY or OPENAI_API_KEY to portal-assistant secrets.",
+      });
+    }
 
     const asUser = createClient(SUPABASE_URL, ANON, { global: { headers: { Authorization: authHeader } } });
     const { data: { user } } = await asUser.auth.getUser();
@@ -137,36 +271,13 @@ Deno.serve(async (req) => {
 
     if (!message) return json(400, { error: "message is required." });
 
-    const input = [
-      asInputText("system", buildSystemPrompt(profile.role, profile.full_name, activeView)),
-      ...recentHistory(history),
-      asInputText("user", message),
-    ];
+    const systemPrompt = buildSystemPrompt(profile.role, profile.full_name, activeView);
 
-    const openAiRes = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: OPENAI_MODEL,
-        store: false,
-        input,
-        reasoning: { effort: "low" },
-        text: { verbosity: "medium" },
-      }),
-    });
-
-    if (!openAiRes.ok) {
-      return json(502, { error: "OpenAI request failed.", detail: await openAiRes.text() });
+    if (provider.provider === "groq") {
+      return await requestGroqReply(provider, systemPrompt, history, message, user.id);
     }
 
-    const payload = await openAiRes.json();
-    const reply = extractReply(payload);
-    if (!reply) return json(502, { error: "Assistant returned an empty response." });
-
-    return json(200, { reply, model: OPENAI_MODEL });
+    return await requestOpenAiReply(provider, systemPrompt, history, message);
   } catch (error) {
     return json(500, { error: (error as Error)?.message ?? String(error) });
   }
