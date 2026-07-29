@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { cap, initials } from '../lib/utils.js';
 
-function Sheet({ data, onClose, onSend, onPreview, onExitPreview, onBook, onSaveSchool, onSaveEssay, onRemoveEssay, onSaveAcademics, onSaveRec, onRemoveRec, role }) {
+function Sheet({ data, onClose, onSend, onAskAssistant, onPreview, onExitPreview, onBook, onSaveSchool, onSaveEssay, onRemoveEssay, onSaveAcademics, onSaveRec, onRemoveRec, role }) {
   const [draft, setDraft] = useState('');
 
   useEffect(() => {
@@ -15,16 +15,23 @@ function Sheet({ data, onClose, onSend, onPreview, onExitPreview, onBook, onSave
       <div id="sheetBack" className={`sheet-back ${data ? 'on' : ''}`} onClick={onClose} />
       <div id="sheet" className={`sheet ${data ? 'on' : ''}`}>
         <div id="sheetContent" className="mx-auto max-w-xl rounded-t-[22px] bg-white p-5 pt-4 shadow-xl">
-          {data.type === 'conversation' ? (
+          {data.type === 'conversation' || data.type === 'assistant' ? (
             <div>
               <div className="mb-4 flex items-center gap-4 border-b border-slate-200 pb-4">
-                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal-50 text-teal-700">{initials(data.conversation.withName)}</div>
+                <div className={`grid h-12 w-12 place-items-center rounded-2xl ${data.type === 'assistant' ? 'bg-amber-100 text-amber-700' : 'bg-teal-50 text-teal-700'}`}>
+                  {data.type === 'assistant' ? 'AI' : initials(data.conversation.withName)}
+                </div>
                 <div>
                   <div className="text-lg font-semibold text-slate-900">{data.conversation.withName}</div>
                   <div className="text-sm text-slate-500">{data.conversation.subject}</div>
                 </div>
                 <button className="ml-auto text-xl text-slate-400" onClick={onClose}>&times;</button>
               </div>
+              {data.type === 'assistant' ? (
+                <div className="mb-4 rounded-3xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                  Ask about portal navigation, tutoring workflows, deadlines, essays, SAT/ACT prep, or the next best step for a family.
+                </div>
+              ) : null}
               <div className="space-y-3 pb-4">
                 {data.conversation.msgs.map((msg, idx) => (
                   <div key={idx} className={`rounded-3xl p-4 ${msg.me ? 'ml-auto bg-teal-600 text-white' : 'bg-slate-100 text-slate-900'} max-w-[92%]`}>
@@ -41,26 +48,30 @@ function Sheet({ data, onClose, onSend, onPreview, onExitPreview, onBook, onSave
               ) : (
                 <div className="space-y-3">
                   <input
-                    id="msgIn"
+                    id={data.type === 'assistant' ? 'assistantIn' : 'msgIn'}
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
-                    placeholder="Write a message…"
-                    className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none"
+                    placeholder={data.type === 'assistant' ? 'Ask Yakal Assistant…' : 'Write a message…'}
+                    disabled={!!data.busy}
+                    className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-60"
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        onSend(data.cid, draft);
+                      if (e.key === 'Enter' && !data.busy) {
+                        if (data.type === 'assistant') onAskAssistant(draft);
+                        else onSend(data.cid, draft);
                         setDraft('');
                       }
                     }}
                   />
                   <button
-                    className="w-full rounded-full bg-teal-600 px-5 py-3 text-sm font-semibold text-white"
+                    disabled={!!data.busy}
+                    className="w-full rounded-full bg-teal-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
                     onClick={() => {
-                      onSend(data.cid, draft);
+                      if (data.type === 'assistant') onAskAssistant(draft);
+                      else onSend(data.cid, draft);
                       setDraft('');
                     }}
                   >
-                    Send
+                    {data.busy ? 'Thinking…' : 'Send'}
                   </button>
                 </div>
               )}

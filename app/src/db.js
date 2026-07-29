@@ -8,6 +8,51 @@ function safeJsonParse(value) {
   try { return JSON.parse(value); } catch (e) { return null; }
 }
 
+function assistantFallbackReply({ message, role, activeView }) {
+  const lower = String(message || '').toLowerCase();
+  const navByRole = {
+    student: 'Home, Sessions, Diagnostic, College, My List, My App, and Messages',
+    parent: 'Home, Children, College, Tracker, Messages, and Billing',
+    tutor: 'Today, Students, Diagnostic, Earnings, and Messages',
+    counselor: 'Home, Students, College Lists, Tracker, College, and Messages',
+    admin: 'Home, Students, Tutors, Diagnostic, College Lists, Tracker, Messages, and Trust'
+  };
+  const trackerByRole = { student: 'My App', parent: 'Tracker', tutor: 'Tracker', counselor: 'Tracker', admin: 'Tracker' };
+  const listByRole = { student: 'My List', parent: 'College', tutor: 'College Lists', counselor: 'College Lists', admin: 'College Lists' };
+  const roleLabel = role || 'student';
+  const currentView = activeView ? `Right now you're on the ${activeView} view. ` : '';
+
+  if (/deadline|due date|when is|application due|submit/.test(lower)) {
+    return `${currentView}Check ${trackerByRole[roleLabel] || 'Tracker'} for requirement status and ${listByRole[roleLabel] || 'College Lists'} for school-by-school deadlines. The home views also surface upcoming deadlines so families can see what is coming next.`;
+  }
+
+  if (/essay|personal statement|supplement|common app/.test(lower)) {
+    return `Use ${listByRole[roleLabel] || 'College Lists'} to open a school and review its supplemental essays, then use ${trackerByRole[roleLabel] || 'Tracker'} for the broader application checklist. Core essays like the personal statement sit outside a specific school, while supplements stay attached to each college.`;
+  }
+
+  if (/sat|act|test prep|practice test/.test(lower)) {
+    return `A strong next step is one timed practice test, then a review focused on pacing, missed question types, and the easiest score gains. In the portal, tutoring students can pair that with the diagnostic flow and use messages to coordinate follow-up with staff.`;
+  }
+
+  if (/billing|invoice|payment|tuition/.test(lower)) {
+    return roleLabel === 'parent'
+      ? 'Open Billing to review the latest invoice and payment history. If something looks off, use Messages to keep the conversation on-platform.'
+      : 'Billing is parent-facing in this portal. For anything account-related, point the family to Billing or keep the conversation in Messages so it stays on-platform.';
+  }
+
+  if (/book|schedule|session|zoom|meeting/.test(lower)) {
+    return roleLabel === 'tutor' || roleLabel === 'admin' || roleLabel === 'counselor'
+      ? 'Use the roster or student views to book a session. Online sessions can create a Yakal-managed video room so families stay inside the platform workflow.'
+      : 'Use Sessions or Home to check the next meeting. If you need to reschedule, keep it inside Messages so the update stays visible to the right people.';
+  }
+
+  if (/where|find|navigate|portal|page|screen|how do i/.test(lower)) {
+    return `${currentView}Your quickest navigation path is: ${navByRole[roleLabel] || navByRole.student}. Tell me what you want to do, and I can point you to the exact page and workflow.`;
+  }
+
+  return `${currentView}I can help with portal navigation, tutoring workflows, admissions timelines, essays, recommendations, SAT/ACT planning, and next steps for a family. Ask me something specific like “Where do I check deadlines?”, “How should I organize supplements?”, or “What should this student do next?”`;
+}
+
 export function LocalDriver() {
   let S, me = null;
   try { const saved = localStorage.getItem('yakal_demo'); S = saved ? safeJsonParse(saved) || seed() : seed(); } catch (e) { S = seed(); }
@@ -300,6 +345,9 @@ export function LocalDriver() {
       c.msgs.push(m);
       save();
       return flags;
+    },
+    async assistantReply(payload) {
+      return assistantFallbackReply({ ...payload, role: payload?.role || me?.role || 'student' });
     }
   };
 }
@@ -741,6 +789,23 @@ export async function SupabaseDriver() {
       const { error } = await sb.from('messages').insert({ conversation_id: cid, sender_id: prof.id, body });
       if (error) throw new Error(error.message);
       return scan(body);
+    },
+    async assistantReply(payload) {
+      try {
+        const { data, error } = await sb.functions.invoke('portal-assistant', {
+          body: {
+            ...payload,
+            role: prof?.role || payload?.role || 'student'
+          }
+        });
+        if (error) throw new Error(error.message);
+        if (data?.error) throw new Error(data.error);
+        if (typeof data?.reply === 'string' && data.reply.trim()) return data.reply.trim();
+      } catch (error) {
+        const text = assistantFallbackReply({ ...payload, role: prof?.role || payload?.role || 'student' });
+        return `${text}\n\nNote: the live AI function is not deployed yet, so you are seeing the built-in portal guide.`;
+      }
+      throw new Error('The assistant returned an empty response.');
     }
   };
 }

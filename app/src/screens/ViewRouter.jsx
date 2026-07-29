@@ -43,7 +43,7 @@ function ViewRouter({ activeView, db, viewVersion, onRefresh }) {
     case 'tearn':
       return <TutorEarningsView db={db} key={viewVersion} />;
     case 'msg':
-      return <MessagesView db={db} key={viewVersion} onOpenConvo={(id) => window.openConvo(id)} />;
+      return <MessagesView db={db} key={viewVersion} onOpenConvo={(id) => window.openConvo(id)} onOpenAssistant={() => window.openAssistant()} />;
     default:
       return <div className="rounded-3xl border border-slate-200 bg-white p-8 text-slate-600">View not found.</div>;
   }
@@ -796,7 +796,7 @@ function TutorEarningsView({ db }) {
   );
 }
 
-function MessagesView({ db, onOpenConvo }) {
+function MessagesView({ db, onOpenConvo, onOpenAssistant }) {
   const [messages, setMessages] = useState(null);
 
   useEffect(() => {
@@ -811,6 +811,16 @@ function MessagesView({ db, onOpenConvo }) {
         <h2 className="text-2xl font-semibold text-slate-900">Messages</h2>
         <p className="mt-2 text-sm text-slate-500">Follow every conversation for your role.</p>
       </div>
+      <button className="w-full rounded-3xl border border-amber-200 bg-amber-50 p-5 text-left transition hover:bg-amber-100/70" onClick={onOpenAssistant}>
+        <div className="flex items-center gap-4">
+          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-amber-100 font-semibold text-amber-700">AI</div>
+          <div className="grow">
+            <div className="font-semibold text-slate-900">Yakal Assistant</div>
+            <div className="text-sm text-slate-600">Get help with portal navigation, deadlines, essays, SAT/ACT plans, and next steps.</div>
+          </div>
+          <div className="text-sm font-semibold text-amber-700">Open</div>
+        </div>
+      </button>
       <div className="space-y-3">
         {messages.length ? messages.map((conv) => (
           <button key={conv.id} className="w-full rounded-3xl border border-slate-200 bg-white p-5 text-left transition hover:bg-slate-50" onClick={() => onOpenConvo(conv.id)}>

@@ -67,6 +67,15 @@ await check('flagged message is redacted inside the conversation', async () => {
   const rendered = msgs.map(m => m.t).join(' ');
   assert.ok(!rendered.includes('301-555-9999'), 'phone number leaked in the rendered thread');
 });
+await check('assistant gives role-aware guidance in demo mode', async () => {
+  const d = driver(); await d.signInDemo('u-amen');
+  const studentReply = await d.assistantReply({ message: 'Where do I check deadlines?', role: 'student', activeView: 'msg' });
+  assert.match(studentReply, /My App|My List/i, 'student assistant reply should point to the student tracker');
+
+  const p = driver(); await p.signInDemo('u-tigist');
+  const parentReply = await p.assistantReply({ message: 'How do I find billing?', role: 'parent', activeView: 'msg' });
+  assert.match(parentReply, /Billing/i, 'parent assistant reply should point to Billing');
+});
 
 // ---- college essays: core vs per-school, edit, and doc links ----
 await check('college list returns essays; core vs supplement split by school_id', async () => {

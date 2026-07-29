@@ -6,6 +6,9 @@ import AppShell from './screens/AppShell.jsx';
 import Sheet from './components/Sheet.jsx';
 import Toast from './components/Toast.jsx';
 
+const ASSISTANT_NAME = 'Yakal Assistant';
+const ASSISTANT_SUBJECT = 'Portal help · tutoring · admissions';
+
 const DEMO_ACCOUNTS = [
   { id: 'u-almaz', name: 'Almaz T.', role: 'Administrator', color: 'bg-slate-900' },
   { id: 'u-tigist', name: 'Tigist Worku', role: 'Parent', color: 'bg-pink-500' },
@@ -32,6 +35,27 @@ const NAV = {
   counselor: [['overview', 'Home', 'grid'], ['students', 'Students', 'student'], ['clist', 'College Lists', 'cap'], ['sadm', 'Tracker', 'cap'], ['college', 'College', 'cap'], ['msg', 'Messages', 'chat']]
 };
 
+function clockTime(date = new Date()) {
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function assistantWelcome(role, user) {
+  const first = user?.full_name?.split(' ')[0] || 'there';
+  const roleCopy = {
+    student: `Hi ${first} — I can help you navigate the portal, plan essays, think through SAT/ACT prep, and keep your application work moving.`,
+    parent: `Hi ${first} — I can help you monitor your child's portal, track deadlines, and find the right Yakal workflow for tutoring or admissions.`,
+    tutor: `Hi ${first} — I can help with portal navigation, diagnostics follow-up, tutoring workflows, and parent-safe on-platform guidance.`,
+    counselor: `Hi ${first} — I can help with tracker workflows, essays, deadlines, and how to steer families through the portal.`,
+    admin: `Hi ${first} — I can help you navigate the portal, think through tutoring or admissions workflows, and draft next steps for families or staff.`
+  };
+  return {
+    me: false,
+    who: ASSISTANT_NAME,
+    t: roleCopy[role] || roleCopy.admin,
+    time: 'Now'
+  };
+}
+
 function App() {
   const initialDb = !USE_SUPABASE ? LocalDriver() : null;
   const initialUser = initialDb?.me() || null;
@@ -50,6 +74,8 @@ function App() {
   const [studentPrograms, setStudentPrograms] = useState(null); // enrolled programs of the current student
   const [viewVersion, setViewVersion] = useState(0);
   const [sheetData, setSheetData] = useState(null);
+  const [assistantThreads, setAssistantThreads] = useState({});
+  const [assistantBusy, setAssistantBusy] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const toastTimeout = useRef(null);
 
@@ -100,6 +126,7 @@ function App() {
     window.createRoom = createRoom;
     window.openSwitch = openSwitch;
     window.sendMsg = sendMsg;
+    window.openAssistant = openAssistant;
   });
 
   // A student's enrolled programs gate the subject-mastery diagnostic (tutoring only).
@@ -221,7 +248,39 @@ function App() {
     setRole('admin');
     setRealRole('admin');
     setScreen('home');
+    setAssistantBusy(false);
     setSheetData(null);
+  }
+
+  function assistantThreadKey() {
+    return previewing ? `preview:${role}` : (user?.id || role || 'guest');
+  }
+
+  function assistantMessagesFor(key = assistantThreadKey()) {
+    return assistantThreads[key] || [assistantWelcome(role, user)];
+  }
+
+  function assistantSheet(messages, busy = assistantBusy) {
+    return {
+      type: 'assistant',
+      busy,
+      conversation: {
+        withName: ASSISTANT_NAME,
+        subject: ASSISTANT_SUBJECT,
+        readOnly: false,
+        assistant: true,
+        msgs: messages
+      }
+    };
+  }
+
+  function openAssistant() {
+    const key = assistantThreadKey();
+    const messages = assistantMessagesFor(key);
+    if (!assistantThreads[key]) {
+      setAssistantThreads((prev) => ({ ...prev, [key]: messages }));
+    }
+    setSheetData(assistantSheet(messages, assistantBusy));
   }
 
   async function openConvo(cid) {
@@ -238,6 +297,38 @@ function App() {
     const flags = await db.sendMessage(cid, body);
     if (flags && flags.length) toast('Contact info was hidden & flagged');
     await openConvo(cid);
+  }
+
+  async function askAssistant(body) {
+    if (!body?.trim()) {
+      body = document.getElementById('assistantIn')?.value;
+    }
+    if (!body?.trim() || !db?.assistantReply) return;
+
+    const key = assistantThreadKey();
+    const base = assistantMessagesFor(key);
+    const userMsg = { me: true, who: user?.full_name || 'You', t: body.trim(), time: clockTime() };
+    const pending = { me: false, who: ASSISTANT_NAME, t: 'Thinking…', time: '', pending: true };
+    const optimistic = [...base, userMsg, pending];
+
+    setAssistantBusy(true);
+    setAssistantThreads((prev) => ({ ...prev, [key]: optimistic }));
+    setSheetData(assistantSheet(optimistic, true));
+
+    try {
+      const history = base.map((msg) => ({ role: msg.me ? 'user' : 'assistant', content: msg.t }));
+      const reply = await db.assistantReply({ message: body.trim(), history, role, activeView });
+      const finalMsgs = [...base, userMsg, { me: false, who: ASSISTANT_NAME, t: reply?.text || reply, time: clockTime() }];
+      setAssistantThreads((prev) => ({ ...prev, [key]: finalMsgs }));
+      setSheetData((current) => (current?.type === 'assistant' ? assistantSheet(finalMsgs, false) : current));
+    } catch (error) {
+      const failMsgs = [...base, userMsg, { me: false, who: ASSISTANT_NAME, t: error.message || 'I could not answer that just now. Try again in a moment.', time: clockTime() }];
+      setAssistantThreads((prev) => ({ ...prev, [key]: failMsgs }));
+      setSheetData((current) => (current?.type === 'assistant' ? assistantSheet(failMsgs, false) : current));
+      toast('Assistant unavailable');
+    } finally {
+      setAssistantBusy(false);
+    }
   }
 
   async function createRoom(sessionId) {
@@ -445,6 +536,7 @@ function App() {
         data={sheetData}
         onClose={() => setSheetData(null)}
         onSend={sendMsg}
+        onAskAssistant={askAssistant}
         onPreview={preview}
         onExitPreview={exitPreview}
         onBook={doBook}
