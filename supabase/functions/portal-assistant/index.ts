@@ -157,7 +157,7 @@ function getProviderConfig(): ProviderConfig | null {
     return {
       provider: "groq",
       apiKey: GROQ_API_KEY,
-      model: Deno.env.get("GROQ_MODEL") || "llama-3.1-8b-instant",
+      model: Deno.env.get("GROQ_MODEL") || "llama-3.3-70b-versatile",
       url: "https://api.groq.com/openai/v1/chat/completions",
     };
   }
