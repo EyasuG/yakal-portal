@@ -42,11 +42,11 @@ function clockTime(date = new Date()) {
 function assistantWelcome(role, user) {
   const first = user?.full_name?.split(' ')[0] || 'there';
   const roleCopy = {
-    student: `Hi ${first} — I can help you navigate the portal, plan essays, think through SAT/ACT prep, and keep your application work moving.`,
-    parent: `Hi ${first} — I can help you monitor your child's portal, track deadlines, and find the right Yakal workflow for tutoring or admissions.`,
-    tutor: `Hi ${first} — I can help with portal navigation, diagnostics follow-up, tutoring workflows, and parent-safe on-platform guidance.`,
-    counselor: `Hi ${first} — I can help with tracker workflows, essays, deadlines, and how to steer families through the portal.`,
-    admin: `Hi ${first} — I can help you navigate the portal, think through tutoring or admissions workflows, and draft next steps for families or staff.`
+    student: `Hi ${first} - I'm Yakal AI Assistant. I'm here to support if you have any questions.\n\nI can help you navigate the portal, plan essays, think through SAT/ACT prep, and keep your application work moving.`,
+    parent: `Hi ${first} - I'm Yakal AI Assistant. I'm here to support if you have any questions.\n\nI can help you monitor your child's portal, track deadlines, and find the right Yakal workflow for tutoring or admissions.`,
+    tutor: `Hi ${first} - I'm Yakal AI Assistant. I'm here to support if you have any questions.\n\nI can help with portal navigation, diagnostics follow-up, tutoring workflows, and parent-safe on-platform guidance.`,
+    counselor: `Hi ${first} - I'm Yakal AI Assistant. I'm here to support if you have any questions.\n\nI can help with tracker workflows, essays, deadlines, and how to steer families through the portal.`,
+    admin: `Hi ${first} - I'm Yakal AI Assistant. I'm here to support if you have any questions.\n\nI can help you navigate the portal, think through tutoring or admissions workflows, and draft next steps for families or staff.`
   };
   return {
     me: false,
@@ -527,6 +527,8 @@ function App() {
         onNavigate={go}
         onLogout={logout}
         onOpenSwitch={openSwitch}
+        onOpenAssistant={openAssistant}
+        assistantOpen={sheetData?.type === 'assistant'}
         mainKey={mainKey}
         viewVersion={viewVersion}
         onRefresh={() => setViewVersion((v) => v + 1)}

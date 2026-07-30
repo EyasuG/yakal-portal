@@ -115,6 +115,57 @@ function extractChatReply(data: any): string {
   return "";
 }
 
+function faqTopics(message: string) {
+  const lower = message.toLowerCase();
+  const topics: Array<"payment" | "cancellation" | "scheduling"> = [];
+  if (/billing|invoice|payment|tuition/.test(lower)) topics.push("payment");
+  if (/cancel|cancellation|reschedule|rescheduling|late cancel|no show/.test(lower)) topics.push("cancellation");
+  if (/book|schedule|session|zoom|meeting/.test(lower)) topics.push("scheduling");
+  return topics;
+}
+
+function portalFaq(message: string, role: string) {
+  const topics = faqTopics(message);
+  if (!topics.length) return "";
+
+  const roleName = role || "student";
+  const billingLine = roleName === "parent"
+    ? "Where do I see invoices and payment history? Open Billing."
+    : "Where does the family see invoices and payment history? Billing is parent-facing in this portal.";
+  const nextMeetingLine = roleName === "student" || roleName === "parent"
+    ? "Where do I confirm the next meeting? Check Home or Sessions, then use Messages for any change request."
+    : "Where do I confirm the next meeting? Check the roster or student record before changing it.";
+
+  const lines = new Set<string>();
+
+  if (topics.includes("payment")) {
+    lines.add(billingLine);
+    lines.add("How do I ask about a charge? Use Messages so staff can review it on-platform.");
+    lines.add("Can I pay a tutor directly? No. Keep payment inside Yakal so it stays documented and protected.");
+  }
+
+  if (topics.includes("cancellation")) {
+    lines.add("How do I cancel or reschedule? Use Messages so the request stays visible to the right people.");
+    lines.add(nextMeetingLine);
+    lines.add("What if I need the exact policy on this account? Ask through Messages so staff can confirm the plan-specific details.");
+  }
+
+  if (topics.includes("scheduling")) {
+    lines.add("Where do I see the next session? Students and parents can check Home or Sessions.");
+    lines.add("How do I book or adjust a meeting? Staff can use roster or student views, and families should use Messages for change requests.");
+    lines.add("How do online meetings work? Yakal can keep the video-room workflow inside the portal.");
+  }
+
+  return `FAQ:\n- ${[...lines].join("\n- ")}`;
+}
+
+function withPortalFaq(reply: string, message: string, role: string) {
+  if (!reply.trim()) return reply;
+  if (/FAQ:/i.test(reply)) return reply;
+  const faq = portalFaq(message, role);
+  return faq ? `${reply}\n\n${faq}` : reply;
+}
+
 function buildSystemPrompt(role: string, name: string, activeView: string) {
   const today = todayLabel();
   const roleName = ROLE_LABEL[role] || "Portal user";
@@ -143,6 +194,7 @@ Behavior rules:
 - Be concise, warm, and practical.
 - Prefer the exact portal page or workflow the person should use next.
 - You may answer questions about tutoring, admissions planning, essays, SAT/ACT strategy, deadlines, recommendations, and portal navigation.
+- If the user asks about payment, billing, cancellation policy, rescheduling, or scheduling, include a short FAQ section with 2-4 practical bullets.
 - Do not invent live student data, grades, deadlines, payments, or message contents that were not provided in the prompt.
 - If a question needs staff action or verified records, say what to check in the portal and who should handle it.
 - Never encourage off-platform contact or direct payment between families and tutors.
@@ -175,7 +227,7 @@ function getProviderConfig(): ProviderConfig | null {
   return null;
 }
 
-async function requestGroqReply(provider: Extract<ProviderConfig, { provider: "groq" }>, systemPrompt: string, history: Array<{ role?: string; content?: string }>, message: string, userId: string) {
+async function requestGroqReply(provider: Extract<ProviderConfig, { provider: "groq" }>, systemPrompt: string, history: Array<{ role?: string; content?: string }>, message: string, userId: string, role: string) {
   const groqRes = await fetch(provider.url, {
     method: "POST",
     headers: {
@@ -203,10 +255,10 @@ async function requestGroqReply(provider: Extract<ProviderConfig, { provider: "g
   const reply = extractChatReply(payload);
   if (!reply) return json(502, { error: "Assistant returned an empty Groq response." });
 
-  return json(200, { reply, model: provider.model, provider: provider.provider });
+  return json(200, { reply: withPortalFaq(reply, message, role), model: provider.model, provider: provider.provider });
 }
 
-async function requestOpenAiReply(provider: Extract<ProviderConfig, { provider: "openai" }>, systemPrompt: string, history: Array<{ role?: string; content?: string }>, message: string) {
+async function requestOpenAiReply(provider: Extract<ProviderConfig, { provider: "openai" }>, systemPrompt: string, history: Array<{ role?: string; content?: string }>, message: string, role: string) {
   const input = [
     asInputText("system", systemPrompt),
     ...recentHistory(history),
@@ -236,7 +288,7 @@ async function requestOpenAiReply(provider: Extract<ProviderConfig, { provider: 
   const reply = extractReply(payload);
   if (!reply) return json(502, { error: "Assistant returned an empty OpenAI response." });
 
-  return json(200, { reply, model: provider.model, provider: provider.provider });
+  return json(200, { reply: withPortalFaq(reply, message, role), model: provider.model, provider: provider.provider });
 }
 
 Deno.serve(async (req) => {
@@ -274,10 +326,10 @@ Deno.serve(async (req) => {
     const systemPrompt = buildSystemPrompt(profile.role, profile.full_name, activeView);
 
     if (provider.provider === "groq") {
-      return await requestGroqReply(provider, systemPrompt, history, message, user.id);
+      return await requestGroqReply(provider, systemPrompt, history, message, user.id, profile.role);
     }
 
-    return await requestOpenAiReply(provider, systemPrompt, history, message);
+    return await requestOpenAiReply(provider, systemPrompt, history, message, profile.role);
   } catch (error) {
     return json(500, { error: (error as Error)?.message ?? String(error) });
   }

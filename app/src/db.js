@@ -8,6 +8,37 @@ function safeJsonParse(value) {
   try { return JSON.parse(value); } catch (e) { return null; }
 }
 
+function assistantFaq(topic, role) {
+  const roleLabel = role || 'student';
+
+  if (topic === 'payment') {
+    const billingLine = roleLabel === 'parent'
+      ? 'Where do I see invoices and payment history? Open Billing.'
+      : 'Where does the family see invoices and payment history? Billing is parent-facing in this portal.';
+
+    return `FAQ:
+- ${billingLine}
+- How do I ask about a charge? Use Messages so staff can review it on-platform.
+- Can I pay a tutor directly? No. Keep payment inside Yakal so it stays documented and protected.`;
+  }
+
+  if (topic === 'cancellation') {
+    const nextSessionLine = roleLabel === 'student' || roleLabel === 'parent'
+      ? 'Where do I confirm the next meeting? Check Home or Sessions, then use Messages for any change request.'
+      : 'Where do I confirm the next meeting? Check the roster or student record before changing it.';
+
+    return `FAQ:
+- How do I cancel or reschedule? Use Messages so the request stays visible to the right people.
+- ${nextSessionLine}
+- What if I need the exact policy on this account? Ask through Messages so staff can confirm the plan-specific details.`;
+  }
+
+  return `FAQ:
+- Where do I see the next session? Students and parents can check Home or Sessions.
+- How do I book or adjust a meeting? Staff can use roster or student views, and families should use Messages for change requests.
+- How do online meetings work? Yakal can keep the video-room workflow inside the portal.`;
+}
+
 function assistantFallbackReply({ message, role, activeView }) {
   const lower = String(message || '').toLowerCase();
   const navByRole = {
@@ -35,15 +66,21 @@ function assistantFallbackReply({ message, role, activeView }) {
   }
 
   if (/billing|invoice|payment|tuition/.test(lower)) {
-    return roleLabel === 'parent'
+    const main = roleLabel === 'parent'
       ? 'Open Billing to review the latest invoice and payment history. If something looks off, use Messages to keep the conversation on-platform.'
       : 'Billing is parent-facing in this portal. For anything account-related, point the family to Billing or keep the conversation in Messages so it stays on-platform.';
+    return `${main}\n\n${assistantFaq('payment', roleLabel)}`;
+  }
+
+  if (/cancel|cancellation|reschedule|rescheduling|late cancel|no show/.test(lower)) {
+    return `The safest path is to keep cancellation or rescheduling inside Messages so staff can confirm the change and the correct policy for that family.\n\n${assistantFaq('cancellation', roleLabel)}`;
   }
 
   if (/book|schedule|session|zoom|meeting/.test(lower)) {
-    return roleLabel === 'tutor' || roleLabel === 'admin' || roleLabel === 'counselor'
+    const main = roleLabel === 'tutor' || roleLabel === 'admin' || roleLabel === 'counselor'
       ? 'Use the roster or student views to book a session. Online sessions can create a Yakal-managed video room so families stay inside the platform workflow.'
       : 'Use Sessions or Home to check the next meeting. If you need to reschedule, keep it inside Messages so the update stays visible to the right people.';
+    return `${main}\n\n${assistantFaq('scheduling', roleLabel)}`;
   }
 
   if (/where|find|navigate|portal|page|screen|how do i/.test(lower)) {

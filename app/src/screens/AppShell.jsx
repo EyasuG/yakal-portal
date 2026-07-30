@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import ViewRouter from './ViewRouter.jsx';
 import { initials, svgIc, greetMessage, cap } from '../lib/utils.js';
+import AssistantAvatar from '../components/AssistantAvatar.jsx';
 
-function AppShell({ visible, user, role, previewing, activeView, navItems, onNavigate, onLogout, onOpenSwitch, mainKey, viewVersion, onRefresh, db }) {
+function AppShell({ visible, user, role, previewing, activeView, navItems, onNavigate, onLogout, onOpenSwitch, onOpenAssistant, assistantOpen, mainKey, viewVersion, onRefresh, db }) {
   const currentNav = navItems || NAV[role] || NAV.admin;
   const [unread, setUnread] = useState(0);
+  const [showAssistantIntro, setShowAssistantIntro] = useState(true);
   useEffect(() => { let on = true; if (db && db.notifications) db.notifications().then((r) => { if (on) setUnread(r.unread); }).catch(() => {}); return () => { on = false; }; }, [activeView, viewVersion, db]);
+  useEffect(() => { setShowAssistantIntro(true); }, [user?.id, role, previewing]);
   const activeItem = currentNav.find((item) => item[0] === activeView) || currentNav[0];
   const greetText = activeView === currentNav[0][0] ? greetMessage() : ROLE_HI[role];
   const greetName = activeView === currentNav[0][0] ? user?.full_name || '—' : currentNav.find((item) => item[0] === activeView)?.[1] || '';
@@ -51,6 +54,60 @@ function AppShell({ visible, user, role, previewing, activeView, navItems, onNav
           </div>
         </main>
       </div>
+      {visible && !assistantOpen ? (
+        <AssistantLiveBubble
+          showIntro={showAssistantIntro}
+          onDismissIntro={() => setShowAssistantIntro(false)}
+          onOpen={() => {
+            setShowAssistantIntro(false);
+            onOpenAssistant();
+          }}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function AssistantLiveBubble({ showIntro, onDismissIntro, onOpen }) {
+  return (
+    <div className="pointer-events-none fixed bottom-5 right-5 z-30 flex max-w-[calc(100vw-2rem)] items-end gap-3">
+      {showIntro ? (
+        <div className="pointer-events-auto hidden w-[300px] rounded-[28px] border border-amber-200 bg-white/96 p-4 text-slate-700 shadow-2xl backdrop-blur sm:block">
+          <div className="flex items-start gap-3">
+            <AssistantAvatar size="sm" />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start gap-3">
+                <div>
+                  <div className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-700">Live help</div>
+                  <div className="mt-1 text-lg font-semibold text-slate-900">Yakal AI Assistant</div>
+                </div>
+                <button className="ml-auto rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600" onClick={onDismissIntro} aria-label="Dismiss live help intro">
+                  &times;
+                </button>
+              </div>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                Hi, I&apos;m Yakal AI Assistant. I&apos;m here to support if you have any questions.
+              </p>
+              <p className="mt-2 text-sm leading-6 text-slate-500">
+                Ask me about scheduling, billing, cancellation policy, deadlines, essays, or next steps for a family.
+              </p>
+              <button className="mt-4 rounded-full bg-teal-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-teal-700" onClick={onOpen}>
+                Ask a question
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      <button className="pointer-events-auto flex items-center gap-3 rounded-full border border-amber-200 bg-white px-3 py-3 shadow-xl transition hover:-translate-y-0.5 hover:shadow-2xl" onClick={onOpen} aria-label="Open Yakal AI Assistant">
+        <AssistantAvatar size="sm" />
+        <div className="hidden text-left sm:block">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            Live assistance
+          </div>
+          <div className="mt-0.5 text-sm font-semibold text-slate-900">Ask Yakal AI Assistant</div>
+        </div>
+      </button>
     </div>
   );
 }

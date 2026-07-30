@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Section from '../components/Section.jsx';
+import AssistantAvatar from '../components/AssistantAvatar.jsx';
 import CollegeAdmissionsView from './CollegeAdmissionsView.jsx';
 import CollegeListView from './CollegeListView.jsx';
 import ChildDetailView from './ChildDetailView.jsx';
@@ -813,10 +814,10 @@ function MessagesView({ db, onOpenConvo, onOpenAssistant }) {
       </div>
       <button className="w-full rounded-3xl border border-amber-200 bg-amber-50 p-5 text-left transition hover:bg-amber-100/70" onClick={onOpenAssistant}>
         <div className="flex items-center gap-4">
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-amber-100 font-semibold text-amber-700">AI</div>
+          <AssistantAvatar size="md" />
           <div className="grow">
             <div className="font-semibold text-slate-900">Yakal AI Assistant</div>
-            <div className="text-sm text-slate-600">Get help with portal navigation, deadlines, essays, SAT/ACT plans, and next steps.</div>
+            <div className="text-sm text-slate-600">Get live help with deadlines, essays, billing, scheduling, cancellation policy, and next steps.</div>
           </div>
           <div className="text-sm font-semibold text-amber-700">Open</div>
         </div>

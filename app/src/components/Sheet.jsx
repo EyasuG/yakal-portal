@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { cap, initials } from '../lib/utils.js';
+import AssistantAvatar from './AssistantAvatar.jsx';
 
 function Sheet({ data, onClose, onSend, onAskAssistant, onPreview, onExitPreview, onBook, onSaveSchool, onSaveEssay, onRemoveEssay, onSaveAcademics, onSaveRec, onRemoveRec, role }) {
   const [draft, setDraft] = useState('');
@@ -29,9 +30,11 @@ function Sheet({ data, onClose, onSend, onAskAssistant, onPreview, onExitPreview
           {data.type === 'conversation' || data.type === 'assistant' ? (
             <div className="-mx-5 -mt-4 flex min-h-0 flex-1 flex-col">
               <div className="flex shrink-0 items-center gap-4 border-b border-slate-200 bg-white px-5 pb-4 pt-4">
-                <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl font-semibold ${data.type === 'assistant' ? 'bg-amber-100 text-amber-700' : 'bg-teal-50 text-teal-700'}`}>
-                  {data.type === 'assistant' ? 'AI' : initials(data.conversation.withName)}
-                </div>
+                {data.type === 'assistant' ? <AssistantAvatar size="md" /> : (
+                  <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-teal-50 text-teal-700">
+                    {initials(data.conversation.withName)}
+                  </div>
+                )}
                 <div className="min-w-0">
                   <div className="text-lg font-semibold text-slate-900">{data.conversation.withName}</div>
                   <div className="text-sm text-slate-500">{data.conversation.subject}</div>
@@ -40,7 +43,7 @@ function Sheet({ data, onClose, onSend, onAskAssistant, onPreview, onExitPreview
               </div>
               {data.type === 'assistant' ? (
                 <div className="mx-5 mb-4 mt-4 shrink-0 rounded-3xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                  Ask about portal navigation, tutoring workflows, deadlines, essays, SAT/ACT prep, or the next best step for a family.
+                  Ask about portal navigation, tutoring workflows, deadlines, essays, billing, scheduling, or cancellation policy.
                 </div>
               ) : null}
               <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 pb-4 pr-4">
@@ -65,7 +68,7 @@ function Sheet({ data, onClose, onSend, onAskAssistant, onPreview, onExitPreview
                     id={data.type === 'assistant' ? 'assistantIn' : 'msgIn'}
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
-                    placeholder={data.type === 'assistant' ? 'Ask Yakal AI Assistant…' : 'Write a message…'}
+                    placeholder={data.type === 'assistant' ? 'Ask Yakal AI Assistant...' : 'Write a message...'}
                     disabled={!!data.busy}
                     className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-60"
                     onKeyDown={(e) => {

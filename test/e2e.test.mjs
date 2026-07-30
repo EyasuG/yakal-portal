@@ -75,6 +75,11 @@ await check('assistant gives role-aware guidance in demo mode', async () => {
   const p = driver(); await p.signInDemo('u-tigist');
   const parentReply = await p.assistantReply({ message: 'How do I find billing?', role: 'parent', activeView: 'msg' });
   assert.match(parentReply, /Billing/i, 'parent assistant reply should point to Billing');
+  assert.match(parentReply, /FAQ:/i, 'billing guidance should include a short FAQ block');
+
+  const scheduleReply = await p.assistantReply({ message: 'How do I reschedule and what is the cancellation policy?', role: 'parent', activeView: 'msg' });
+  assert.match(scheduleReply, /FAQ:/i, 'cancellation and scheduling guidance should include FAQ copy');
+  assert.match(scheduleReply, /cancel|reschedul/i, 'cancellation guidance should mention cancel or reschedule');
 });
 
 // ---- college essays: core vs per-school, edit, and doc links ----
