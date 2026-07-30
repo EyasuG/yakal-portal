@@ -813,9 +813,9 @@ function MessagesView({ db, onOpenConvo, onOpenAssistant }) {
       </div>
       <button className="w-full rounded-3xl border border-amber-200 bg-amber-50 p-5 text-left transition hover:bg-amber-100/70" onClick={onOpenAssistant}>
         <div className="flex items-center gap-4">
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-amber-100 font-semibold lowercase tracking-wide text-amber-700">yk</div>
+          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-amber-100 font-semibold text-amber-700">AI</div>
           <div className="grow">
-            <div className="font-semibold text-slate-900">yaklit</div>
+            <div className="font-semibold text-slate-900">Yakal AI Assistant</div>
             <div className="text-sm text-slate-600">Get help with portal navigation, deadlines, essays, SAT/ACT plans, and next steps.</div>
           </div>
           <div className="text-sm font-semibold text-amber-700">Open</div>

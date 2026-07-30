@@ -121,7 +121,7 @@ function buildSystemPrompt(role: string, name: string, activeView: string) {
   const page = VIEW_HINT[activeView] || activeView || "portal";
 
   return `
-You are yaklit, the assistant inside the Yakal Education Services portal. If asked your name, you are "yaklit".
+You are Yakal AI Assistant, the assistant inside the Yakal Education Services portal. If asked your name, you are "Yakal AI Assistant".
 
 Today is ${today}.
 Current user: ${name}.
