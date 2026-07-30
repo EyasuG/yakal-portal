@@ -8,35 +8,46 @@ function Sheet({ data, onClose, onSend, onAskAssistant, onPreview, onExitPreview
     setDraft('');
   }, [data]);
 
+  useEffect(() => {
+    if (!data) return undefined;
+
+    const onKey = (event) => {
+      if (event.key === 'Escape') onClose();
+    };
+
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [data, onClose]);
+
   if (!data) return null;
 
   return (
     <>
       <div id="sheetBack" className={`sheet-back ${data ? 'on' : ''}`} onClick={onClose} />
       <div id="sheet" className={`sheet ${data ? 'on' : ''}`}>
-        <div id="sheetContent" className="mx-auto max-w-xl rounded-t-[22px] bg-white p-5 pt-4 shadow-xl">
+        <div id="sheetContent" className="mx-auto flex max-h-[85vh] max-w-xl flex-col overflow-hidden rounded-t-[22px] bg-white p-5 pt-4 shadow-xl md:max-h-[88vh]">
           {data.type === 'conversation' || data.type === 'assistant' ? (
-            <div>
-              <div className="mb-4 flex items-center gap-4 border-b border-slate-200 pb-4">
-                <div className={`grid h-12 w-12 place-items-center rounded-2xl ${data.type === 'assistant' ? 'bg-amber-100 text-amber-700' : 'bg-teal-50 text-teal-700'}`}>
-                  {data.type === 'assistant' ? 'AI' : initials(data.conversation.withName)}
+            <div className="-mx-5 -mt-4 flex min-h-0 flex-1 flex-col">
+              <div className="flex shrink-0 items-center gap-4 border-b border-slate-200 bg-white px-5 pb-4 pt-4">
+                <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl font-semibold ${data.type === 'assistant' ? 'bg-amber-100 lowercase tracking-wide text-amber-700' : 'bg-teal-50 text-teal-700'}`}>
+                  {data.type === 'assistant' ? 'yk' : initials(data.conversation.withName)}
                 </div>
-                <div>
+                <div className="min-w-0">
                   <div className="text-lg font-semibold text-slate-900">{data.conversation.withName}</div>
                   <div className="text-sm text-slate-500">{data.conversation.subject}</div>
                 </div>
-                <button className="ml-auto text-xl text-slate-400" onClick={onClose}>&times;</button>
+                <button aria-label="Close panel" className="ml-auto shrink-0 rounded-full p-2 text-xl leading-none text-slate-400 transition hover:bg-slate-100 hover:text-slate-600" onClick={onClose}>&times;</button>
               </div>
               {data.type === 'assistant' ? (
-                <div className="mb-4 rounded-3xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                <div className="mx-5 mb-4 mt-4 shrink-0 rounded-3xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
                   Ask about portal navigation, tutoring workflows, deadlines, essays, SAT/ACT prep, or the next best step for a family.
                 </div>
               ) : null}
-              <div className="space-y-3 pb-4">
+              <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 pb-4 pr-4">
                 {data.conversation.msgs.map((msg, idx) => (
-                  <div key={idx} className={`rounded-3xl p-4 ${msg.me ? 'ml-auto bg-teal-600 text-white' : 'bg-slate-100 text-slate-900'} max-w-[92%]`}>
-                    <div>{msg.t}</div>
-                    <div className="mt-2 text-xs text-slate-500">{msg.time}</div>
+                  <div key={idx} className={`max-w-[92%] rounded-3xl p-4 ${msg.me ? 'ml-auto bg-teal-600 text-white' : 'bg-slate-100 text-slate-900'}`}>
+                    <div className="break-words whitespace-pre-wrap">{msg.t}</div>
+                    <div className={`mt-2 text-xs ${msg.me ? 'text-teal-100' : 'text-slate-500'}`}>{msg.time}</div>
                     {msg.flag ? (
                       <div className="mt-2 rounded-2xl bg-pink-50 px-3 py-2 text-sm text-pink-700">contact details hidden</div>
                     ) : null}
@@ -44,14 +55,17 @@ function Sheet({ data, onClose, onSend, onAskAssistant, onPreview, onExitPreview
                 ))}
               </div>
               {data.conversation.readOnly ? (
-                <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">You are monitoring this conversation (read-only).</div>
+                <div className="shrink-0 border-t border-slate-200 bg-white px-5 py-4">
+                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">You are monitoring this conversation (read-only).</div>
+                </div>
               ) : (
-                <div className="space-y-3">
+                <div className="shrink-0 border-t border-slate-200 bg-white px-5 py-4">
+                  <div className="space-y-3">
                   <input
                     id={data.type === 'assistant' ? 'assistantIn' : 'msgIn'}
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
-                    placeholder={data.type === 'assistant' ? 'Ask Yakal Assistant…' : 'Write a message…'}
+                    placeholder={data.type === 'assistant' ? 'Ask yaklit…' : 'Write a message…'}
                     disabled={!!data.busy}
                     className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-60"
                     onKeyDown={(e) => {
@@ -73,6 +87,7 @@ function Sheet({ data, onClose, onSend, onAskAssistant, onPreview, onExitPreview
                   >
                     {data.busy ? 'Thinking…' : 'Send'}
                   </button>
+                </div>
                 </div>
               )}
             </div>

@@ -6,7 +6,7 @@ import AppShell from './screens/AppShell.jsx';
 import Sheet from './components/Sheet.jsx';
 import Toast from './components/Toast.jsx';
 
-const ASSISTANT_NAME = 'Yakal Assistant';
+const ASSISTANT_NAME = 'yaklit';
 const ASSISTANT_SUBJECT = 'Portal help · tutoring · admissions';
 
 const DEMO_ACCOUNTS = [
