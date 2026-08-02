@@ -189,6 +189,28 @@ export function LocalDriver() {
       const items = ((S.collegeSchools || {})[(s || {}).id] || []).filter(x => x.deadline && new Date(x.deadline).getTime() >= now)
         .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
         .map((x, i) => { const d = Math.ceil((new Date(x.deadline) - now) / 86400000); return { id: 'n' + i, kind: 'deadline', title: `${x.school_name} — application due in ${d} day${d === 1 ? '' : 's'}`, body: `Deadline ${x.deadline}. Check your Tracker.`, read: !!(S.readNotes || {})['n' + i], when: 'today' }; });
+      // Escalate grifting (payment_handle) + disintermediation (external_platform)
+      // flags to admins and the student's parents — mirrors migration 026.
+      const isAdmin = me.role === 'admin' || me.role === 'super_admin';
+      const isParentRole = me.role === 'parent';
+      if (isAdmin || isParentRole) {
+        S.conversations.forEach((c, ci) => {
+          if (!isAdmin && !(c.student && isParentOf(c.student))) return;
+          c.msgs.forEach((m, mi) => {
+            if (!m.flag || m.from === me.id) return;
+            const grift = m.flag.includes('payment_handle');
+            const offPlatform = m.flag.includes('external_platform');
+            if (!grift && !offPlatform) return;
+            const phrase = grift && offPlatform ? 'payment solicitation and off-platform contact'
+              : grift ? 'payment solicitation' : 'an attempt to move contact off-platform';
+            const studentName = (S.students.find(x => x.id === c.student) || {}).name || 'a student';
+            const id = 'sf-' + ci + '-' + mi;
+            items.unshift(isAdmin
+              ? { id, kind: 'safety_flag', title: `Safety alert: ${studentName}`, body: `${name(m.from)} sent a message flagged for ${phrase}. Review it in Trust & Safety.`, read: !!(S.readNotes || {})[id], when: 'today' }
+              : { id, kind: 'safety_flag', title: `Safety alert in ${studentName}'s messages`, body: `A message in this conversation was flagged for ${phrase}. Yakal staff have been notified and are reviewing it. Please keep all contact and payment inside the portal.`, read: !!(S.readNotes || {})[id], when: 'today' });
+          });
+        });
+      }
       return { items, unread: items.filter(i => !i.read).length };
     },
     async markNotificationsRead() { S.readNotes = S.readNotes || {}; const s = studentOfUser(); ((S.collegeSchools || {})[(s || {}).id] || []).forEach((_, i) => { S.readNotes['n' + i] = true; }); save(); },

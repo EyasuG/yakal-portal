@@ -67,6 +67,28 @@ await check('flagged message is redacted inside the conversation', async () => {
   const rendered = msgs.map(m => m.t).join(' ');
   assert.ok(!rendered.includes('301-555-9999'), 'phone number leaked in the rendered thread');
 });
+await check('grifting + off-platform flags escalate to the student\'s parent and admins', async () => {
+  const d = driver();
+  await d.signInDemo('u-josh'); // tutor on c3 (student s-saron, parent u-tigist)
+  const flags = await d.sendMessage('c3', 'Venmo me at $tutorjosh or just text me directly to skip the fee');
+  assert.ok(flags.includes('payment_handle') && flags.includes('external_platform'), 'message should flag both grift + off-platform');
+
+  await d.signInDemo('u-tigist'); // parent of s-saron
+  const parentNotes = await d.notifications();
+  const parentAlert = parentNotes.items.find(i => i.kind === 'safety_flag');
+  assert.ok(parentAlert, 'the parent should receive a safety_flag notification');
+  assert.ok(!/tutorjosh|venmo/i.test(parentAlert.body), 'parent notification must not leak the raw handle');
+
+  await d.signInDemo('u-almaz'); // admin
+  const adminNotes = await d.notifications();
+  assert.ok(adminNotes.items.some(i => i.kind === 'safety_flag'), 'an admin should receive a safety_flag notification');
+
+  await d.signInDemo('u-sara'); // parent of a different child (s-liya)
+  const otherNotes = await d.notifications();
+  const otherAlerts = otherNotes.items.filter(i => i.kind === 'safety_flag');
+  assert.ok(otherAlerts.length > 0, 'this parent sees their own child\'s seeded off-platform alert (c4)');
+  assert.ok(!otherAlerts.some(i => /Saron/i.test(i.title + i.body)), 'a parent must not see another child\'s safety alert');
+});
 await check('assistant gives role-aware guidance in demo mode', async () => {
   const d = driver(); await d.signInDemo('u-amen');
   const studentReply = await d.assistantReply({ message: 'Where do I check deadlines?', role: 'student', activeView: 'msg' });
