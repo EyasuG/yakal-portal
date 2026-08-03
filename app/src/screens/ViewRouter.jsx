@@ -225,9 +225,18 @@ function TutorsView({ db }) {
   );
 }
 
+const FLAG_KINDS = [
+  { key: 'payment_handle', label: 'Payment / grift', chip: 'bg-amber-100 text-amber-800', ring: 'border-amber-300 bg-amber-50' },
+  { key: 'external_platform', label: 'Off-platform', chip: 'bg-pink-100 text-pink-700', ring: 'border-pink-300 bg-pink-50' },
+  { key: 'phone', label: 'Phone', chip: 'bg-teal-100 text-teal-700', ring: 'border-teal-300 bg-teal-50' },
+  { key: 'email', label: 'Email', chip: 'bg-slate-200 text-slate-700', ring: 'border-slate-300 bg-slate-50' }
+];
+const FLAG_LABEL = Object.fromEntries(FLAG_KINDS.map((k) => [k.key, k.label]));
+
 function TrustView({ db }) {
   const [flags, setFlags] = useState(null);
   const [risk, setRisk] = useState(null);
+  const [filter, setFilter] = useState('all');
 
   useEffect(() => {
     db?.adminFlags().then(setFlags).catch(() => setFlags([]));
@@ -236,26 +245,57 @@ function TrustView({ db }) {
 
   if (!flags || !risk) return <LoadingCard />;
 
+  const countOf = (key) => flags.filter((f) => (f.reasons || []).includes(key)).length;
+  const highRisk = (flags) => (flags || []).some((r) => r === 'payment_handle' || r === 'external_platform');
+  const visible = filter === 'all' ? flags : flags.filter((f) => (f.reasons || []).includes(filter));
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-semibold text-slate-900">Trust & safety</h2>
-        <p className="mt-2 text-sm text-slate-500">Messages are scanned for off-platform contact attempts. Contact details are auto-redacted for members and logged here for review.</p>
+        <p className="mt-2 text-sm text-slate-500">Messages are scanned for off-platform contact attempts. Contact details are auto-redacted for members, parents and admins are alerted, and everything is logged here for review.</p>
       </div>
-      {flags.length ? (
+
+      {/* Trend tiles */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatBox label="Total flags" value={flags.length} tone="pink" />
+        <StatBox label="Payment / grift" value={countOf('payment_handle')} tone="pink" />
+        <StatBox label="Off-platform attempts" value={countOf('external_platform')} tone="pink" />
+        <StatBox label="Flagged tutors" value={risk.length} tone="pink" />
+      </div>
+
+      {/* Category filter */}
+      <div className="flex flex-wrap gap-2">
+        <FilterChip active={filter === 'all'} onClick={() => setFilter('all')} label="All" count={flags.length} />
+        {FLAG_KINDS.map((k) => (
+          <FilterChip key={k.key} active={filter === k.key} onClick={() => setFilter(k.key)} label={k.label} count={countOf(k.key)} />
+        ))}
+      </div>
+
+      {visible.length ? (
         <div className="space-y-3">
-          {flags.map((flag, idx) => (
-            <div key={idx} className="rounded-3xl border border-pink-200 bg-pink-50 p-5">
-              <div className="font-semibold text-slate-900">{flag.who} · re {flag.student || '—'}</div>
-              <div className="mt-1 text-sm text-slate-600">{flag.time}</div>
-              <div className="mt-3 text-slate-700 italic">"{flag.excerpt}"</div>
-              <div className="mt-3 flex flex-wrap gap-2">{flag.reasons.map((reason) => <span key={reason} className="rounded-full bg-pink-100 px-3 py-1 text-xs font-semibold text-pink-700">{reason.replace('_', ' ')}</span>)}</div>
-            </div>
-          ))}
+          {visible.map((flag, idx) => {
+            const priority = highRisk(flag.reasons);
+            return (
+              <div key={idx} className={`rounded-3xl border p-5 ${priority ? 'border-pink-300 bg-pink-50' : 'border-slate-200 bg-white'}`}>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="font-semibold text-slate-900">{flag.who} · re {flag.student || '—'}</div>
+                  {priority ? <span className="shrink-0 rounded-full bg-pink-600 px-2.5 py-0.5 text-xs font-semibold text-white">Parent + admin alerted</span> : null}
+                </div>
+                <div className="mt-1 text-sm text-slate-600">{flag.time}</div>
+                <div className="mt-3 text-slate-700 italic">"{flag.excerpt}"</div>
+                <div className="mt-3 flex flex-wrap gap-2">{flag.reasons.map((reason) => {
+                  const meta = FLAG_KINDS.find((k) => k.key === reason);
+                  return <span key={reason} className={`rounded-full px-3 py-1 text-xs font-semibold ${meta ? meta.chip : 'bg-slate-100 text-slate-600'}`}>{FLAG_LABEL[reason] || reason.replace('_', ' ')}</span>;
+                })}</div>
+              </div>
+            );
+          })}
         </div>
       ) : (
-        <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-slate-600">No flags. Communications look clean.</div>
+        <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-slate-600">{filter === 'all' ? 'No flags. Communications look clean.' : `No ${FLAG_LABEL[filter] || filter} flags.`}</div>
       )}
+
       {risk.length ? (
         <div className="space-y-3">
           <div className="text-xl font-semibold text-slate-900">Tutor risk</div>
@@ -268,6 +308,14 @@ function TrustView({ db }) {
         </div>
       ) : null}
     </div>
+  );
+}
+
+function FilterChip({ active, onClick, label, count }) {
+  return (
+    <button onClick={onClick} className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold transition ${active ? 'border-pink-500 bg-pink-500 text-white' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}>
+      {label} <span className={active ? 'text-pink-100' : 'text-slate-400'}>{count}</span>
+    </button>
   );
 }
 
