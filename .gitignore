@@ -12,3 +12,7 @@ supabase/.temp/
 # Generated requirements exports (regenerate from docs/REQUIREMENTS.md)
 docs/Yakal-Requirements.pdf
 docs/Yakal-Requirements.docx
+
+# Local scratch / generated marketing artifacts (not app assets)
+tmp/
+output/
