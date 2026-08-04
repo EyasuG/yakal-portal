@@ -1,32 +1,71 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { cap, initials } from '../lib/utils.js';
 import AssistantAvatar from './AssistantAvatar.jsx';
 
+const FOCUSABLE = 'a[href],button:not([disabled]),textarea:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])';
+
 function Sheet({ data, onClose, onSend, onAskAssistant, onPreview, onExitPreview, onBook, onSaveSchool, onSaveEssay, onRemoveEssay, onSaveAcademics, onSaveRec, onRemoveRec, role }) {
   const [draft, setDraft] = useState('');
+  const sheetRef = useRef(null);
+  const returnFocusRef = useRef(null);
+  const isOpen = !!data;
 
   useEffect(() => {
     setDraft('');
   }, [data]);
 
+  // Focus management: capture the trigger, move focus into the dialog on open,
+  // and restore focus to the trigger on close. Keyed on isOpen (a boolean) so it
+  // runs exactly once per open/close, independent of prop identity churn.
   useEffect(() => {
-    if (!data) return undefined;
-
-    const onKey = (event) => {
-      if (event.key === 'Escape') onClose();
+    if (!isOpen) return undefined;
+    returnFocusRef.current = document.activeElement;
+    const container = sheetRef.current;
+    const first = container?.querySelector(FOCUSABLE);
+    (first || container)?.focus();
+    return () => {
+      const el = returnFocusRef.current;
+      if (el && typeof el.focus === 'function') el.focus();
     };
+  }, [isOpen]);
 
+  // Escape to close + Tab focus trap within the dialog.
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onKey = (event) => {
+      if (event.key === 'Escape') { onClose(); return; }
+      if (event.key !== 'Tab') return;
+      const container = sheetRef.current;
+      if (!container) return;
+      const items = [...container.querySelectorAll(FOCUSABLE)].filter((el) => el.offsetParent !== null);
+      if (!items.length) { event.preventDefault(); container.focus(); return; }
+      const firstEl = items[0];
+      const lastEl = items[items.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey && (active === firstEl || !container.contains(active))) {
+        event.preventDefault();
+        lastEl.focus();
+      } else if (!event.shiftKey && (active === lastEl || !container.contains(active))) {
+        event.preventDefault();
+        firstEl.focus();
+      }
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [data, onClose]);
+  }, [isOpen, onClose]);
 
   if (!data) return null;
+
+  const dialogLabel = data.type === 'assistant' ? 'Yakal AI Assistant'
+    : data.type === 'conversation' ? (data.conversation?.withName || 'Conversation')
+    : data.type === 'notifications' ? 'Notifications'
+    : 'Details';
 
   return (
     <>
       <div id="sheetBack" className={`sheet-back ${data ? 'on' : ''}`} onClick={onClose} />
       <div id="sheet" className={`sheet ${data ? 'on' : ''}`}>
-        <div id="sheetContent" className="mx-auto flex max-h-[85vh] max-w-xl flex-col overflow-hidden rounded-t-[22px] bg-white p-5 pt-4 shadow-xl md:max-h-[88vh]">
+        <div id="sheetContent" ref={sheetRef} role="dialog" aria-modal="true" aria-label={dialogLabel} tabIndex={-1} className="mx-auto flex max-h-[85vh] max-w-xl flex-col overflow-hidden rounded-t-[22px] bg-white p-5 pt-4 shadow-xl md:max-h-[88vh]">
           {data.type === 'conversation' || data.type === 'assistant' ? (
             <div className="-mx-5 -mt-4 flex min-h-0 flex-1 flex-col">
               <div className="flex shrink-0 items-center gap-4 border-b border-slate-200 bg-white px-5 pb-4 pt-4">
