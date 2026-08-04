@@ -108,6 +108,19 @@ await check('assistant gives role-aware guidance in demo mode', async () => {
   assert.match(scheduleReply, /FAQ:/i, 'cancellation and scheduling guidance should include FAQ copy');
   assert.match(scheduleReply, /cancel|reschedul/i, 'cancellation guidance should mention cancel or reschedule');
 });
+await check('student sessions include a Google Classroom payload for session prep', async () => {
+  const d = driver(); await d.signInDemo('u-amen');
+  const sessions = await d.studentSessions();
+  assert.ok(sessions.classroom?.launchUrl?.includes('classroom.google.com'), 'classroom launch URL should be present');
+  assert.ok((sessions.classroom?.topics || []).length >= 1, 'classroom topics should be present');
+  assert.match(sessions.upcoming[0].classroomTopic, /essay|sat|topic/i, 'upcoming session should surface a classroom topic');
+});
+await check('child overview includes Classroom prep for tutoring students', async () => {
+  const d = driver(); await d.signInDemo('u-beth');
+  const child = await d.childOverview('s-amen');
+  assert.ok(child.classroom, 'tutoring child should expose classroom prep');
+  assert.match(child.classroom.courseName, /Yakal/i, 'classroom course should be labeled');
+});
 
 // ---- college essays: core vs per-school, edit, and doc links ----
 await check('college list returns essays; core vs supplement split by school_id', async () => {

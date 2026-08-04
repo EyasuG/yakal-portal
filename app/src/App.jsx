@@ -127,6 +127,7 @@ function App() {
     window.openSwitch = openSwitch;
     window.sendMsg = sendMsg;
     window.openAssistant = openAssistant;
+    window.connectClassroom = connectClassroom;
   });
 
   // A student's enrolled programs gate the subject-mastery diagnostic (tutoring only).
@@ -134,6 +135,22 @@ function App() {
     if (role === 'student' && db && db.myPrograms) db.myPrograms().then(setStudentPrograms).catch(() => setStudentPrograms([]));
     else setStudentPrograms(null);
   }, [role, db, user]);
+
+  // Handle the Google Classroom OAuth redirect (?code=…&scope=…classroom…).
+  useEffect(() => {
+    if (!db || !db.classroomConnect) return;
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (!code || !/classroom/.test(params.get('scope') || '')) return;
+    (async () => {
+      const r = await db.classroomConnect(code);
+      const url = new URL(window.location.href);
+      ['code', 'scope', 'state', 'authuser', 'prompt'].forEach((k) => url.searchParams.delete(k));
+      window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+      if (r?.connected) { toast('Google Classroom connected.'); setViewVersion((v) => v + 1); }
+      else toast(r?.error ? `Classroom connect failed: ${r.error}` : 'Classroom connection did not complete.');
+    })();
+  }, [db, user]);
 
   let currentNav = NAV[role] || NAV.admin;
   if (role === 'student') {
@@ -490,6 +507,14 @@ function App() {
       setSheetData({ type: 'notifications', items: r.items });
       if (db.markNotificationsRead) db.markNotificationsRead().catch(() => {});
     } catch (e) { setSheetData({ type: 'notifications', items: [] }); }
+  }
+  async function connectClassroom() {
+    if (!db || !db.classroomAuthUrl) return;
+    try {
+      const r = await db.classroomAuthUrl();
+      if (r?.url) window.location.href = r.url;
+      else toast(r?.message || r?.error || 'Google Classroom connection is not available yet.');
+    } catch (e) { toast('Could not start the Google Classroom connection.'); }
   }
 
   function scrollToId(id) {

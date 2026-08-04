@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Section from '../components/Section.jsx';
 import AssistantAvatar from '../components/AssistantAvatar.jsx';
+import ClassroomPanel from '../components/ClassroomPanel.jsx';
 import CollegeAdmissionsView from './CollegeAdmissionsView.jsx';
 import CollegeListView from './CollegeListView.jsx';
 import ChildDetailView from './ChildDetailView.jsx';
@@ -394,6 +395,12 @@ function StudentSessionsView({ db }) {
               <div className="grow">
                 <div className="font-semibold text-slate-900">{sess.subject}</div>
                 <div className="text-sm text-slate-500">{sess.when} · {sess.mode}</div>
+                {sess.classroomTopic ? (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">GC topic · {sess.classroomTopic}</span>
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{sess.classroomDueSoon || 0} due soon</span>
+                  </div>
+                ) : null}
               </div>
               {sess.mode !== 'In person' ? (
                 <button className="rounded-full bg-teal-600 px-4 py-2 text-sm font-semibold text-white" onClick={() => sess.meetingUrl ? window.openMeeting(sess.meetingUrl) : window.toast('Your tutor will open the video room at session time')}>Join</button>
@@ -402,6 +409,11 @@ function StudentSessionsView({ db }) {
           )) : <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-slate-600">No upcoming sessions yet.</div>}
         </div>
       </Section>
+      {data.classroom ? (
+        <Section title="Google Classroom">
+          <ClassroomPanel classroom={data.classroom} viewer="student" />
+        </Section>
+      ) : null}
       <Section title="Past sessions">
         <div className="rounded-3xl border border-slate-200 bg-white p-4 space-y-3">{data.past.length ? data.past.map(([topic, who, when]) => <SessionRecord key={`${topic}-${when}`} topic={topic} who={who} when={when} />) : <div className="text-slate-500">No past sessions yet</div>}</div>
       </Section>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Section from '../components/Section.jsx';
+import ClassroomPanel from '../components/ClassroomPanel.jsx';
 
 function ProgBar({ label, value }) {
   return (
@@ -74,6 +75,8 @@ export default function ChildDetailView({ db }) {
               <div className="space-y-2">{data.pastSessions.map((p, i) => <div key={i} className="flex items-center justify-between text-sm"><span className="text-slate-700">{p.subject}</span><span className="text-slate-400">{p.when}</span></div>)}</div>
             </div>
           ) : null}
+
+          {data.classroom ? <ClassroomPanel classroom={data.classroom} viewer={role === 'tutor' ? 'tutor' : role === 'parent' ? 'parent' : 'student'} /> : null}
         </Section>
       ) : null}
 

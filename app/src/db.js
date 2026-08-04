@@ -3,9 +3,87 @@ import { seed, scan, redact } from './seed.js';
 export const SUPABASE_URL = 'https://kgttkhbqeyvupikgozfu.supabase.co';
 export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtndHRraGJxZXl2dXBpa2dvemZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0NTUzOTAsImV4cCI6MjA5ODAzMTM5MH0.fLAWA5WyU3UMoRvucBcXSWPgiDRZUDGh1s2U1Eu6g1I';
 export const USE_SUPABASE = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
+export const GOOGLE_CLASSROOM_URL = 'https://classroom.google.com/h/tv';
 
 function safeJsonParse(value) {
   try { return JSON.parse(value); } catch (e) { return null; }
+}
+
+function googleClassroomPreview(student, viewer = 'student') {
+  const sid = typeof student === 'string' ? student : student?.id;
+  const name = typeof student === 'object' ? student?.name || student?.full_name || '' : '';
+  const first = name.split(' ')[0] || 'Student';
+  const viewLabel = viewer === 'tutor' ? 'Tutor prep view' : viewer === 'parent' ? 'Family read-only view' : 'Student read-only view';
+  const isAdmissionsTrack = sid === 's-amen' || /amen/i.test(name);
+
+  if (isAdmissionsTrack) {
+    return {
+      connected: true,
+      sample: true,
+      launchUrl: GOOGLE_CLASSROOM_URL,
+      platform: 'Google Classroom',
+      courseName: 'Yakal College Essay & SAT Lab',
+      courseCode: 'YAK-ESSAY-SAT',
+      viewLabel,
+      nextTopic: 'Essay revision sprint',
+      dueSoon: 2,
+      missing: 1,
+      readyToReview: 2,
+      topics: [
+        {
+          id: 'gc-topic-essay',
+          title: 'Essay revision sprint',
+          summary: `${first}'s next session should focus on polishing structure, tightening evidence, and finalizing supplement drafts.`,
+          items: [
+            { id: 'gc-es-1', title: 'Common App draft 3', kind: 'Assignment', dueAt: '2026-08-06T23:59:00-04:00', status: 'due_soon', points: 25, linkUrl: GOOGLE_CLASSROOM_URL },
+            { id: 'gc-es-2', title: 'JHU supplement revision', kind: 'Assignment', dueAt: '2026-08-07T20:00:00-04:00', status: 'assigned', points: 15, linkUrl: GOOGLE_CLASSROOM_URL }
+          ]
+        },
+        {
+          id: 'gc-topic-sat',
+          title: 'SAT reading and timing',
+          summary: 'Use the session to review pacing misses and annotation choices before the next timed practice.',
+          items: [
+            { id: 'gc-sat-1', title: 'Bluebook practice set 4', kind: 'Quiz assignment', dueAt: '2026-08-08T18:00:00-04:00', status: 'turned_in', points: 20, linkUrl: GOOGLE_CLASSROOM_URL },
+            { id: 'gc-sat-2', title: 'Passage annotation check', kind: 'Question', dueAt: '2026-08-05T17:00:00-04:00', status: 'missing', points: 10, linkUrl: GOOGLE_CLASSROOM_URL }
+          ]
+        }
+      ]
+    };
+  }
+
+  return {
+    connected: true,
+    sample: true,
+    launchUrl: GOOGLE_CLASSROOM_URL,
+    platform: 'Google Classroom',
+    courseName: 'Yakal Math Mastery Studio',
+    courseCode: 'YAK-MATH-LAB',
+    viewLabel,
+    nextTopic: 'Linear equations warm-up',
+    dueSoon: 1,
+    missing: 0,
+    readyToReview: 1,
+    topics: [
+      {
+        id: 'gc-topic-math-1',
+        title: 'Linear equations warm-up',
+        summary: `${first}'s next tutoring block can start with missed-step analysis, then move into guided practice.`,
+        items: [
+          { id: 'gc-m-1', title: 'Solve and graph review', kind: 'Assignment', dueAt: '2026-08-06T19:00:00-04:00', status: 'due_soon', points: 12, linkUrl: GOOGLE_CLASSROOM_URL },
+          { id: 'gc-m-2', title: 'Quick check exit ticket', kind: 'Question', dueAt: '2026-08-05T20:00:00-04:00', status: 'graded', points: 5, linkUrl: GOOGLE_CLASSROOM_URL }
+        ]
+      },
+      {
+        id: 'gc-topic-math-2',
+        title: 'Independent practice',
+        summary: 'This bundle is good material for homework review if the student finishes the core lesson early.',
+        items: [
+          { id: 'gc-m-3', title: 'Desmos reflection', kind: 'Assignment', dueAt: '2026-08-09T17:30:00-04:00', status: 'assigned', points: 8, linkUrl: GOOGLE_CLASSROOM_URL }
+        ]
+      }
+    ]
+  };
 }
 
 function assistantFaq(topic, role) {
@@ -270,13 +348,27 @@ export function LocalDriver() {
       };
     },
     async ensureMeeting(sessionId) { return 'https://zoom.us/j/' + encodeURIComponent(sessionId); },
+    async classroomAuthUrl() { return { message: 'Connecting Google Classroom is available in the live app.' }; },
+    async classroomConnect() { return { connected: false }; },
     async studentSessions() {
       const s = studentOfUser();
-      const next = { sessionId: 'demo-' + s.id, subject: s.subjects[0], when: s.next, tutor: name(s.tutor), mode: s.mode, meetingUrl: s.meetingUrl || null };
+      const programs = s?.programs || [];
+      const classroom = programs.includes('tutoring') ? googleClassroomPreview(s, me?.role || 'student') : null;
+      const next = {
+        sessionId: 'demo-' + s.id,
+        subject: s.subjects[0],
+        when: s.next,
+        tutor: name(s.tutor),
+        mode: s.mode,
+        meetingUrl: s.meetingUrl || null,
+        classroomTopic: classroom?.nextTopic || null,
+        classroomDueSoon: classroom?.dueSoon || 0
+      };
       return {
         next,
         upcoming: [next],
-        past: (S.sessionsPast[s.id] || []).map(p => [p[0], name(p[1]), p[2]])
+        past: (S.sessionsPast[s.id] || []).map(p => [p[0], name(p[1]), p[2]]),
+        classroom
       };
     },
     async toggleHomework(i) {
@@ -340,6 +432,7 @@ export function LocalDriver() {
         id: s.id, name: s.name, grade: s.grade, programs, progress: S.progress[sid] || [],
         upcoming: programs.includes('tutoring') ? { subject: (s.subjects || [])[0] || 'Session', when: s.next, mode: s.mode } : null,
         pastSessions: (S.sessionsPast[sid] || []).map(p => ({ subject: p[0], when: p[2] })),
+        classroom: programs.includes('tutoring') ? googleClassroomPreview(s, me?.role || 'parent') : null,
         admissions, conversations: S.conversations.filter(c => c.student === sid && convVisible(c)).map(c => ({ id: c.id, subject: c.subject }))
       };
     },
@@ -425,6 +518,15 @@ export async function SupabaseDriver() {
   }
 
   await loadProfile();
+
+  // Google Classroom: fetch real coursework via the edge function. Never returns
+  // fabricated data — an unconfigured backend or unconnected student yields
+  // { connected: false } so the UI shows a connect prompt instead.
+  async function classroomFor(studentId) {
+    const { data, error } = await sb.functions.invoke('google-classroom', { body: { action: 'fetch', studentId } });
+    if (error || !data) return { connected: false, canConnect: prof?.role === 'student' };
+    return { ...data, canConnect: !data.connected && prof?.role === 'student' };
+  }
 
   return {
     mode: 'live',
@@ -684,18 +786,31 @@ export async function SupabaseDriver() {
       if (data && data.error) throw new Error(data.error);
       return data?.join_url;
     },
+    async classroomAuthUrl() {
+      const { data, error } = await sb.functions.invoke('google-classroom', { body: { action: 'auth-url' } });
+      if (error) return { error: error.message };
+      return data || {};
+    },
+    async classroomConnect(code) {
+      const { data, error } = await sb.functions.invoke('google-classroom', { body: { action: 'callback', code } });
+      if (error) return { connected: false, error: error.message };
+      return data || { connected: false };
+    },
     async studentSessions() {
-      const { data: s } = await sb.from('students').select('id,first_name').limit(1).single();
+      const { data: s } = await sb.from('students').select('id,first_name,last_name').limit(1).single();
       if (!s) return { next: null, upcoming: [], past: [] };
+      const { data: enr } = await sb.from('enrollments').select('program').eq('student_id', s.id);
       const { data: sp } = await sb.from('session_participants').select('sessions(id,mode,status,meeting_url,scheduled_start,session_type,subjects(name))').eq('student_id', s.id);
       const rows = (sp || []).map(r => r.sessions).filter(Boolean).sort((a, b) => new Date(a.scheduled_start) - new Date(b.scheduled_start));
       const TYPE = { individual: '1-on-1', group: 'Group session', camp: 'Summer camp', bootcamp: 'STEM bootcamp', math_lab: 'Math Lab' };
       const now = Date.now();
       const fmt = (d) => new Date(d).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      const programs = (enr || []).map(e => e.program);
+      const classroom = programs.includes('tutoring') ? await classroomFor(s.id) : null;
       const upcoming = rows.filter(x => new Date(x.scheduled_start).getTime() >= now && x.status !== 'canceled')
-        .map(x => ({ sessionId: x.id, subject: x.subjects?.name || TYPE[x.session_type] || 'Session', type: TYPE[x.session_type] || '1-on-1', when: fmt(x.scheduled_start), mode: x.mode === 'in_person' ? 'In person' : 'Online', meetingUrl: x.meeting_url }));
+        .map(x => ({ sessionId: x.id, subject: x.subjects?.name || TYPE[x.session_type] || 'Session', type: TYPE[x.session_type] || '1-on-1', when: fmt(x.scheduled_start), mode: x.mode === 'in_person' ? 'In person' : 'Online', meetingUrl: x.meeting_url, classroomTopic: classroom?.connected ? classroom.nextTopic : null, classroomDueSoon: classroom?.dueSoon || 0 }));
       const past = rows.filter(x => x.status === 'completed').map(x => [x.subjects?.name || TYPE[x.session_type] || 'Session', '', new Date(x.scheduled_start).toLocaleDateString()]);
-      return { next: upcoming[0] || null, upcoming, past };
+      return { next: upcoming[0] || null, upcoming, past, classroom };
     },
     async toggleHomework() {},
     async toggleAppItem() {},
@@ -807,10 +922,13 @@ export async function SupabaseDriver() {
         const dl = (schools || []).filter(x => x.deadline && new Date(x.deadline).getTime() >= now).sort((a, b) => new Date(a.deadline) - new Date(b.deadline))[0];
         admissions = { schools: (schools || []).length, submitted, nextDeadline: dl ? { school: dl.school_name, date: dl.deadline, type: dl.deadline_type } : null };
       }
+      const classroom = programs.includes('tutoring') ? await classroomFor(s.id) : null;
       return {
         id: s.id, name: `${s.first_name} ${s.last_name}`, grade: s.grade, programs, progress,
         upcoming: up ? { subject: up.subjects?.name || TYPE[up.session_type] || 'Session', when: new Date(up.scheduled_start).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }), mode: up.mode === 'in_person' ? 'In person' : 'Online' } : null,
-        pastSessions, admissions, conversations: (convos.data || []).map(c => ({ id: c.id, subject: c.subject || 'Conversation' }))
+        pastSessions,
+        classroom,
+        admissions, conversations: (convos.data || []).map(c => ({ id: c.id, subject: c.subject || 'Conversation' }))
       };
     },
     async parentBilling() {
