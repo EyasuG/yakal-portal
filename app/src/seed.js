@@ -152,5 +152,7 @@ export function scan(body) {
 export function redact(body) {
   return body
     .replace(/\+?\d[\d\s().-]{8,}\d/g, '[contact removed]')
-    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[contact removed]');
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[contact removed]')
+    // payment $handles containing a letter (keep plain dollar amounts intact)
+    .replace(/\$[a-z0-9_.]*[a-z][a-z0-9_.]*/gi, '[contact removed]');
 }

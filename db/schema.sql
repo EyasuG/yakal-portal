@@ -580,6 +580,10 @@ begin
   if new.body ~* '(venmo|cash ?app|cashapp|zelle|paypal|\$[a-z0-9]{2,})' then
     reasons := reasons || 'payment_handle'::app.flag_kind;
   end if;
+  -- redact $handles that contain a letter (keep plain dollar amounts intact)
+  if new.body ~* '\$[a-z0-9_.]*[a-z][a-z0-9_.]*' then
+    redacted := regexp_replace(redacted,'\$[a-z0-9_.]*[a-z][a-z0-9_.]*','[contact removed]','gi');
+  end if;
   -- external platforms / off-platform solicitation
   if new.body ~* '(whats ?app|telegram|signal|instagram|\bdm me\b|text me|call me|off the app|pay me directly|cash\b)' then
     reasons := reasons || 'external_platform'::app.flag_kind;

@@ -34,6 +34,11 @@ await check('redact strips contact info', () => {
   assert.ok(!out.includes('301-555-9999'), 'phone not redacted');
   assert.ok(!out.includes('beth@gmail.com'), 'email not redacted');
 });
+await check('redact masks payment handles but keeps dollar amounts', () => {
+  const out = redact('Venmo me at $joshpay for the $50 session');
+  assert.ok(!out.includes('$joshpay'), 'payment handle not redacted');
+  assert.ok(out.includes('$50'), 'plain dollar amount should be preserved');
+});
 
 // ---- student visibility: admin all, tutor scoped, student self ----
 await check('admin sees all students, tutor sees only assigned, student sees self', async () => {
